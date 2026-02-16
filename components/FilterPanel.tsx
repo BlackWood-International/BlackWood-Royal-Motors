@@ -151,13 +151,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     )}
                 </motion.button>
             </div>
-        <motion.div
-          variants={panelVariants}
-          initial="hidden"
-          animate="visible"
-          exit="hidden"
-          className="absolute left-1/2 -translate-x-1/2 top-full mt-4 w-full max-w-6xl z-40 bg-[#0f0f0f]/95 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-2xl overflow-hidden"
-        >
+        <motion.div>
 
         {/* Expanded Panel - Grid Layout */}
         <AnimatePresence>
