@@ -99,7 +99,7 @@ function App() {
          const anchor = document.getElementById('catalog-anchor');
          if (anchor) {
              if (window.scrollY > 500) {
-                 const offset = -200; 
+                 const offset = -220; // Adjusted for mobile header height
                  const bodyRect = document.body.getBoundingClientRect().top;
                  const elementRect = anchor.getBoundingClientRect().top;
                  const elementPosition = elementRect - bodyRect;
@@ -233,8 +233,8 @@ function App() {
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full flex flex-col"
             >
-                {/* FLOATING HEADER - FIXED & DISTINCT */}
-                <header className="fixed top-0 left-0 w-full z-50 pointer-events-none flex justify-between items-center px-4 py-4 md:px-8 md:py-6 bg-gradient-to-b from-black/80 via-black/40 to-transparent">
+                {/* FLOATING HEADER - MOBILE OPTIMIZED */}
+                <header className="fixed top-0 left-0 w-full z-50 pointer-events-none flex justify-between items-center px-4 py-3 md:px-8 md:py-6 bg-gradient-to-b from-black/95 via-black/80 to-transparent transition-all duration-300">
                     <button 
                         onClick={handleReturnHome}
                         className="pointer-events-auto flex items-center gap-2 pl-2 pr-4 py-2 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 text-[10px] uppercase tracking-[0.2em] font-bold text-slate-300 hover:text-white hover:border-brand-gold/50 hover:bg-black/80 transition-all group shadow-lg"
@@ -249,7 +249,7 @@ function App() {
                          <img 
                             src="https://i.imgur.com/5QiFb0Y.png" 
                             alt="Logo" 
-                            className="h-10 md:h-14 object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.8)]" 
+                            className="h-10 md:h-14 object-contain drop-shadow-[0_0_15px_rgba(0,0,0,0.8)]" 
                          />
                     </div>
                 </header>
@@ -277,16 +277,16 @@ function App() {
                         favoritesCount={favorites.length}
                     />
 
-                    {/* Contenu principal - PADDING TOP AJUSTÉ */}
-                    <main className="max-w-[1800px] mx-auto px-4 md:px-6 py-12 pt-40 md:pt-48">
+                    {/* Contenu principal - PADDING AJUSTÉ POUR MOBILE */}
+                    <main className="max-w-[1800px] mx-auto px-4 md:px-6 py-12 pt-48 md:pt-48">
                         {/* ANCRE DE CATALOGUE */}
-                        <div id="catalog-anchor" className="mb-12 flex flex-col md:flex-row md:items-end justify-between border-b border-white/5 pb-4 mx-4 scroll-mt-60">
+                        <div id="catalog-anchor" className="mb-8 md:mb-12 flex flex-col md:flex-row md:items-end justify-between border-b border-white/5 pb-4 mx-0 md:mx-4 scroll-mt-64">
                             <div>
                                 <motion.h2 
                                     initial={{ opacity: 0, x: -20 }}
                                     whileInView={{ opacity: 1, x: 0 }}
                                     viewport={{ once: true }}
-                                    className="text-3xl font-serif text-white mb-2"
+                                    className="text-2xl md:text-3xl font-serif text-white mb-2"
                                 >
                                     {showFavoritesOnly ? 'Ma Sélection Privée' : 'Catalogue Officiel'}
                                 </motion.h2>
@@ -295,7 +295,7 @@ function App() {
                                     whileInView={{ opacity: 1 }}
                                     viewport={{ once: true }}
                                     transition={{ delay: 0.2 }}
-                                    className="text-slate-500 text-sm font-light tracking-wide"
+                                    className="text-slate-500 text-xs md:text-sm font-light tracking-wide leading-relaxed"
                                 >
                                     {showFavoritesOnly 
                                         ? 'Vos véhicules d\'exception sauvegardés' 
@@ -329,13 +329,13 @@ function App() {
                             <motion.div 
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="py-32 text-center border border-dashed border-white/10 rounded-3xl bg-white/[0.02] mx-4"
+                                className="py-24 text-center border border-dashed border-white/10 rounded-3xl bg-white/[0.02] mx-0 md:mx-4"
                             >
                                 <div className="flex justify-center mb-6">
                                     {showFavoritesOnly ? <Heart className="w-16 h-16 text-brand-gold/20" /> : <AlertCircle className="w-16 h-16 text-white/20" />}
                                 </div>
-                                <p className="text-brand-gold font-serif text-3xl mb-3">Aucun véhicule trouvé</p>
-                                <p className="text-slate-500 text-sm font-mono uppercase tracking-wider mb-8">
+                                <p className="text-brand-gold font-serif text-2xl md:text-3xl mb-3">Aucun véhicule trouvé</p>
+                                <p className="text-slate-500 text-xs md:text-sm font-mono uppercase tracking-wider mb-8 px-4">
                                     {showFavoritesOnly 
                                         ? "Votre sélection privée est vide." 
                                         : "Ajustez vos filtres pour voir plus de résultats."}
