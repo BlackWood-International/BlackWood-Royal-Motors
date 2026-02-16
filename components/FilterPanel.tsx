@@ -120,8 +120,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   ];
 
   return (
-    // CONTENEUR FIXED - Z-INDEX AUGMENTÉ À 60
-    <div className="fixed top-[4.5rem] md:top-24 left-0 right-0 z-[60] w-full flex justify-center pointer-events-none px-2 sm:px-4 transition-all duration-300">
+    // CONTENEUR FIXED - Z-INDEX 90 pour être au dessus des cartes (z-50)
+    <div className="fixed top-[4.5rem] md:top-24 left-0 right-0 z-[90] w-full flex justify-center pointer-events-none px-2 sm:px-4 transition-all duration-300">
       
       <style>{`
         .hide-scrollbar::-webkit-scrollbar { display: none; }
