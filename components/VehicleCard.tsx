@@ -21,17 +21,10 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onSelect, isF
   // Fonction de nettoyage d'URL robuste
   const cleanUrl = (rawUrl: string): string => {
     if (!rawUrl) return '';
-    // Enlève les espaces, les guillemets et les sauts de ligne
     let url = rawUrl.trim().replace(/['"]/g, '');
-    
-    // Si l'URL est vide après nettoyage
     if (!url) return '';
-
-    // Si c'est une URL Fandom, on garde juste la base de l'image (avant les paramètres)
     if (url.includes('wikia') || url.includes('fandom')) {
-       // On coupe avant "/revision" si présent, sinon on garde tout
        url = url.split('/revision')[0];
-       // On coupe aussi avant un "?" éventuel pour être sûr
        url = url.split('?')[0];
     }
     return url;
@@ -51,7 +44,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onSelect, isF
           observer.disconnect();
         }
       },
-      { rootMargin: '500px 0px', threshold: 0 } // Marge réduite pour charger plus tôt
+      { rootMargin: '500px 0px', threshold: 0 }
     );
 
     if (cardRef.current) {
@@ -66,25 +59,17 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onSelect, isF
     if (!shouldLoadImage || !vehicle.image) return;
 
     const originalUrl = cleanUrl(vehicle.image);
-    
-    // 1. Essai via Proxy (plus rapide et contourne 403)
-    // On encode l'URL correctement pour le proxy
+    // Proxy pour optimiser et éviter les 403
     const proxyUrl = `https://wsrv.nl/?url=${encodeURIComponent(originalUrl)}&w=800&output=webp&il`;
-    
     setCurrentSrc(proxyUrl);
   }, [shouldLoadImage, vehicle.image]);
 
   const handleImageError = () => {
     const originalUrl = cleanUrl(vehicle.image);
-    
-    // Si le proxy échoue, on tente l'URL directe (Fallback)
     if (currentSrc.includes('wsrv.nl')) {
         console.log(`Proxy failed for ${vehicle.model}, retrying direct link...`);
         setCurrentSrc(originalUrl);
-    } 
-    // Si l'URL directe échoue aussi, on abandonne
-    else {
-        console.log(`All attempts failed for ${vehicle.model}`);
+    } else {
         setImageState('error');
     }
   };
@@ -103,15 +88,17 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onSelect, isF
     >
       <motion.div 
         whileHover={{ y: -2 }} 
-        className="relative h-full flex flex-col bg-[#0a0a0a] rounded-[2rem] overflow-hidden border border-white/5 transition-colors duration-500 group-hover:border-brand-gold/40 group-hover:shadow-2xl"
+        /* AJOUT: overflow-hidden strict et arrondi défini ici */
+        className="relative h-full flex flex-col bg-[#0a0a0a] rounded-[2rem] overflow-hidden border border-white/5 transition-colors duration-500 group-hover:border-brand-gold/40 group-hover:shadow-2xl z-0"
       >
         
         {/* Zone Image */}
-        <div className="relative w-full aspect-[16/10] overflow-hidden bg-[#050505] cursor-pointer" onClick={() => onSelect(vehicle)}>
+        {/* AJOUT: Rounded-t explicite pour forcer l'image à suivre la courbe */}
+        <div className="relative w-full aspect-[16/10] bg-[#050505] cursor-pointer rounded-t-[2rem] overflow-hidden" onClick={() => onSelect(vehicle)}>
           
           {/* Cas 1: L'image charge ou est chargée */}
           {vehicle.image && imageState !== 'error' ? (
-            <div className="w-full h-full relative">
+            <div className="w-full h-full relative overflow-hidden rounded-t-[2rem]">
                 {shouldLoadImage && (
                     <img 
                         src={currentSrc}
@@ -119,9 +106,10 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onSelect, isF
                         className={`w-full h-full object-cover transition-all duration-700 ease-out 
                             ${isHovered ? 'scale-110' : 'scale-100'} 
                             ${imageState === 'loaded' ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'}`}
+                        style={{ borderTopLeftRadius: '2rem', borderTopRightRadius: '2rem' }} /* Force inline radius */
                         onLoad={() => setImageState('loaded')}
                         onError={handleImageError}
-                        referrerPolicy="no-referrer" // CRUCIAL pour le fallback direct
+                        referrerPolicy="no-referrer"
                         loading="lazy"
                     />
                 )}
@@ -134,7 +122,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onSelect, isF
             </div>
           ) : (
             /* Cas 2: Pas d'image ou Erreur définitive */
-            <div className="absolute inset-0 flex items-center justify-center bg-[#050505] pattern-grid-lg">
+            <div className="absolute inset-0 flex items-center justify-center bg-[#050505] pattern-grid-lg rounded-t-[2rem]">
                <div className="text-center opacity-30 group-hover:opacity-60 transition-opacity duration-500">
                   <Car className="w-12 h-12 mx-auto mb-3 text-brand-gold" />
                   <span className="text-[9px] uppercase tracking-[0.3em] font-mono border border-brand-gold/30 px-3 py-1 rounded-full text-brand-gold">
