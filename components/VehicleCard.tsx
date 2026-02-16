@@ -89,23 +89,37 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
         className={`
             relative h-full flex flex-col rounded-[2rem] overflow-hidden transition-all duration-500 z-0
             ${hasBadge 
-                ? 'bg-[#0f0f0f] border border-brand-gold/60 shadow-[0_0_20px_-5px_rgba(197,160,89,0.3)]' 
+                ? 'bg-[#0f0f0f]' // Base background
                 : 'bg-[#0a0a0a] border border-white/5 hover:border-brand-gold/40 hover:shadow-2xl'
             }
         `}
       >
-        {/* SPECIAL BADGE ANIMATED BACKGROUND EFFECT */}
+        {/* === SPECIAL BADGE EFFECTS === */}
         {hasBadge && (
-            <div className="absolute inset-0 z-[-1] overflow-hidden rounded-[2rem]">
-                 {/* Moving Gradient Shine */}
-                 <div className="absolute -inset-[200%] bg-[conic-gradient(from_0deg,transparent_0_340deg,rgba(197,160,89,0.2)_360deg)] animate-[spin_5s_linear_infinite] opacity-30" />
-                 {/* Inner Glow */}
-                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(197,160,89,0.15),transparent_60%)]" />
-            </div>
+            <>
+                {/* 1. Golden Breathing Halo Shadow */}
+                <div className="absolute -inset-[2px] rounded-[2.1rem] bg-brand-gold/20 blur-xl opacity-0 animate-pulse group-hover:opacity-60 transition-opacity duration-700" />
+                
+                {/* 2. Premium Border (Double layered) */}
+                <div className="absolute inset-0 rounded-[2rem] border border-brand-gold/40 shadow-[inset_0_0_20px_rgba(197,160,89,0.05)] z-[2]" />
+                
+                {/* 3. The "Sheen" Effect (Diagonal wipe) */}
+                <div className="absolute inset-0 z-[5] overflow-hidden rounded-[2rem] pointer-events-none">
+                     <div className="absolute -inset-[200%] w-[400%] h-[400%] bg-gradient-to-r from-transparent via-white/10 to-transparent -rotate-45 translate-x-[-100%] animate-[sheen_4s_infinite_ease-in-out]" />
+                </div>
+
+                <style>{`
+                    @keyframes sheen {
+                        0% { transform: translateX(-100%) rotate(-45deg); }
+                        15% { transform: translateX(100%) rotate(-45deg); }
+                        100% { transform: translateX(100%) rotate(-45deg); }
+                    }
+                `}</style>
+            </>
         )}
         
         {/* Zone Image */}
-        <div className="relative w-full aspect-[16/10] bg-[#050505] cursor-pointer rounded-t-[2rem] overflow-hidden" onClick={() => onSelect(vehicle)}>
+        <div className="relative w-full aspect-[16/10] bg-[#050505] cursor-pointer rounded-t-[2rem] overflow-hidden z-10" onClick={() => onSelect(vehicle)}>
           
           {/* Image Loader logic remains same */}
           {vehicle.image && imageState !== 'error' ? (
@@ -163,21 +177,20 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
              </motion.button>
           </div>
 
-          {/* DYNAMIC BADGE - CENTRÉ EN BAS DE L'IMAGE POUR IMPACT */}
+          {/* DYNAMIC BADGE - Floating nicely above content */}
           {hasBadge && (
              <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="absolute bottom-4 left-4 right-4 z-30 flex justify-center pointer-events-none"
              >
-                <div className="relative overflow-hidden rounded-full shadow-[0_4px_20px_rgba(197,160,89,0.4)] border border-white/40 backdrop-blur-xl bg-brand-gold/90">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shimmer_2.5s_infinite]" />
-                    <div className="relative px-6 py-2 flex items-center justify-center gap-2">
-                        <Sparkles className="w-3.5 h-3.5 text-black animate-pulse" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-black whitespace-nowrap drop-shadow-sm">
+                <div className="relative overflow-hidden rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-white/20 backdrop-blur-xl bg-gradient-to-r from-brand-gold via-[#e8c683] to-brand-gold">
+                    <div className="relative px-5 py-1.5 flex items-center justify-center gap-2">
+                        <Sparkles className="w-3 h-3 text-black animate-[pulse_2s_infinite]" />
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-black whitespace-nowrap drop-shadow-sm">
                             {vehicle.badge}
                         </span>
-                        <Sparkles className="w-3.5 h-3.5 text-black animate-pulse" />
+                        <Sparkles className="w-3 h-3 text-black animate-[pulse_2s_infinite]" />
                     </div>
                 </div>
              </motion.div>
@@ -188,7 +201,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
         <div className="flex-1 p-6 flex flex-col justify-between relative z-10">
           <div>
              <div className="flex items-center justify-between mb-3">
-                 <span className={`text-[10px] font-bold uppercase tracking-[0.2em] px-2 py-1 rounded ${hasBadge ? 'text-brand-black bg-brand-gold' : 'text-brand-gold/90 bg-brand-gold/5'}`}>
+                 <span className={`text-[10px] font-bold uppercase tracking-[0.2em] px-2 py-1 rounded transition-colors ${hasBadge ? 'text-brand-black bg-brand-gold/80' : 'text-brand-gold/90 bg-brand-gold/5'}`}>
                    {vehicle.brand}
                  </span>
                  <BadgeCheck className={`w-4 h-4 text-brand-gold transition-opacity ${isHovered ? 'opacity-100' : 'opacity-0'}`} />
@@ -213,7 +226,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
           <div className="flex items-end justify-between pt-2">
             <div className="flex flex-col">
               <span className="text-[9px] text-slate-500 uppercase tracking-widest mb-1 font-bold">Prix</span>
-              <span className={`text-lg font-mono tracking-tight ${hasBadge ? 'text-brand-gold font-bold' : 'text-white'}`}>
+              <span className={`text-lg font-mono tracking-tight ${hasBadge ? 'text-brand-gold font-bold drop-shadow-[0_0_10px_rgba(197,160,89,0.3)]' : 'text-white'}`}>
                 {vehicle.price}
               </span>
             </div>
