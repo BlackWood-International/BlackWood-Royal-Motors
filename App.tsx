@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { fetchCatalog } from './services/dataService';
 import { Vehicle, SortOption } from './types';
 import { Hero } from './components/Hero';
@@ -8,6 +8,9 @@ import { FilterPanel } from './components/FilterPanel';
 import { Footer } from './components/Footer';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2, AlertCircle, Heart, ChevronLeft } from 'lucide-react';
+
+const INITIAL_DISPLAY_COUNT = 24;
+const LOAD_MORE_INCREMENT = 24;
 
 function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -28,6 +31,10 @@ function App() {
   // Favorites State
   const [favorites, setFavorites] = useState<string[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>('original');
+  
+  // Pagination State
+  const [visibleCount, setVisibleCount] = useState(INITIAL_DISPLAY_COUNT);
+  const loaderRef = useRef<HTMLDivElement>(null);
   
   const isFirstRender = useRef(true);
 
@@ -57,11 +64,11 @@ function App() {
     localStorage.setItem('bw_favorites', JSON.stringify(favorites));
   }, [favorites]);
 
-  const toggleFavorite = (vehicleId: string) => {
+  const toggleFavorite = useCallback((vehicleId: string) => {
     setFavorites(prev => 
         prev.includes(vehicleId) ? prev.filter(id => id !== vehicleId) : [...prev, vehicleId]
     );
-  };
+  }, []);
 
   // --- VIEW NAVIGATION ---
   const handleEnterCatalog = () => {
@@ -74,26 +81,7 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // --- SCROLL AUTOMATION (Only in Catalog View) ---
-  useEffect(() => {
-    if (view !== 'catalog' || isFirstRender.current) {
-        if (view === 'catalog') isFirstRender.current = false;
-        return;
-    }
-    // Scroll doux vers l'ancre si un filtre change
-    const anchor = document.getElementById('catalog-anchor');
-    if (anchor) {
-        const offset = -200; // Ajusté pour navbar + filter panel fixed
-        const bodyRect = document.body.getBoundingClientRect().top;
-        const elementRect = anchor.getBoundingClientRect().top;
-        const elementPosition = elementRect - bodyRect;
-        const offsetPosition = elementPosition + offset;
-        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-    }
-  }, [activeCategories, selectedBrands, searchQuery, sortOption, priceRange.min, priceRange.max, showFavoritesOnly]);
-
-
-  // --- FILTERING LOGIC ---
+  // --- RESET FILTER/PAGINATION ---
   const resetFilters = () => {
     setActiveCategories(['All']);
     setSelectedBrands(['All']);
@@ -101,8 +89,33 @@ function App() {
     setSortOption('original');
     setPriceRange({ min: '', max: '' });
     setShowFavoritesOnly(false);
+    setVisibleCount(INITIAL_DISPLAY_COUNT);
   };
 
+  // Reset pagination when filters change
+  useEffect(() => {
+    setVisibleCount(INITIAL_DISPLAY_COUNT);
+    // Scroll doux vers l'ancre si un filtre change (uniquement si ce n'est pas le premier render)
+    if (view === 'catalog' && !isFirstRender.current) {
+         const anchor = document.getElementById('catalog-anchor');
+         if (anchor) {
+             // Logic to stay near top of list but not jump aggressively
+             // Only scroll if we are way down the page
+             if (window.scrollY > 500) {
+                 const offset = -200; 
+                 const bodyRect = document.body.getBoundingClientRect().top;
+                 const elementRect = anchor.getBoundingClientRect().top;
+                 const elementPosition = elementRect - bodyRect;
+                 const offsetPosition = elementPosition + offset;
+                 window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+             }
+         }
+    }
+    if (view === 'catalog') isFirstRender.current = false;
+  }, [activeCategories, selectedBrands, searchQuery, sortOption, priceRange, showFavoritesOnly]);
+
+
+  // --- FILTERING LOGIC ---
   const categories = useMemo(() => {
     const cats = Array.from(new Set(vehicles.map(v => v.category))).sort();
     return ['All', ...cats];
@@ -145,6 +158,26 @@ function App() {
     });
     return result;
   }, [vehicles, activeCategories, selectedBrands, searchQuery, sortOption, priceRange, showFavoritesOnly, favorites]);
+
+  // --- INFINITE SCROLL OBSERVER ---
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => prev + LOAD_MORE_INCREMENT);
+        }
+      },
+      { rootMargin: '400px' }
+    );
+
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [filteredAndSortedVehicles]);
+
+  const visibleVehicles = filteredAndSortedVehicles.slice(0, visibleCount);
 
   // --- RENDER HELPERS ---
   if (loading) {
@@ -203,10 +236,8 @@ function App() {
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full flex flex-col"
             >
-                {/* FLOATING HEADER - Au dessus du filtre */}
+                {/* FLOATING HEADER */}
                 <header className="fixed top-0 left-0 w-full z-50 pointer-events-none p-6 flex justify-between items-start">
-                    
-                    {/* Bouton Retour Flottant Élégant */}
                     <button 
                         onClick={handleReturnHome}
                         className="pointer-events-auto flex items-center gap-2 pl-2 pr-4 py-2 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 text-[10px] uppercase tracking-[0.2em] font-bold text-slate-300 hover:text-white hover:border-brand-gold/50 hover:bg-black/80 transition-all group shadow-lg"
@@ -217,7 +248,6 @@ function App() {
                         <span className="mt-[1px]">Accueil</span>
                     </button>
 
-                    {/* Logo discret en haut à droite (ou centré si préféré, mais le filtre est centré) */}
                     <div className="pointer-events-auto opacity-50 hover:opacity-100 transition-opacity">
                          <img src="https://i.imgur.com/5QiFb0Y.png" alt="Logo" className="h-6 object-contain" />
                     </div>
@@ -226,7 +256,7 @@ function App() {
                 {/* Main Content Area */}
                 <div className="min-h-screen">
                     
-                    {/* FILTER PANEL - Now centered and unencumbered */}
+                    {/* FILTER PANEL */}
                     <FilterPanel 
                         categories={categories}
                         activeCategories={activeCategories}
@@ -274,13 +304,13 @@ function App() {
                             </div>
                         </div>
 
-                        {/* GRID DE VÉHICULES */}
+                        {/* GRID DE VÉHICULES - OPTIMIZED */}
                         <motion.div 
                             layout
                             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 md:gap-8"
                         >
                             <AnimatePresence mode='popLayout'>
-                                {filteredAndSortedVehicles.map((vehicle, index) => (
+                                {visibleVehicles.map((vehicle, index) => (
                                     <VehicleCard 
                                         key={vehicle.id} 
                                         vehicle={vehicle} 
@@ -317,6 +347,11 @@ function App() {
                                 </button>
                             </motion.div>
                         )}
+
+                        {/* LOAD MORE TRIGGER */}
+                        <div ref={loaderRef} className="h-20 w-full flex items-center justify-center mt-10 opacity-0 pointer-events-none">
+                            <span className="text-slate-600">Chargement...</span>
+                        </div>
                     </main>
                     
                     <Footer />
