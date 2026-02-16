@@ -192,7 +192,6 @@ function App() {
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full"
             >
-                {/* Hero reçoit la fonction de transition */}
                 <Hero onEnterCatalog={handleEnterCatalog} />
             </motion.div>
           ) : (
@@ -204,25 +203,30 @@ function App() {
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full flex flex-col"
             >
-                {/* NAVBAR STICKY : Retour Accueil (z-60 pour passer au dessus du filtre si besoin) */}
-                <nav className="sticky top-0 z-[60] bg-black/80 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between transition-all duration-300">
+                {/* FLOATING HEADER - Au dessus du filtre */}
+                <header className="fixed top-0 left-0 w-full z-50 pointer-events-none p-6 flex justify-between items-start">
+                    
+                    {/* Bouton Retour Flottant Élégant */}
                     <button 
                         onClick={handleReturnHome}
-                        className="flex items-center gap-2 text-brand-gold hover:text-white transition-colors text-[10px] uppercase tracking-[0.2em] font-bold group"
+                        className="pointer-events-auto flex items-center gap-2 pl-2 pr-4 py-2 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 text-[10px] uppercase tracking-[0.2em] font-bold text-slate-300 hover:text-white hover:border-brand-gold/50 hover:bg-black/80 transition-all group shadow-lg"
                     >
-                        <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        Retour Accueil
+                        <div className="p-1.5 rounded-full bg-white/5 group-hover:bg-brand-gold group-hover:text-black transition-colors">
+                            <ChevronLeft className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="mt-[1px]">Accueil</span>
                     </button>
-                    <div className="absolute left-1/2 -translate-x-1/2 opacity-80">
+
+                    {/* Logo discret en haut à droite (ou centré si préféré, mais le filtre est centré) */}
+                    <div className="pointer-events-auto opacity-50 hover:opacity-100 transition-opacity">
                          <img src="https://i.imgur.com/5QiFb0Y.png" alt="Logo" className="h-6 object-contain" />
                     </div>
-                    <div className="w-24" /> {/* Spacer pour centrer le logo */}
-                </nav>
+                </header>
 
-                {/* Main Content Area - Added top padding for fixed filter bar */}
+                {/* Main Content Area */}
                 <div className="min-h-screen">
                     
-                    {/* FILTER PANEL - Fixed Position handled inside component */}
+                    {/* FILTER PANEL - Now centered and unencumbered */}
                     <FilterPanel 
                         categories={categories}
                         activeCategories={activeCategories}
@@ -242,7 +246,7 @@ function App() {
                         favoritesCount={favorites.length}
                     />
 
-                    {/* Contenu avec Padding Top important pour dégager la barre de filtre */}
+                    {/* Contenu principal */}
                     <main className="max-w-[1800px] mx-auto px-4 md:px-6 py-12 pt-32">
                         {/* ANCRE DE CATALOGUE */}
                         <div id="catalog-anchor" className="mb-12 flex flex-col md:flex-row md:items-end justify-between border-b border-white/5 pb-4 mx-4 scroll-mt-40">
