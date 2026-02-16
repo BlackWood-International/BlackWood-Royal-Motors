@@ -216,7 +216,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               animate={{ opacity: 1, y: 12, scale: 1, filter: "blur(0px)" }}
               exit={{ opacity: 0, y: -20, scale: 0.98, filter: "blur(10px)" }}
               transition={{ type: "spring", stiffness: 180, damping: 25 }}
-              /* MODIFICATION ICI: rounded-[3rem] pour épouser parfaitement les onglets rounded-full avec le padding */
+              /* rounded-[3rem] pour épouser parfaitement les onglets rounded-full avec le padding */
               className="absolute top-full left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-[3rem] overflow-hidden shadow-2xl z-40 flex flex-col max-h-[70vh] mx-0"
             >
               {/* Onglets de Navigation - CORRIGÉ : ROUNDED-FULL */}
@@ -373,9 +373,12 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     {activeTab === 'favorites' && (
                       <div className="flex flex-col items-center justify-center h-full py-8 space-y-8 text-center">
                          <motion.div 
+                            onClick={onToggleFavorites} /* AJOUT DE L'INTERACTION */
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            className={`p-6 rounded-full border-[3px] transition-colors duration-500 ${showFavoritesOnly ? 'bg-brand-gold/10 border-brand-gold text-brand-gold shadow-[0_0_50px_-10px_rgba(197,160,89,0.4)]' : 'bg-white/5 border-white/5 text-slate-600'}`}
+                            className={`p-6 rounded-full border-[3px] transition-colors duration-500 cursor-pointer ${showFavoritesOnly ? 'bg-brand-gold/10 border-brand-gold text-brand-gold shadow-[0_0_50px_-10px_rgba(197,160,89,0.4)]' : 'bg-white/5 border-white/5 text-slate-600 hover:border-white/20 hover:text-white'}`}
                           >
                             <Heart className={`w-12 h-12 ${showFavoritesOnly ? 'fill-brand-gold' : ''}`} />
                          </motion.div>
@@ -410,8 +413,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 </AnimatePresence>
               </div>
 
-              {/* Footer du Panneau */}
-              <div className="p-4 border-t border-white/5 bg-[#050505] flex justify-between items-center rounded-b-[3rem]">
+              {/* Footer du Panneau - MODIFIÉ: px-8 pour décaler vers l'intérieur */}
+              <div className="px-8 py-5 border-t border-white/5 bg-[#050505] flex justify-between items-center rounded-b-[3rem]">
                  <button 
                     onClick={onReset}
                     className="text-[9px] uppercase tracking-widest font-bold text-slate-500 hover:text-white transition-colors flex items-center gap-2 group px-2 py-1"
