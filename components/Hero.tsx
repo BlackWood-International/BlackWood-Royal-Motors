@@ -1,129 +1,150 @@
-import React from 'react';
-import { motion, Variants } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './Button';
-import { ArrowRight, ShieldCheck, Globe, Zap } from 'lucide-react';
+import { ArrowRight, Star, Shield, Zap, ChevronDown } from 'lucide-react';
 
 interface HeroProps {
   onEnterCatalog: () => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({ onEnterCatalog }) => {
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.2, delayChildren: 0.3 }
-    }
-  };
+const HERO_IMAGES = [
+  "https://images.unsplash.com/photo-1503376763036-066120622c74?q=80&w=2940&auto=format&fit=crop", // Dark Porsche vibe
+  "https://images.unsplash.com/photo-1614200187524-dc4b892acf16?q=80&w=2874&auto=format&fit=crop", // Moody Mercedes
+  "https://images.unsplash.com/photo-1603584173870-7b297f0f3317?q=80&w=2940&auto=format&fit=crop"  // Detailed interior/Exterior
+];
 
-  const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { duration: 1, ease: [0.16, 1, 0.3, 1] }
-    }
-  };
+export const Hero: React.FC<HeroProps> = ({ onEnterCatalog }) => {
+  const [currentImage, setCurrentImage] = useState(0);
+
+  // Slideshow Logic
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImage((prev) => (prev + 1) % HERO_IMAGES.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
-    <div className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-black">
-      {/* BACKGROUND ELEMENTS */}
+    <div className="relative h-screen w-full flex flex-col justify-center overflow-hidden bg-black selection:bg-brand-gold selection:text-black">
+      
+      {/* BACKGROUND SLIDESHOW */}
       <div className="absolute inset-0 z-0">
-        {/* Animated Glows */}
-        <motion.div 
-            animate={{ 
-                scale: [1, 1.2, 1],
-                opacity: [0.2, 0.3, 0.2] 
-            }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] bg-brand-gold/10 rounded-full blur-[120px]" 
-        />
-        <motion.div 
-            animate={{ 
-                scale: [1.2, 1, 1.2],
-                opacity: [0.1, 0.2, 0.1] 
-            }}
-            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -bottom-[20%] -right-[10%] w-[60%] h-[60%] bg-brand-slate/20 rounded-full blur-[120px]" 
-        />
+        <AnimatePresence mode="popLayout">
+          <motion.div
+            key={currentImage}
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 2, ease: "easeInOut" }}
+            className="absolute inset-0"
+          >
+             <img 
+                src={HERO_IMAGES[currentImage]} 
+                alt="Luxury Car Background" 
+                className="w-full h-full object-cover opacity-60"
+             />
+             {/* Gradient Overlays for Readability */}
+             <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/90" />
+             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000000_120%)]" />
+          </motion.div>
+        </AnimatePresence>
         
-        {/* Subtle Grid Overlay */}
-        <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+        {/* Animated Grain/Noise */}
+        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] pointer-events-none" />
       </div>
 
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="relative z-10 max-w-7xl mx-auto px-6 text-center flex flex-col items-center"
-      >
-        <motion.div variants={itemVariants} className="mb-6">
-            <span className="inline-flex items-center gap-2 py-2 px-6 border border-brand-gold/30 text-brand-gold text-[10px] uppercase tracking-[0.5em] rounded-full bg-brand-gold/5 backdrop-blur-md">
-                <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-gold"></span>
-                </span>
-                Luxury redefined • New York
-            </span>
-        </motion.div>
-
-        {/* LOGO */}
-        <motion.div variants={itemVariants} className="mb-10">
-            <img 
-                src="https://i.imgur.com/5QiFb0Y.png" 
-                alt="BlackWood Royal Motors" 
-                className="w-full max-w-[400px] md:max-w-[650px] lg:max-w-[850px] h-auto object-contain mx-auto filter drop-shadow-[0_0_30px_rgba(197,160,89,0.2)]"
-            />
-        </motion.div>
-
-        <motion.p 
-          variants={itemVariants}
-          className="text-slate-400 max-w-2xl mx-auto text-base md:text-xl leading-relaxed font-light tracking-wide mb-12"
-        >
-          Découvrez une collection exclusive où l'élégance rencontre la puissance. 
-          BlackWood Royal Motors : l'excellence automobile sans compromis.
-        </motion.p>
-
-        {/* CTAs */}
-        <motion.div
-            variants={itemVariants}
-            className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16"
-        >
-            <Button onClick={onEnterCatalog} className="group px-10 py-4 text-sm">
-                Accéder au Catalogue 
-                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            
-            <a href="https://blackwood-international.github.io/BlackWood/" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" className="px-10 py-4 text-sm">
-                    BlackWood Group
-                </Button>
-            </a>
-        </motion.div>
-
-        {/* MINI FEATURES */}
+      {/* MAIN CONTENT */}
+      <div className="relative z-20 w-full max-w-[1800px] mx-auto px-6 md:px-12 lg:px-20 flex flex-col items-start justify-center h-full pt-20">
+        
+        {/* Top Tag */}
         <motion.div 
-            variants={itemVariants}
-            className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-12 border-t border-white/10 w-full max-w-4xl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+          className="mb-8 flex items-center gap-4"
         >
-            <div className="flex flex-col items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-brand-gold opacity-60" />
-                <span className="text-[10px] uppercase tracking-widest text-slate-500">Sécurité Maximale</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-                <Globe className="w-5 h-5 text-brand-gold opacity-60" />
-                <span className="text-[10px] uppercase tracking-widest text-slate-500">Import International</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-                < Zap className="w-5 h-5 text-brand-gold opacity-60" />
-                <span className="text-[10px] uppercase tracking-widest text-slate-500">Performance Elite</span>
-            </div>
+            <div className="h-[1px] w-12 bg-brand-gold/50" />
+            <span className="text-brand-gold text-xs font-bold tracking-[0.4em] uppercase">Collection 2026</span>
         </motion.div>
+
+        {/* Massive Typography */}
+        <div className="relative mb-10">
+          <motion.h1 
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="text-6xl md:text-8xl lg:text-[9rem] leading-[0.9] font-serif text-white mix-blend-overlay"
+          >
+            BlackWood
+          </motion.h1>
+          <motion.h1 
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="text-6xl md:text-8xl lg:text-[9rem] leading-[0.9] font-serif text-transparent bg-clip-text bg-gradient-to-r from-brand-gold via-[#e8c683] to-brand-gold/50"
+          >
+            Royal Motors
+          </motion.h1>
+        </div>
+
+        {/* Description & CTA */}
+        <div className="flex flex-col md:flex-row items-end gap-12 w-full max-w-5xl">
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 0.8 }}
+              className="text-slate-400 text-sm md:text-lg leading-relaxed font-light max-w-lg border-l border-white/20 pl-6"
+            >
+              L'excellence n'est pas un acte, c'est une habitude. Découvrez notre catalogue exclusif de véhicules d'exception, importés et préparés pour l'élite de Los Santos.
+            </motion.p>
+
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 1 }}
+              className="flex items-center gap-6"
+            >
+               <Button onClick={onEnterCatalog} className="h-16 px-10 text-sm !tracking-[0.25em] bg-white text-black hover:bg-brand-gold hover:text-black border-none shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]">
+                  Explorer le Catalogue
+                  <ArrowRight className="w-5 h-5 ml-2" />
+               </Button>
+            </motion.div>
+        </div>
+
+      </div>
+
+      {/* FOOTER STATS */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1, delay: 1.5 }}
+        className="absolute bottom-0 left-0 w-full border-t border-white/5 bg-black/20 backdrop-blur-sm"
+      >
+         <div className="max-w-[1800px] mx-auto px-6 md:px-12 py-6 flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] uppercase tracking-widest text-slate-500 font-mono">
+            
+            <div className="flex gap-12">
+               <div className="flex items-center gap-3">
+                  <Star className="w-4 h-4 text-brand-gold" />
+                  <span>Premium Dealer</span>
+               </div>
+               <div className="flex items-center gap-3">
+                  <Shield className="w-4 h-4 text-brand-gold" />
+                  <span>Garantie à Vie</span>
+               </div>
+               <div className="flex items-center gap-3">
+                  <Zap className="w-4 h-4 text-brand-gold" />
+                  <span>Livraison Instantanée</span>
+               </div>
+            </div>
+
+            <div className="flex items-center gap-2 animate-bounce">
+                <span>Scroll</span>
+                <ChevronDown className="w-3 h-3" />
+            </div>
+
+         </div>
       </motion.div>
 
-      {/* Background decoration lines */}
-      <div className="absolute left-0 top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-white/5 to-transparent ml-[5%]" />
-      <div className="absolute right-0 top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-white/5 to-transparent mr-[5%]" />
     </div>
   );
 };
