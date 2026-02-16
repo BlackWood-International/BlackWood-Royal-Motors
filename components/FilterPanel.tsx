@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { SortOption } from '../types';
 import { 
   Search, X, SlidersHorizontal, ArrowUpDown, Building2, 
-  Tag, DollarSign, Heart, ChevronDown, Check, Layers, Share2 
+  Tag, DollarSign, Heart, ChevronDown, Check, Layers, Copy 
 } from 'lucide-react';
 
 // --- CONSTANTES ---
@@ -417,7 +417,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                                 {showFavoritesOnly ? 'Retour au catalogue' : 'Activer le filtre favoris'}
                              </motion.button>
                              
-                             {/* SHARE BUTTON */}
+                             {/* SHARE BUTTON (COPY LIST) */}
                              {showFavoritesOnly && favoritesCount > 0 && (
                                 <div className="relative">
                                     <motion.button
@@ -426,8 +426,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                                         onClick={handleShareClick}
                                         className="w-full px-8 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border border-brand-gold/50 text-brand-gold hover:bg-brand-gold/10 flex items-center justify-center gap-2"
                                     >
-                                        <Share2 className="w-3.5 h-3.5" />
-                                        Partager la sélection
+                                        <Copy className="w-3.5 h-3.5" />
+                                        Copier la liste
                                     </motion.button>
                                     
                                     <AnimatePresence>
@@ -438,7 +438,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                                                 exit={{ opacity: 0, y: -10 }}
                                                 className="absolute -top-12 left-0 right-0 mx-auto w-max px-4 py-2 bg-brand-gold text-black text-[10px] font-bold rounded-full shadow-lg"
                                             >
-                                                Lien copié dans le presse-papier !
+                                                Liste copiée !
                                             </motion.div>
                                         )}
                                     </AnimatePresence>
