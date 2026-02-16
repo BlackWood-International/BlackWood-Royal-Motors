@@ -109,8 +109,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   ];
 
   return (
-    // CONTENEUR FIXED - Remonté à top-6 pour éviter le conflit
-    <div className="fixed top-4 md:top-6 left-0 right-0 z-40 w-full flex justify-center pointer-events-none px-4">
+    // CONTENEUR FIXED - AJUSTÉ POUR ÊTRE SOUS LE HEADER (top-[5.5rem] approx 88px)
+    <div className="fixed top-[5.5rem] md:top-24 left-0 right-0 z-40 w-full flex justify-center pointer-events-none px-4 transition-all duration-300">
       
       <style>{`
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -217,7 +217,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               exit={{ opacity: 0, y: -20, scale: 0.98, filter: "blur(10px)" }}
               transition={{ type: "spring", stiffness: 180, damping: 25 }}
               /* rounded-[3rem] pour épouser parfaitement les onglets rounded-full avec le padding */
-              className="absolute top-full left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-[3rem] overflow-hidden shadow-2xl z-40 flex flex-col max-h-[70vh] mx-0"
+              className="absolute top-full left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-[3rem] overflow-hidden shadow-2xl z-40 flex flex-col max-h-[65vh] mx-0"
             >
               {/* Onglets de Navigation - CORRIGÉ : ROUNDED-FULL */}
               <div className="p-3 border-b border-white/5 bg-[#050505]/50">
