@@ -54,7 +54,6 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onSelect, isF
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Card Container with Hover Lift */}
-      {/* FIX: WebkitMaskImage forces the browser to respect border-radius clipping during transforms */}
       <motion.div 
         whileHover={{ y: -2 }} 
         transition={{ type: "spring", stiffness: 400, damping: 25 }}
@@ -76,6 +75,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onSelect, isF
                         className={`w-full h-full object-cover transition-transform duration-[1000ms] ease-out ${isHovered ? 'scale-110' : 'scale-100'} ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
                         onLoad={() => setImageLoaded(true)}
                         style={{ willChange: 'transform' }}
+                        referrerPolicy="no-referrer"
                     />
                 )}
             </div>
@@ -96,7 +96,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onSelect, isF
             className={`absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/20 to-transparent transition-opacity duration-700 ${isHovered ? 'opacity-40' : 'opacity-60'} z-10`}
           />
           
-          {/* Top Left Tags - FIXED BLUR STYLE */}
+          {/* Top Left Tags */}
           <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
             <span className="bg-black/40 backdrop-blur-md border border-white/10 text-[10px] font-bold font-mono uppercase tracking-widest text-white px-3 py-1.5 rounded-full shadow-sm">
               {vehicle.category}
