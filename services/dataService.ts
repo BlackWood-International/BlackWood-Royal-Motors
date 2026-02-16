@@ -21,12 +21,18 @@ export const fetchCatalog = (): Promise<Vehicle[]> => {
             // Clean price string to number (remove $, spaces, commas, non-breaking spaces)
             const priceVal = parseFloat(priceStr.replace(/[^0-9.-]+/g, ""));
 
-            // Get image from the specific column "URL img" shown in screenshot, or fallbacks
-            const imageUrl = row['URL img'] || row['Image'] || row['image'] || row['URL Image'] || undefined;
+            // Get image from the specific column "URL img"
+            const rawImageUrl = row['URL img'] || row['Image'] || row['image'] || row['URL Image'] || '';
+            
+            // NETTOYAGE URL : On enlève tout ce qui est après l'extension .png, .jpg, etc.
+            // Cela corrige le problème des paramètres "?cb=..." de Fandom/Wiki qui bloquent l'image
+            const imageUrl = rawImageUrl.replace(/(\.(?:png|jpg|jpeg|webp)).*$/i, '$1');
 
             // DEBUG : Si l'image est manquante, on affiche pourquoi dans la console
-            if (!imageUrl) {
-              console.warn(`Image manquante pour la voiture (Ligne ${index + 2}). Colonnes disponibles pour cette ligne :`, Object.keys(row));
+            if (!imageUrl && rawImageUrl) {
+               console.warn(`Image nettoyée vide pour la ligne ${index + 2}. URL Originale:`, rawImageUrl);
+            } else if (!rawImageUrl) {
+               // console.warn(`Image manquante pour la voiture (Ligne ${index + 2}).`);
             }
 
             // Format price with spaces as thousand separators and $ prefix
@@ -43,7 +49,7 @@ export const fetchCatalog = (): Promise<Vehicle[]> => {
               category: row['Catégorie'] || 'Uncategorized',
               price: formattedPrice,
               priceValue: isNaN(priceVal) ? 0 : priceVal,
-              image: imageUrl,
+              image: imageUrl || undefined,
               description: row['Description'] || "Un chef-d'œuvre d'ingénierie alliant performance d'exception et confort absolu. Contactez nos conseillers pour une présentation détaillée."
             };
           });
