@@ -11,6 +11,24 @@ interface VehicleCardProps {
   onToggleFavorite: () => void;
 }
 
+// Fonction utilitaire pour gérer le proxy d'image et contourner la protection Fandom
+const getProxiedImage = (url: string) => {
+  if (!url) return '';
+  
+  // Si ce n'est pas une image Fandom/Wikia, on la retourne telle quelle
+  if (!url.includes('wikia') && !url.includes('fandom')) return url;
+
+  // 1. Nettoyage de l'URL : On enlève tout ce qui se trouve après l'extension du fichier
+  // Fandom ajoute souvent "/revision/latest/scale-to-width..." qui casse le lien externe
+  const cleanUrl = url.split('/revision')[0]; 
+  
+  // 2. Utilisation du proxy wsrv.nl
+  // url=... : l'image source nettoyée
+  // w=800 : redimensionne à 800px de large (suffisant pour une card) pour optimiser la perf
+  // output=webp : convertit en format moderne plus léger
+  return `https://wsrv.nl/?url=${encodeURIComponent(cleanUrl)}&w=800&output=webp`;
+};
+
 export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onSelect, isFavorite, onToggleFavorite }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -70,10 +88,15 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onSelect, isF
             <div className="w-full h-full overflow-hidden bg-[#0a0a0a] relative">
                 {shouldLoadImage && (
                     <img 
-                        src={vehicle.image} 
+                        src={getProxiedImage(vehicle.image)} 
                         alt={`${vehicle.brand} ${vehicle.model}`}
                         className={`w-full h-full object-cover transition-transform duration-[1000ms] ease-out ${isHovered ? 'scale-110' : 'scale-100'} ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
                         onLoad={() => setImageLoaded(true)}
+                        onError={(e) => {
+                            // Fallback si l'image ne charge toujours pas
+                            e.currentTarget.src = 'https://placehold.co/600x400/1a1a1a/c5a059?text=Image+Non+Disponible';
+                            setImageLoaded(true); // On force l'affichage du placeholder
+                        }}
                         style={{ willChange: 'transform' }}
                         referrerPolicy="no-referrer"
                     />
