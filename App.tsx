@@ -52,16 +52,42 @@ function App() {
       });
   }, []);
 
+  // --- SHARE URL HANDLING ---
+  // Wait for vehicles to be loaded before parsing URL
+  useEffect(() => {
+    if (vehicles.length > 0) {
+        const params = new URLSearchParams(window.location.search);
+        const sharedSelection = params.get('selection');
+        
+        if (sharedSelection) {
+          const sharedIds = sharedSelection.split(',');
+          // Verify IDs exist in catalog to avoid bugs
+          const validIds = sharedIds.filter(id => vehicles.some(v => v.id === id));
+          
+          if (validIds.length > 0) {
+            setFavorites(validIds);
+            setShowFavoritesOnly(true);
+            setView('catalog');
+            
+            // Optional: Clean URL but maybe keeping it is better for refreshing?
+            // Let's keep it clean for UX
+            window.history.replaceState({}, '', window.location.pathname);
+          }
+        } else {
+             // Only load local storage if NO shared link present
+             const savedFavs = localStorage.getItem('bw_favorites');
+             if (savedFavs) {
+                 try { setFavorites(JSON.parse(savedFavs)); } catch (e) { console.error(e); }
+             }
+        }
+    }
+  }, [vehicles]); // Dependency on vehicles ensures this runs after data load
+
   // --- FAVORITES PERSISTENCE ---
   useEffect(() => {
-    const savedFavs = localStorage.getItem('bw_favorites');
-    if (savedFavs) {
-        try { setFavorites(JSON.parse(savedFavs)); } catch (e) { console.error(e); }
+    if (favorites.length > 0) {
+        localStorage.setItem('bw_favorites', JSON.stringify(favorites));
     }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('bw_favorites', JSON.stringify(favorites));
   }, [favorites]);
 
   const toggleFavorite = useCallback((vehicleId: string) => {
@@ -69,6 +95,38 @@ function App() {
         prev.includes(vehicleId) ? prev.filter(id => id !== vehicleId) : [...prev, vehicleId]
     );
   }, []);
+
+  // --- SHARE FUNCTIONALITY ---
+  const handleShareSelection = useCallback(() => {
+    if (favorites.length === 0) return;
+    
+    // 1. Generate Link
+    const idsString = favorites.join(',');
+    const shareUrl = `${window.location.origin}${window.location.pathname}?selection=${idsString}`;
+
+    // 2. Generate Car List Text
+    const favoriteVehicles = vehicles.filter(v => favorites.includes(v.id));
+    const carList = favoriteVehicles.map(v => `• ${v.brand} ${v.model}`).join('\n');
+
+    // 3. Construct Full Message
+    const message = `
+🌟 Ma sélection BlackWood Royal Motors :
+
+${carList}
+
+👀 Voir les détails :
+${shareUrl}
+    `.trim();
+    
+    // 4. Copy to Clipboard
+    navigator.clipboard.writeText(message).then(() => {
+       console.log("Selection copied to clipboard");
+    }).catch(err => {
+        // Fallback if full text copy fails, try just URL
+        console.error("Copy failed", err);
+        navigator.clipboard.writeText(shareUrl);
+    });
+  }, [favorites, vehicles]);
 
   // --- VIEW NAVIGATION ---
   const handleEnterCatalog = () => {
@@ -275,6 +333,7 @@ function App() {
                         showFavoritesOnly={showFavoritesOnly}
                         onToggleFavorites={() => setShowFavoritesOnly(!showFavoritesOnly)}
                         favoritesCount={favorites.length}
+                        onShare={handleShareSelection}
                     />
 
                     {/* Contenu principal - PADDING AJUSTÉ POUR MOBILE */}
