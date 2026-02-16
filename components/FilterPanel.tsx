@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { SortOption } from '../types';
 import { 
   Search, X, SlidersHorizontal, ArrowUpDown, Building2, 
-  Tag, DollarSign, Heart, ChevronDown, Check, Layers 
+  Tag, DollarSign, Heart, ChevronDown, Check, Layers, Share2 
 } from 'lucide-react';
 
 // --- CONSTANTES ---
@@ -31,6 +31,7 @@ interface FilterPanelProps {
   showFavoritesOnly: boolean;
   onToggleFavorites: () => void;
   favoritesCount: number;
+  onShare?: () => void; // New prop for sharing
 }
 
 type TabID = 'brands' | 'categories' | 'budget' | 'sort' | 'favorites';
@@ -42,11 +43,13 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   activeSort, onSortChange,
   priceRange, onPriceRangeChange,
   onReset,
-  showFavoritesOnly, onToggleFavorites, favoritesCount
+  showFavoritesOnly, onToggleFavorites, favoritesCount,
+  onShare
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<TabID>('brands');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [showCopied, setShowCopied] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Fermeture au clic extérieur
@@ -84,6 +87,14 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   const sortedBrands = useMemo(() => {
       return [...brands].filter(b => b !== 'All');
   }, [brands]);
+
+  const handleShareClick = () => {
+    if (onShare) {
+        onShare();
+        setShowCopied(true);
+        setTimeout(() => setShowCopied(false), 3000);
+    }
+  };
 
   const handleMultiSelect = (current: string[], item: string, updater: (items: string[]) => void) => {
     // Si on clique sur un item spécifique, on enlève 'All'
@@ -369,7 +380,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
                     {/* ONGLET FAVORIS */}
                     {activeTab === 'favorites' && (
-                      <div className="flex flex-col items-center justify-center h-full py-8 space-y-8 text-center">
+                      <div className="flex flex-col items-center justify-center h-full py-8 space-y-6 text-center">
                          <motion.div 
                             onClick={onToggleFavorites}
                             whileHover={{ scale: 1.05 }}
@@ -392,18 +403,48 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                             </p>
                          </div>
                          
-                         <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={onToggleFavorites}
-                            className={`px-8 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${
-                              showFavoritesOnly 
-                              ? 'bg-transparent text-white border-white/20 hover:bg-white/10' 
-                              : 'bg-brand-gold text-black border-brand-gold hover:bg-brand-gold/90 shadow-lg shadow-brand-gold/20'
-                            }`}
-                         >
-                            {showFavoritesOnly ? 'Retour au catalogue' : 'Activer le filtre favoris'}
-                         </motion.button>
+                         <div className="flex flex-col gap-3 w-full max-w-xs">
+                             <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={onToggleFavorites}
+                                className={`px-8 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${
+                                  showFavoritesOnly 
+                                  ? 'bg-transparent text-white border-white/20 hover:bg-white/10' 
+                                  : 'bg-brand-gold text-black border-brand-gold hover:bg-brand-gold/90 shadow-lg shadow-brand-gold/20'
+                                }`}
+                             >
+                                {showFavoritesOnly ? 'Retour au catalogue' : 'Activer le filtre favoris'}
+                             </motion.button>
+                             
+                             {/* SHARE BUTTON */}
+                             {showFavoritesOnly && favoritesCount > 0 && (
+                                <div className="relative">
+                                    <motion.button
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={handleShareClick}
+                                        className="w-full px-8 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border border-brand-gold/50 text-brand-gold hover:bg-brand-gold/10 flex items-center justify-center gap-2"
+                                    >
+                                        <Share2 className="w-3.5 h-3.5" />
+                                        Partager la sélection
+                                    </motion.button>
+                                    
+                                    <AnimatePresence>
+                                        {showCopied && (
+                                            <motion.div 
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="absolute -top-12 left-0 right-0 mx-auto w-max px-4 py-2 bg-brand-gold text-black text-[10px] font-bold rounded-full shadow-lg"
+                                            >
+                                                Lien copié dans le presse-papier !
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                             )}
+                         </div>
                       </div>
                     )}
 
