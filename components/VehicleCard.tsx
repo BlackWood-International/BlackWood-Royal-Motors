@@ -94,18 +94,18 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
             }
         `}
       >
-        {/* === SPECIAL BADGE EFFECTS === */}
+        {/* === GLOBAL BADGE EFFECTS (Z-INDEX LAYERING) === */}
         {hasBadge && (
             <>
-                {/* 1. Golden Breathing Halo Shadow */}
-                <div className="absolute -inset-[2px] rounded-[2.1rem] bg-brand-gold/20 blur-xl opacity-0 animate-pulse group-hover:opacity-60 transition-opacity duration-700" />
+                {/* 1. Golden Breathing Halo Shadow (Bottom Layer) */}
+                <div className="absolute -inset-[2px] rounded-[2.1rem] bg-brand-gold/20 blur-xl opacity-0 animate-pulse group-hover:opacity-60 transition-opacity duration-700 pointer-events-none z-0" />
                 
-                {/* 2. Premium Border (Double layered) */}
-                <div className="absolute inset-0 rounded-[2rem] border border-brand-gold/40 shadow-[inset_0_0_20px_rgba(197,160,89,0.05)] z-[2]" />
+                {/* 2. Premium Border (Double layered) - Above Image */}
+                <div className="absolute inset-0 rounded-[2rem] border border-brand-gold/40 shadow-[inset_0_0_20px_rgba(197,160,89,0.05)] pointer-events-none z-20" />
                 
-                {/* 3. The "Sheen" Effect (Diagonal wipe) */}
-                <div className="absolute inset-0 z-[5] overflow-hidden rounded-[2rem] pointer-events-none">
-                     <div className="absolute -inset-[200%] w-[400%] h-[400%] bg-gradient-to-r from-transparent via-white/10 to-transparent -rotate-45 translate-x-[-100%] animate-[sheen_4s_infinite_ease-in-out]" />
+                {/* 3. The "Sheen" Effect (Global Overlay) - Covers Image too */}
+                <div className="absolute inset-0 z-20 overflow-hidden rounded-[2rem] pointer-events-none mix-blend-overlay">
+                     <div className="absolute -inset-[200%] w-[400%] h-[400%] bg-gradient-to-r from-transparent via-white/20 to-transparent -rotate-45 translate-x-[-100%] animate-[sheen_4s_infinite_ease-in-out]" />
                 </div>
 
                 <style>{`
@@ -121,7 +121,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
         {/* Zone Image */}
         <div className="relative w-full aspect-[16/10] bg-[#050505] cursor-pointer rounded-t-[2rem] overflow-hidden z-10" onClick={() => onSelect(vehicle)}>
           
-          {/* Image Loader logic remains same */}
+          {/* Image Loader */}
           {vehicle.image && imageState !== 'error' ? (
             <div className="w-full h-full relative overflow-hidden rounded-t-[2rem]">
                 {shouldLoadImage && (
@@ -158,15 +158,15 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
           {/* Overlay Gradient */}
           <div className={`absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent pointer-events-none z-10 ${isHovered ? 'opacity-40' : 'opacity-60'}`} />
 
-          {/* Badges (Top Left) */}
-          <div className="absolute top-4 left-4 z-20 flex flex-col gap-2 pointer-events-none">
+          {/* Badges (Top Left) - Z-INDEX HIGH to stay above sheen */}
+          <div className="absolute top-4 left-4 z-40 flex flex-col gap-2 pointer-events-none">
             <span className="bg-black/60 backdrop-blur-md border border-white/10 text-[10px] font-bold font-mono uppercase tracking-widest text-white px-3 py-1.5 rounded-full">
               {vehicle.category}
             </span>
           </div>
 
-          {/* Actions (Top Right) */}
-          <div className="absolute top-4 right-4 z-30 flex items-center gap-2">
+          {/* Actions (Top Right) - Z-INDEX HIGH */}
+          <div className="absolute top-4 right-4 z-40 flex items-center gap-2">
              <motion.button 
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -182,7 +182,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
              <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="absolute bottom-4 left-4 right-4 z-30 flex justify-center pointer-events-none"
+                className="absolute bottom-4 left-4 right-4 z-40 flex justify-center pointer-events-none"
              >
                 <div className="relative overflow-hidden rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-white/20 backdrop-blur-xl bg-gradient-to-r from-brand-gold via-[#e8c683] to-brand-gold">
                     <div className="relative px-5 py-1.5 flex items-center justify-center gap-2">
@@ -197,7 +197,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
           )}
         </div>
         
-        {/* Contenu Texte */}
+        {/* Contenu Texte - Z-index < Sheen Effect (mix-blend-overlay allows text to be readable but affected) */}
         <div className="flex-1 p-6 flex flex-col justify-between relative z-10">
           <div>
              <div className="flex items-center justify-between mb-3">
@@ -235,7 +235,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
               whileHover={{ rotate: 45, scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => onSelect(vehicle)}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-black group-hover:bg-brand-gold transition-colors shadow-lg"
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-black group-hover:bg-brand-gold transition-colors shadow-lg z-30"
             >
               <ArrowUpRight className="w-5 h-5" />
             </motion.button>
