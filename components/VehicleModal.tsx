@@ -1,7 +1,7 @@
-import React from 'react';
-import { motion, Variants } from 'framer-motion';
+import React, { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { Vehicle } from '../types';
-import { X, MessageCircle, Gauge, Car, ShieldCheck, Heart, Sparkles } from 'lucide-react';
+import { X, MessageCircle, Gauge, Car, ShieldCheck, Heart, Sparkles, Fuel, Wind, Users, Briefcase } from 'lucide-react';
 import { Button } from './Button';
 
 interface VehicleModalProps {
@@ -14,195 +14,210 @@ interface VehicleModalProps {
 export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, isFavorite, onToggleFavorite }) => {
   const hasBadge = !!vehicle.badge && vehicle.badge.length > 0;
 
-  // Staggered animation variants for content
-  const contentVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: { 
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    }
-  };
+  // --- FAUSSES SPECS VISUELLES BASÉES SUR CATÉGORIE (Pour le look) ---
+  const specs = useMemo(() => {
+    const cat = vehicle.category.toUpperCase();
+    let speed = "200 km/h";
+    let acc = "4.5s";
+    let seats = "2";
+    let trunk = "25kg";
 
-  const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { duration: 0.5, ease: "easeOut" }
-    }
-  };
+    if (['SUPER', 'SPORTS'].includes(cat)) { speed = "320 km/h"; acc = "3.2s"; seats = "2"; trunk = "10kg"; }
+    else if (['SUVS', 'OFF-ROAD'].includes(cat)) { speed = "240 km/h"; acc = "5.5s"; seats = "4"; trunk = "80kg"; }
+    else if (['SEDANS', 'COMPACTS'].includes(cat)) { speed = "220 km/h"; acc = "6.0s"; seats = "4"; trunk = "50kg"; }
+    else if (['MOTORCYCLES', 'BIKES'].includes(cat)) { speed = "280 km/h"; acc = "2.9s"; seats = "1"; trunk = "5kg"; }
+    else if (['VANS', 'COMMERCIAL'].includes(cat)) { speed = "180 km/h"; acc = "8.0s"; seats = "2"; trunk = "500kg"; }
+
+    return [
+      { icon: <Wind className="w-4 h-4" />, label: "Vitesse Max", value: speed },
+      { icon: <Gauge className="w-4 h-4" />, label: "0-100 km/h", value: acc },
+      { icon: <Users className="w-4 h-4" />, label: "Places", value: seats },
+      { icon: <Briefcase className="w-4 h-4" />, label: "Coffre", value: trunk },
+    ];
+  }, [vehicle.category]);
+
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-      {/* Backdrop with Blur */}
+    <div className="fixed inset-0 z-[120] flex items-end md:items-center justify-center sm:p-4">
+      
+      {/* Backdrop */}
       <motion.div 
-        initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
-        animate={{ opacity: 1, backdropFilter: "blur(12px)" }}
-        exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
-        transition={{ duration: 0.4 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-black/80"
+        className="absolute inset-0 bg-black/60 backdrop-blur-xl"
       />
 
-      {/* Modal Content Wrapper - Sophisticated Entrance */}
+      {/* Modal Container */}
       <motion.div 
-        initial={{ opacity: 0, scale: 0.9, y: 30, filter: "blur(10px)" }}
-        animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
-        exit={{ opacity: 0, scale: 0.95, y: 20, filter: "blur(10px)" }}
-        transition={{ type: "spring", stiffness: 200, damping: 25, mass: 0.8 }}
+        layoutId={`card-container-${vehicle.id}`}
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 25, stiffness: 200 }}
         className={`
-            relative w-full max-w-7xl bg-[#0a0a0a] rounded-[2.5rem] flex flex-col overflow-hidden max-h-[90vh]
-            ${hasBadge 
-                ? 'border border-brand-gold/40 shadow-[0_0_80px_-20px_rgba(197,160,89,0.2)]' 
-                : 'border border-brand-gold/20 shadow-[0_20px_100px_-20px_rgba(197,160,89,0.1)]'
-            }
+            relative w-full max-w-6xl h-[95vh] md:h-[85vh] 
+            bg-[#080808] 
+            rounded-t-[2.5rem] md:rounded-[2.5rem] 
+            overflow-hidden 
+            flex flex-col md:flex-row
+            border border-white/10
+            shadow-2xl
+            ${hasBadge ? 'shadow-brand-gold/10 border-brand-gold/30' : ''}
         `}
       >
-        {/* Subtle Background Glow for Badged vehicles */}
-        {hasBadge && (
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-gold/5 via-transparent to-brand-gold/5 pointer-events-none" />
-        )}
+        {/* --- HEADER MOBILE STICKY (Close Button) --- */}
+        <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-50 pointer-events-none">
+             {/* Brand Tag */}
+             <div className="pointer-events-auto bg-black/40 backdrop-blur-md border border-white/5 rounded-full px-4 py-2 flex items-center gap-2">
+                 <div className="w-1.5 h-1.5 bg-brand-gold rounded-full animate-pulse" />
+                 <span className="text-[10px] font-bold uppercase tracking-widest text-white">{vehicle.brand}</span>
+             </div>
 
-        {/* Actions (Close & Favorite) */}
-        <div className="absolute top-4 right-4 z-50 flex gap-2">
-            <motion.button 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={onToggleFavorite}
-                className={`p-2 rounded-full transition-colors backdrop-blur-md border ${isFavorite ? 'bg-brand-gold text-brand-black border-brand-gold' : 'bg-black/50 text-white border-white/10 hover:bg-white/10'}`}
-            >
-                <Heart className={`w-6 h-6 ${isFavorite ? 'fill-current' : ''}`} />
-            </motion.button>
-            <motion.button 
-                whileHover={{ scale: 1.05, rotate: 90 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={onClose}
-                className="p-2 rounded-full bg-black/50 text-white hover:bg-brand-gold hover:text-black transition-colors backdrop-blur-md border border-white/10"
-            >
-                <X className="w-6 h-6" />
-            </motion.button>
+             {/* Actions */}
+             <div className="pointer-events-auto flex gap-2">
+                 <button 
+                    onClick={onToggleFavorite}
+                    className={`p-3 rounded-full backdrop-blur-md border transition-all active:scale-95 ${isFavorite ? 'bg-brand-gold border-brand-gold text-black' : 'bg-black/40 border-white/10 text-white hover:bg-white/10'}`}
+                 >
+                    <Heart className={`w-5 h-5 ${isFavorite ? 'fill-black' : ''}`} />
+                 </button>
+                 <button 
+                    onClick={onClose}
+                    className="p-3 rounded-full bg-white text-black hover:bg-brand-gold transition-colors active:scale-95 shadow-lg"
+                 >
+                    <X className="w-5 h-5" />
+                 </button>
+             </div>
         </div>
 
-        {/* Content Layout */}
-        <div className="relative z-10 flex flex-col md:flex-row h-full overflow-y-auto custom-scrollbar p-3 md:p-4 gap-6 md:gap-10">
+        {/* --- LEFT: IMMERSIVE IMAGE (Top on Mobile) --- */}
+        <div className="relative w-full md:w-[55%] h-[40vh] md:h-full bg-[#050505] shrink-0">
+            {vehicle.image ? (
+                <motion.img 
+                    initial={{ scale: 1.1, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.7 }}
+                    src={vehicle.image} 
+                    alt={vehicle.model} 
+                    className="w-full h-full object-cover md:object-contain p-0 md:p-8"
+                />
+            ) : (
+                <div className="w-full h-full flex items-center justify-center opacity-20">
+                    <Car className="w-24 h-24 text-white" />
+                </div>
+            )}
             
-            {/* LEFT: Image Container - 16:9 */}
-            <motion.div 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                className="w-full md:w-[60%] shrink-0 flex flex-col"
-            >
-                <div className="w-full aspect-video relative bg-[#050505] rounded-[1.5rem] overflow-hidden border border-white/5 shadow-2xl flex items-center justify-center group">
-                    {vehicle.image ? (
-                        <img 
-                            src={vehicle.image} 
-                            alt={vehicle.model} 
-                            className="w-full h-full object-contain" 
-                            referrerPolicy="no-referrer"
-                        />
-                    ) : (
-                        <div className="flex flex-col items-center opacity-20">
-                            <Car className="w-24 h-24 text-brand-gold mb-4" />
-                            <span className="text-xs uppercase tracking-widest font-mono">Visuel non disponible</span>
-                        </div>
-                    )}
-                    {/* Subtle vignetting */}
-                    <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_50%,#050505_100%)] opacity-40" />
-                    
-                    {/* Category Tag on Image */}
-                    <div className="absolute top-6 left-6">
-                        <span className="bg-black/60 backdrop-blur-md border border-white/10 text-white text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1.5 rounded-full">
+            {/* Gradients pour fusionner l'image */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#080808] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[#080808]" />
+            
+            {/* Badge Overlay */}
+            {hasBadge && (
+                <div className="absolute bottom-6 left-6 md:bottom-10 md:left-10 z-20">
+                     <div className="inline-flex items-center gap-2 bg-brand-gold/90 text-black backdrop-blur-xl px-4 py-2 rounded-full shadow-[0_0_30px_rgba(197,160,89,0.4)]">
+                        <Sparkles className="w-4 h-4" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">{vehicle.badge}</span>
+                     </div>
+                </div>
+            )}
+        </div>
+
+        {/* --- RIGHT: CONTENT SCROLLABLE --- */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar relative bg-[#080808]">
+            <div className="p-6 md:p-10 pb-24 md:pb-10 flex flex-col gap-8">
+                
+                {/* 1. TITLE & PRICE */}
+                <div className="mt-2 md:mt-12">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="flex items-center gap-3 mb-4"
+                    >
+                        <span className="text-xs font-bold text-brand-gold uppercase tracking-widest border border-brand-gold/30 px-3 py-1 rounded-full">
                             {vehicle.category}
                         </span>
-                    </div>
-
-                    {/* Badge on Image if exists */}
-                    {hasBadge && (
-                        <div className="absolute bottom-6 right-6">
-                            <div className="flex items-center gap-2 bg-brand-gold/90 text-black backdrop-blur-md px-4 py-2 rounded-full shadow-lg">
-                                <Sparkles className="w-3.5 h-3.5" />
-                                <span className="text-[10px] font-black uppercase tracking-widest">{vehicle.badge}</span>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </motion.div>
-
-            {/* RIGHT: Info Container - Cascading Text */}
-            <motion.div 
-                variants={contentVariants}
-                initial="hidden"
-                animate="visible"
-                className="flex flex-col flex-1 min-h-0 py-2 md:py-4 pr-2 md:pr-4"
-            >
-                
-                <div className="flex-1 flex flex-col">
-                    {/* Header: Brand & State */}
-                    <motion.div variants={itemVariants} className="flex items-center gap-4 mb-4">
-                        <span className={`text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 ${hasBadge ? 'text-brand-gold drop-shadow-sm' : 'text-brand-gold'}`}>
-                             <span className="w-6 h-[1px] bg-brand-gold/50"></span>
-                             {vehicle.brand}
-                        </span>
-                        
-                        <div className="flex items-center gap-2 px-a3 py-1 rounded-full bg-white/5 border border-white/5">
-                           <Gauge className="w-3 h-3 text-brand-gold" />
-                           <span className="text-[9px] text-slate-300 font-bold uppercase tracking-wider">Neuf</span>
-                        </div>
+                        <div className="h-[1px] flex-1 bg-white/10" />
                     </motion.div>
 
-                    {/* Title */}
-                    <motion.h2 variants={itemVariants} className="text-4xl md:text-5xl lg:text-6xl font-serif text-white mb-2 leading-[0.9] tracking-tight">
+                    <motion.h1 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="text-4xl md:text-6xl font-serif text-white leading-[0.9] mb-4"
+                    >
                         {vehicle.model}
-                    </motion.h2>
-                    
-                    {/* Decorative Divider */}
-                    <motion.div variants={itemVariants} className="w-12 h-1 bg-brand-gold/20 my-6 rounded-full origin-left" />
+                    </motion.h1>
 
-                    {/* Price & Description */}
-                    <motion.div variants={itemVariants} className="space-y-6">
-                          <div>
-                             <span className="block text-[10px] text-slate-500 uppercase tracking-widest mb-1 font-bold">Prix d'acquisition</span>
-                             <div className="flex items-baseline gap-2">
-                                 <span className={`text-3xl md:text-4xl font-light tracking-tight ${hasBadge ? 'text-brand-gold' : 'text-white'}`}>{vehicle.price}</span>
-                                 <span className="text-xs text-slate-500 font-bold uppercase">TTC</span>
-                             </div>
-                          </div>
-                          
-                          <p className="text-slate-400 text-sm font-light leading-relaxed border-l-2 border-white/5 pl-4">
-                              {vehicle.description}
-                          </p>
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.4 }}
+                        className="flex flex-col"
+                    >
+                        <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Prix Catalogue</span>
+                        <div className="flex items-baseline gap-2">
+                             <span className="text-3xl md:text-4xl font-mono text-brand-gold font-light tracking-tight">{vehicle.price}</span>
+                             <span className="text-xs text-slate-500 font-bold">TTC</span>
+                        </div>
                     </motion.div>
                 </div>
 
-                {/* Footer Action */}
-                <motion.div variants={itemVariants} className="mt-8 pt-6 border-t border-white/5">
-                    <a href="https://discord.gg/88peMJRz95" target="_blank" rel="noopener noreferrer" className="block w-full">
-                        <Button className="w-full !py-5 text-sm !tracking-[0.25em]">
-                            <div className="flex items-center justify-center gap-3 w-full">
+                {/* 2. SPECS GRID (Visual Flair) */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="grid grid-cols-2 gap-3"
+                >
+                    {specs.map((spec, i) => (
+                        <div key={i} className="bg-white/5 border border-white/5 rounded-2xl p-4 flex flex-col gap-2 hover:bg-white/10 transition-colors">
+                            <div className="flex items-center gap-2 text-slate-400">
+                                {spec.icon}
+                                <span className="text-[10px] uppercase tracking-wider font-bold">{spec.label}</span>
+                            </div>
+                            <span className="text-lg text-white font-mono">{spec.value}</span>
+                        </div>
+                    ))}
+                </motion.div>
+
+                {/* 3. DESCRIPTION */}
+                <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.6 }}
+                    className="prose prose-invert"
+                >
+                    <h3 className="text-sm font-bold uppercase tracking-widest text-white mb-2 flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-brand-gold" />
+                        Description & Notes
+                    </h3>
+                    <p className="text-slate-400 text-sm leading-relaxed font-light">
+                        {vehicle.description}
+                    </p>
+                </motion.div>
+
+                {/* 4. FOOTER ACTION (Sticky Bottom on Mobile) */}
+                <div className="md:mt-auto pt-8">
+                    <a href="https://discord.gg/88peMJRz95" target="_blank" rel="noopener noreferrer">
+                        <Button className="w-full !py-6 text-sm !tracking-[0.2em] bg-white text-black hover:bg-brand-gold">
+                            <div className="flex items-center gap-3">
                                 <MessageCircle className="w-5 h-5" />
-                                <span>Prendre Contact</span>
+                                Contacter un Vendeur
                             </div>
                         </Button>
                     </a>
-                    
-                    <div className="flex justify-center mt-5 gap-6 opacity-60">
-                         <div className="flex items-center gap-2 text-[9px] text-slate-500 uppercase tracking-widest">
-                             <ShieldCheck className="w-3 h-3 text-brand-gold" />
-                             <span>Garantie BlackWood</span>
-                         </div>
-                         <div className="flex items-center gap-2 text-[9px] text-slate-500 uppercase tracking-widest">
-                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]"></div>
-                             <span>Dispo. Immédiate</span>
-                         </div>
+                    <div className="mt-4 text-center">
+                        <span className="text-[9px] text-slate-600 uppercase tracking-widest">
+                            Véhicule certifié BlackWood Royal Motors
+                        </span>
                     </div>
-                </motion.div>
-            </motion.div>
+                </div>
 
+            </div>
         </div>
+
       </motion.div>
     </div>
   );
