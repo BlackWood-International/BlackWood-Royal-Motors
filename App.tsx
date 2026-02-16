@@ -52,7 +52,7 @@ function App() {
       });
   }, []);
 
-  // --- SHARE URL HANDLING (Legacy support for incoming links, but we don't generate them anymore) ---
+  // --- SHARE URL HANDLING (Legacy support) ---
   useEffect(() => {
     if (vehicles.length > 0) {
         const params = new URLSearchParams(window.location.search);
@@ -90,29 +90,33 @@ function App() {
     );
   }, []);
 
-  // --- SHARE FUNCTIONALITY (TEXT ONLY) ---
+  // --- SHARE FUNCTIONALITY (DISCORD OPTIMIZED) ---
   const handleShareSelection = useCallback(() => {
     if (favorites.length === 0) return;
     
     // 1. Get Vehicle Objects
     const favoriteVehicles = vehicles.filter(v => favorites.includes(v.id));
     
-    // 2. Format List with Prices
-    const carList = favoriteVehicles.map(v => `• ${v.brand} ${v.model} — ${v.price}`).join('\n');
+    // 2. Format List for Discord (Bold Model, Code block for Price)
+    const carList = favoriteVehicles.map(v => `- **${v.brand} ${v.model}** — \`${v.price}\``).join('\n');
 
-    // 3. Construct Message
+    // 3. Construct Message with Discord Markdown
     const message = `
-⚜️ SÉLECTION BLACKWOOD ROYAL MOTORS ⚜️
+# ⚜️ BLACKWOOD ROYAL MOTORS
+### 📂 SÉLECTION PRIVÉE CLIENT
+
+> Voici la liste des véhicules retenus pour le dossier d'acquisition :
 
 ${carList}
 
----------------------------------------
-Pour commander : ouvrez un dossier Intranet.
+\`\`\`fix
+📞 Contactez un vendeur pour finaliser le dossier.
+\`\`\`
     `.trim();
     
     // 4. Copy to Clipboard
     navigator.clipboard.writeText(message).then(() => {
-       console.log("List copied to clipboard");
+       console.log("Discord list copied to clipboard");
     }).catch(err => {
         console.error("Copy failed", err);
     });
