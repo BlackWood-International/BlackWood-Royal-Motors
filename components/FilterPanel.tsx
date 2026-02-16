@@ -1,38 +1,10 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SortOption } from '../types';
 import { 
   Search, X, SlidersHorizontal, ArrowUpDown, Building2, 
   Tag, DollarSign, Heart 
 } from 'lucide-react';
-
-// --- CONSTANTES DE CONFIGURATION ---
-
-// Ordre spécifique des catégories tel que dans le fichier CSV (A ajuster si besoin)
-const CATEGORY_ORDER = [
-  'COMPACTS', 
-  'COUPES', 
-  'SEDANS', 
-  'SUVS', 
-  'OFF-ROAD', 
-  'MUSCLE', 
-  'SPORTS', 
-  'SPORTS CLASSICS', 
-  'SUPER', 
-  'MOTORCYCLES', 
-  'BIKES', 
-  'HELICOPTERS', 
-  'PLANES', 
-  'BOATS', 
-  'COMMERCIAL', 
-  'INDUSTRIAL', 
-  'MILITARY', 
-  'SERVICE', 
-  'EMERGENCY', 
-  'UTILITY', 
-  'VANS', 
-  'CYCLES'
-];
 
 interface FilterPanelProps {
   categories: string[];
@@ -79,38 +51,33 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Calculs d'état pour le point lumineux
+  // Indicateur de filtre actif
   const isFilterActive = 
-    !activeCategories.includes('All') || 
-    !selectedBrands.includes('All') || 
+    (activeCategories.length > 0 && !activeCategories.includes('All')) || 
+    (selectedBrands.length > 0 && !selectedBrands.includes('All')) || 
     activeSort !== 'original' ||
     priceRange.min !== '' ||
     priceRange.max !== '' ||
     showFavoritesOnly;
 
-  // Tri des catégories selon l'ordre défini
-  const sortedCategories = useMemo(() => {
-    return [...categories].sort((a, b) => {
-      const indexA = CATEGORY_ORDER.indexOf(a.toUpperCase());
-      const indexB = CATEGORY_ORDER.indexOf(b.toUpperCase());
-      // Si une catégorie n'est pas dans la liste, on la met à la fin
-      const valA = indexA === -1 ? 999 : indexA;
-      const valB = indexB === -1 ? 999 : indexB;
-      return valA - valB;
-    });
-  }, [categories]);
-
+  // Gestion de la sélection multiple (sans "All")
   const handleMultiSelect = (current: string[], item: string, updater: (items: string[]) => void) => {
-    if (item === 'All') return updater(['All']);
-    let newVal = [...current];
-    if (newVal.includes('All')) newVal = [];
-    if (newVal.includes(item)) newVal = newVal.filter(i => i !== item);
-    else newVal.push(item);
+    // Si "All" traîne dans la sélection, on l'enlève
+    let newVal = current.filter(i => i !== 'All');
+    
+    if (newVal.includes(item)) {
+      newVal = newVal.filter(i => i !== item);
+    } else {
+      newVal.push(item);
+    }
+    
+    // Si vide, on renvoie un tableau vide (ou 'All' si votre logique l'exige, mais ici on veut strict)
+    // Pour que le parent comprenne "tout", on peut envoyer tableau vide ou 'All' selon votre implémentation DataService.
+    // Ici je renvoie 'All' si vide pour garder la compatibilité, mais sans l'afficher.
     if (newVal.length === 0) newVal = ['All'];
     updater(newVal);
   };
 
-  // Configuration des onglets
   const tabs = [
     { id: 'brands' as const, label: 'Marques', icon: <Building2 className="w-4 h-4" /> },
     { id: 'categories' as const, label: 'Types', icon: <Tag className="w-4 h-4" /> },
@@ -120,30 +87,35 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   ];
 
   return (
-    <div ref={panelRef} className="sticky top-6 z-50 w-full px-4 mb-8 pointer-events-none flex justify-center">
+    // FIX STICKY: Remplacement par 'fixed' pour garantir que ça reste en haut
+    <div className="fixed top-0 left-0 right-0 z-50 w-full flex justify-center pointer-events-none pt-4 pb-4">
       
+      {/* Fond dégradé subtil pour lisibilité quand on scroll */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none h-32 -z-10" />
+
       <style>{`
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        /* Scrollbar personnalisée fine et dorée */
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(197,160,89,0.3); border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(197,160,89,0.6); }
       `}</style>
 
-      <div className="w-full max-w-2xl pointer-events-auto relative">
+      {/* Conteneur Principal */}
+      <div ref={panelRef} className="w-full max-w-2xl px-4 pointer-events-auto relative">
         
-        {/* BARRE PRINCIPALE (Flottante) */}
+        {/* BARRE FLOTTANTE */}
         <motion.div 
           layout
-          initial={{ y: -50, opacity: 0 }}
+          initial={{ y: -100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className={`bg-[#0f0f0f]/90 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl p-2 relative z-50 transition-colors duration-300 ${isExpanded ? 'border-brand-gold/40 bg-black' : 'hover:border-white/20'}`}
+          transition={{ type: "spring", stiffness: 80, damping: 20 }}
+          className={`bg-[#0f0f0f]/95 backdrop-blur-2xl border border-white/10 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5)] p-2 relative z-50 transition-colors duration-300 ${isExpanded ? 'border-brand-gold/40 bg-black' : 'hover:border-white/20'}`}
         >
           <div className="flex items-center gap-2">
             
-            {/* Champ Recherche */}
+            {/* Recherche */}
             <div className="relative flex-1 group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-brand-gold transition-colors" />
               <input 
@@ -165,7 +137,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
             <div className="w-[1px] h-6 bg-white/10 mx-1 hidden sm:block" />
 
-            {/* Bouton Toggle Filtres */}
+            {/* Bouton Toggle */}
             <motion.button 
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.95 }}
@@ -196,9 +168,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.98 }}
               transition={{ type: "spring", stiffness: 120, damping: 20 }}
-              className="absolute top-full left-0 right-0 mt-3 bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl z-40 flex flex-col max-h-[70vh]"
+              className="absolute top-full left-4 right-4 mt-3 bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl z-40 flex flex-col max-h-[70vh]"
             >
-              {/* Navigation des Onglets (GRID pour largeur fixe) */}
+              {/* Navigation des Onglets */}
               <div className="p-2 border-b border-white/5 bg-black/40">
                 <div className="grid grid-cols-5 gap-1">
                   {tabs.map((tab) => {
@@ -215,8 +187,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       >
                         {tab.icon}
                         <span className="hidden sm:inline">{tab.label}</span>
-                        {/* Mobile Label (Icon Only on very small screens if needed, but grid handles it) */}
-                        
                         {tab.badge !== undefined && (
                           <span className={`absolute top-1 right-1 sm:static sm:ml-1 w-4 h-4 sm:w-auto sm:h-auto sm:px-1.5 sm:py-0.5 flex items-center justify-center rounded-full text-[9px] ${isActive ? 'bg-brand-gold text-black' : 'bg-white/20 text-white'}`}>
                             {tab.badge}
@@ -228,7 +198,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 </div>
               </div>
 
-              {/* Contenu de l'onglet actif */}
+              {/* Contenu */}
               <div className="p-6 overflow-y-auto custom-scrollbar bg-gradient-to-b from-[#0f0f0f] to-[#050505] min-h-[350px]">
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -239,17 +209,11 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     transition={{ duration: 0.2 }}
                     className="h-full"
                   >
-                    {/* ONGLET 1 : MARQUES */}
+                    {/* MARQUES (Sans bouton ALL) */}
                     {activeTab === 'brands' && (
                       <div className="space-y-5">
-                        <SectionHeader title="Constructeurs" subtitle="Sélectionnez vos marques préférées" />
+                        <SectionHeader title="Constructeurs" subtitle="Sélection multiple possible" />
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                          <SelectionCard 
-                            label="Toutes les marques" 
-                            active={selectedBrands.includes('All')} 
-                            onClick={() => onBrandChange(['All'])}
-                            fullWidth
-                          />
                           {brands.map(brand => (
                             <SelectionCard 
                               key={brand}
@@ -262,18 +226,13 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       </div>
                     )}
 
-                    {/* ONGLET 2 : TYPES (CATÉGORIES) */}
+                    {/* CATÉGORIES (Sans bouton ALL, Ordre exact du Sheets) */}
                     {activeTab === 'categories' && (
                       <div className="space-y-5">
-                         <SectionHeader title="Catégories" subtitle="Types de véhicules (Ordre Catalogue)" />
+                         <SectionHeader title="Types de Véhicule" subtitle="Tel que défini au catalogue" />
                          <div className="grid grid-cols-2 gap-3">
-                            <SelectionCard 
-                                label="Tout voir" 
-                                active={activeCategories.includes('All')} 
-                                onClick={() => onCategoryChange(['All'])}
-                                fullWidth
-                              />
-                            {sortedCategories.map(cat => (
+                            {/* Affichage direct de la prop 'categories' sans tri, ni bouton 'All' */}
+                            {categories.map(cat => (
                               <SelectionCard 
                                 key={cat}
                                 label={cat} 
@@ -285,7 +244,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       </div>
                     )}
 
-                    {/* ONGLET 3 : BUDGET */}
+                    {/* BUDGET */}
                     {activeTab === 'budget' && (
                       <div className="space-y-8 py-4">
                         <SectionHeader title="Budget" subtitle="Définissez votre fourchette de prix" />
@@ -323,7 +282,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       </div>
                     )}
 
-                    {/* ONGLET 4 : TRI */}
+                    {/* TRI */}
                     {activeTab === 'sort' && (
                       <div className="space-y-5">
                         <SectionHeader title="Trier par" subtitle="Organiser les résultats" />
@@ -336,7 +295,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       </div>
                     )}
 
-                    {/* ONGLET 5 : FAVORIS */}
+                    {/* FAVORIS */}
                     {activeTab === 'favorites' && (
                       <div className="flex flex-col items-center justify-center py-10 space-y-6 text-center">
                          <motion.div 
@@ -398,7 +357,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   );
 };
 
-// --- COMPOSANTS UI AUXILIAIRES ---
+// --- COMPOSANTS UI ---
 
 const SectionHeader = ({ title, subtitle }: { title: string, subtitle: string }) => (
   <div className="mb-4 pl-1">
@@ -407,7 +366,6 @@ const SectionHeader = ({ title, subtitle }: { title: string, subtitle: string })
   </div>
 );
 
-// Carte de sélection (Marque / Catégorie) avec COULEUR ORANGE/DORÉE au lieu de noir
 const SelectionCard = ({ label, active, onClick, fullWidth }: { label: string, active: boolean, onClick: () => void, fullWidth?: boolean }) => (
   <motion.button
     whileHover={{ scale: 1.02 }}
@@ -417,8 +375,8 @@ const SelectionCard = ({ label, active, onClick, fullWidth }: { label: string, a
       ${fullWidth ? 'col-span-full' : ''}
       relative px-4 py-3.5 rounded-xl text-left border transition-all duration-300 group overflow-hidden
       ${active 
-        ? 'bg-brand-gold/10 border-brand-gold shadow-[0_0_15px_-5px_rgba(197,160,89,0.2)]' // Active: Fond léger + Bordure Or
-        : 'bg-white/5 border-white/5 hover:border-white/20 hover:bg-white/10' // Inactive: Gris sombre
+        ? 'bg-brand-gold/10 border-brand-gold shadow-[0_0_15px_-5px_rgba(197,160,89,0.2)]' 
+        : 'bg-white/5 border-white/5 hover:border-white/20 hover:bg-white/10' 
       }
     `}
   >
