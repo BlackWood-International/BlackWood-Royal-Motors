@@ -1,10 +1,38 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SortOption } from '../types';
 import { 
   Search, X, SlidersHorizontal, ArrowUpDown, Building2, 
-  Tag, Check, DollarSign, Heart, LayoutGrid 
+  Tag, DollarSign, Heart 
 } from 'lucide-react';
+
+// --- CONSTANTES DE CONFIGURATION ---
+
+// Ordre spécifique des catégories tel que dans le fichier CSV (A ajuster si besoin)
+const CATEGORY_ORDER = [
+  'COMPACTS', 
+  'COUPES', 
+  'SEDANS', 
+  'SUVS', 
+  'OFF-ROAD', 
+  'MUSCLE', 
+  'SPORTS', 
+  'SPORTS CLASSICS', 
+  'SUPER', 
+  'MOTORCYCLES', 
+  'BIKES', 
+  'HELICOPTERS', 
+  'PLANES', 
+  'BOATS', 
+  'COMMERCIAL', 
+  'INDUSTRIAL', 
+  'MILITARY', 
+  'SERVICE', 
+  'EMERGENCY', 
+  'UTILITY', 
+  'VANS', 
+  'CYCLES'
+];
 
 interface FilterPanelProps {
   categories: string[];
@@ -51,7 +79,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Calculs d'état
+  // Calculs d'état pour le point lumineux
   const isFilterActive = 
     !activeCategories.includes('All') || 
     !selectedBrands.includes('All') || 
@@ -59,6 +87,18 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     priceRange.min !== '' ||
     priceRange.max !== '' ||
     showFavoritesOnly;
+
+  // Tri des catégories selon l'ordre défini
+  const sortedCategories = useMemo(() => {
+    return [...categories].sort((a, b) => {
+      const indexA = CATEGORY_ORDER.indexOf(a.toUpperCase());
+      const indexB = CATEGORY_ORDER.indexOf(b.toUpperCase());
+      // Si une catégorie n'est pas dans la liste, on la met à la fin
+      const valA = indexA === -1 ? 999 : indexA;
+      const valB = indexB === -1 ? 999 : indexB;
+      return valA - valB;
+    });
+  }, [categories]);
 
   const handleMultiSelect = (current: string[], item: string, updater: (items: string[]) => void) => {
     if (item === 'All') return updater(['All']);
@@ -82,32 +122,36 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   return (
     <div ref={panelRef} className="sticky top-6 z-50 w-full px-4 mb-8 pointer-events-none flex justify-center">
       
-      {/* Styles globaux pour scrollbar */}
       <style>{`
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        /* Scrollbar personnalisée fine et dorée */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(197,160,89,0.3); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(197,160,89,0.6); }
       `}</style>
 
       <div className="w-full max-w-2xl pointer-events-auto relative">
         
-        {/* BARRE FLOTTANTE PRINCIPALE */}
+        {/* BARRE PRINCIPALE (Flottante) */}
         <motion.div 
           layout
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className={`bg-[#121212]/90 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl p-2 relative z-50 transition-colors duration-300 ${isExpanded ? 'border-brand-gold/50 bg-[#0a0a0a]' : 'hover:border-white/20'}`}
+          className={`bg-[#0f0f0f]/90 backdrop-blur-xl border border-white/10 rounded-full shadow-2xl p-2 relative z-50 transition-colors duration-300 ${isExpanded ? 'border-brand-gold/40 bg-black' : 'hover:border-white/20'}`}
         >
           <div className="flex items-center gap-2">
             
-            {/* Recherche */}
+            {/* Champ Recherche */}
             <div className="relative flex-1 group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-brand-gold transition-colors" />
               <input 
                 type="text" 
-                placeholder="Rechercher une voiture..." 
+                placeholder="Rechercher un modèle..." 
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full bg-white/5 hover:bg-white/10 focus:bg-black/50 border border-transparent focus:border-brand-gold/30 rounded-full py-2.5 pl-10 pr-10 text-sm text-white placeholder:text-slate-500 focus:outline-none transition-all shadow-inner"
+                className="w-full bg-white/5 hover:bg-white/10 focus:bg-white/10 border border-transparent focus:border-brand-gold/30 rounded-full py-2.5 pl-10 pr-10 text-sm text-white placeholder:text-slate-500 focus:outline-none transition-all"
               />
               {searchQuery && (
                 <button 
@@ -126,25 +170,25 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsExpanded(!isExpanded)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider border transition-all ${
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider border transition-all ${
                 isExpanded 
-                ? 'bg-brand-gold text-brand-black border-brand-gold shadow-[0_0_15px_-3px_rgba(197,160,89,0.4)]' 
+                ? 'bg-brand-gold/10 text-brand-gold border-brand-gold shadow-[0_0_20px_-5px_rgba(197,160,89,0.3)]' 
                 : 'bg-white/5 text-white border-white/5 hover:bg-white/10 hover:border-white/20'
               }`}
             >
               <SlidersHorizontal className="w-4 h-4" />
               <span className="hidden sm:inline">Filtres</span>
               {isFilterActive && (
-                <div className="relative flex h-2 w-2 ml-1">
-                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isExpanded ? 'bg-black' : 'bg-brand-gold'}`}></span>
-                  <span className={`relative inline-flex rounded-full h-2 w-2 ${isExpanded ? 'bg-black' : 'bg-brand-gold'}`}></span>
-                </div>
+                <span className="relative flex h-2 w-2 ml-1">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-gold"></span>
+                </span>
               )}
             </motion.button>
           </div>
         </motion.div>
 
-        {/* PANNEAU DÉPLIÉ (Compact & Tabbed) */}
+        {/* PANNEAU DÉPLIÉ */}
         <AnimatePresence>
           {isExpanded && (
             <motion.div
@@ -152,41 +196,40 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.98 }}
               transition={{ type: "spring", stiffness: 120, damping: 20 }}
-              className="absolute top-full left-0 right-0 mt-3 bg-[#0f0f0f] border border-white/10 rounded-3xl overflow-hidden shadow-2xl z-40 flex flex-col max-h-[70vh]"
+              className="absolute top-full left-0 right-0 mt-3 bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl z-40 flex flex-col max-h-[70vh]"
             >
-              {/* En-tête des Onglets */}
-              <div className="flex items-center gap-1 p-2 border-b border-white/5 overflow-x-auto hide-scrollbar bg-black/20">
-                {tabs.map((tab) => {
-                  const isActive = activeTab === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`relative flex items-center gap-2 px-4 py-3 rounded-2xl text-xs font-bold uppercase tracking-wide transition-all whitespace-nowrap flex-1 justify-center ${
-                        isActive ? 'text-brand-black' : 'text-slate-400 hover:text-white hover:bg-white/5'
-                      }`}
-                    >
-                      {isActive && (
-                        <motion.div 
-                          layoutId="activeTab"
-                          className="absolute inset-0 bg-brand-gold rounded-2xl"
-                          transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                        />
-                      )}
-                      <span className="relative z-10">{tab.icon}</span>
-                      <span className="relative z-10 hidden sm:inline">{tab.label}</span>
-                      {tab.badge !== undefined && (
-                        <span className={`relative z-10 ml-1 px-1.5 py-0.5 rounded text-[9px] ${isActive ? 'bg-black/20 text-black' : 'bg-white/10 text-white'}`}>
-                          {tab.badge}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+              {/* Navigation des Onglets (GRID pour largeur fixe) */}
+              <div className="p-2 border-b border-white/5 bg-black/40">
+                <div className="grid grid-cols-5 gap-1">
+                  {tabs.map((tab) => {
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`relative flex flex-col sm:flex-row items-center justify-center gap-1.5 py-3 rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-wide transition-all ${
+                          isActive 
+                            ? 'text-brand-gold bg-brand-gold/10 border border-brand-gold/20' 
+                            : 'text-slate-500 hover:text-white hover:bg-white/5 border border-transparent'
+                        }`}
+                      >
+                        {tab.icon}
+                        <span className="hidden sm:inline">{tab.label}</span>
+                        {/* Mobile Label (Icon Only on very small screens if needed, but grid handles it) */}
+                        
+                        {tab.badge !== undefined && (
+                          <span className={`absolute top-1 right-1 sm:static sm:ml-1 w-4 h-4 sm:w-auto sm:h-auto sm:px-1.5 sm:py-0.5 flex items-center justify-center rounded-full text-[9px] ${isActive ? 'bg-brand-gold text-black' : 'bg-white/20 text-white'}`}>
+                            {tab.badge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Contenu de l'onglet actif */}
-              <div className="p-6 overflow-y-auto custom-scrollbar bg-gradient-to-b from-[#0f0f0f] to-[#0a0a0a] min-h-[300px]">
+              <div className="p-6 overflow-y-auto custom-scrollbar bg-gradient-to-b from-[#0f0f0f] to-[#050505] min-h-[350px]">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeTab}
@@ -196,13 +239,13 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     transition={{ duration: 0.2 }}
                     className="h-full"
                   >
-                    {/* CONTENU : MARQUES */}
+                    {/* ONGLET 1 : MARQUES */}
                     {activeTab === 'brands' && (
-                      <div className="space-y-4">
-                        <SectionHeader title="Constructeurs Disponibles" subtitle="Sélection multiple possible" />
+                      <div className="space-y-5">
+                        <SectionHeader title="Constructeurs" subtitle="Sélectionnez vos marques préférées" />
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                           <SelectionCard 
-                            label="Tous les modèles" 
+                            label="Toutes les marques" 
                             active={selectedBrands.includes('All')} 
                             onClick={() => onBrandChange(['All'])}
                             fullWidth
@@ -219,15 +262,21 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       </div>
                     )}
 
-                    {/* CONTENU : CATÉGORIES */}
+                    {/* ONGLET 2 : TYPES (CATÉGORIES) */}
                     {activeTab === 'categories' && (
-                      <div className="space-y-4">
-                         <SectionHeader title="Type de Véhicule" subtitle="Filtrer par carrosserie" />
-                         <div className="flex flex-wrap gap-3">
-                            {categories.map(cat => (
+                      <div className="space-y-5">
+                         <SectionHeader title="Catégories" subtitle="Types de véhicules (Ordre Catalogue)" />
+                         <div className="grid grid-cols-2 gap-3">
+                            <SelectionCard 
+                                label="Tout voir" 
+                                active={activeCategories.includes('All')} 
+                                onClick={() => onCategoryChange(['All'])}
+                                fullWidth
+                              />
+                            {sortedCategories.map(cat => (
                               <SelectionCard 
                                 key={cat}
-                                label={cat === 'All' ? 'Toutes catégories' : cat} 
+                                label={cat} 
                                 active={activeCategories.includes(cat)} 
                                 onClick={() => handleMultiSelect(activeCategories, cat, onCategoryChange)} 
                               />
@@ -236,34 +285,36 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       </div>
                     )}
 
-                    {/* CONTENU : BUDGET */}
+                    {/* ONGLET 3 : BUDGET */}
                     {activeTab === 'budget' && (
                       <div className="space-y-8 py-4">
-                        <SectionHeader title="Fourchette de Prix" subtitle="Définissez votre budget ($)" />
-                        <div className="flex items-center gap-4">
-                           <div className="flex-1 space-y-2">
-                              <label className="text-xs text-slate-500 uppercase font-bold tracking-wider ml-1">Minimum</label>
+                        <SectionHeader title="Budget" subtitle="Définissez votre fourchette de prix" />
+                        <div className="flex flex-col sm:flex-row items-center gap-6">
+                           <div className="w-full space-y-3">
+                              <label className="text-xs text-brand-gold uppercase font-bold tracking-widest ml-1">Minimum</label>
                               <div className="relative group">
-                                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gold opacity-50 group-focus-within:opacity-100 transition-opacity" />
+                                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-brand-gold transition-colors" />
                                 <input 
                                   type="number" 
                                   value={priceRange.min}
                                   onChange={(e) => onPriceRangeChange({...priceRange, min: e.target.value})}
-                                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-10 pr-4 text-lg font-mono text-white focus:border-brand-gold focus:bg-black/40 focus:outline-none transition-all"
+                                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-lg font-mono text-white focus:border-brand-gold focus:bg-white/5 focus:outline-none transition-all placeholder:text-slate-700"
                                   placeholder="0"
                                 />
                               </div>
                            </div>
-                           <div className="w-4 h-[1px] bg-white/20 mt-6" />
-                           <div className="flex-1 space-y-2">
-                              <label className="text-xs text-slate-500 uppercase font-bold tracking-wider ml-1">Maximum</label>
+                           
+                           <div className="w-8 h-[1px] sm:w-[1px] sm:h-12 bg-white/10" />
+
+                           <div className="w-full space-y-3">
+                              <label className="text-xs text-brand-gold uppercase font-bold tracking-widest ml-1">Maximum</label>
                               <div className="relative group">
-                                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gold opacity-50 group-focus-within:opacity-100 transition-opacity" />
+                                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-brand-gold transition-colors" />
                                 <input 
                                   type="number" 
                                   value={priceRange.max}
                                   onChange={(e) => onPriceRangeChange({...priceRange, max: e.target.value})}
-                                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-10 pr-4 text-lg font-mono text-white focus:border-brand-gold focus:bg-black/40 focus:outline-none transition-all"
+                                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-lg font-mono text-white focus:border-brand-gold focus:bg-white/5 focus:outline-none transition-all placeholder:text-slate-700"
                                   placeholder="Illimité"
                                 />
                               </div>
@@ -272,45 +323,51 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       </div>
                     )}
 
-                    {/* CONTENU : TRI */}
+                    {/* ONGLET 4 : TRI */}
                     {activeTab === 'sort' && (
-                      <div className="space-y-4">
-                        <SectionHeader title="Ordre d'affichage" subtitle="Organiser les résultats" />
-                        <div className="space-y-2">
+                      <div className="space-y-5">
+                        <SectionHeader title="Trier par" subtitle="Organiser les résultats" />
+                        <div className="space-y-3">
                           <SortOptionItem active={activeSort === 'original'} onClick={() => onSortChange('original')} label="Pertinence (Par défaut)" />
-                          <SortOptionItem active={activeSort === 'price-asc'} onClick={() => onSortChange('price-asc')} label="Prix Croissant (Moins cher en premier)" />
-                          <SortOptionItem active={activeSort === 'price-desc'} onClick={() => onSortChange('price-desc')} label="Prix Décroissant (Plus cher en premier)" />
+                          <SortOptionItem active={activeSort === 'price-asc'} onClick={() => onSortChange('price-asc')} label="Prix Croissant" />
+                          <SortOptionItem active={activeSort === 'price-desc'} onClick={() => onSortChange('price-desc')} label="Prix Décroissant" />
                           <SortOptionItem active={activeSort === 'brand-asc'} onClick={() => onSortChange('brand-asc')} label="Marque (A-Z)" />
                         </div>
                       </div>
                     )}
 
-                    {/* CONTENU : FAVORIS */}
+                    {/* ONGLET 5 : FAVORIS */}
                     {activeTab === 'favorites' && (
-                      <div className="flex flex-col items-center justify-center py-8 space-y-6 text-center">
-                         <div className={`p-4 rounded-full ${showFavoritesOnly ? 'bg-brand-gold text-black' : 'bg-white/5 text-slate-500'}`}>
-                            <Heart className={`w-8 h-8 ${showFavoritesOnly ? 'fill-current' : ''}`} />
-                         </div>
+                      <div className="flex flex-col items-center justify-center py-10 space-y-6 text-center">
+                         <motion.div 
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className={`p-6 rounded-full border-2 ${showFavoritesOnly ? 'bg-brand-gold/10 border-brand-gold text-brand-gold' : 'bg-white/5 border-white/5 text-slate-600'}`}
+                          >
+                            <Heart className={`w-10 h-10 ${showFavoritesOnly ? 'fill-brand-gold' : ''}`} />
+                         </motion.div>
                          <div className="space-y-2">
-                            <h3 className="text-lg font-medium text-white">
-                              {showFavoritesOnly ? 'Mode Favoris Activé' : 'Afficher uniquement les favoris'}
+                            <h3 className="text-xl font-bold text-white uppercase tracking-wider">
+                              {showFavoritesOnly ? 'Filtre Actif' : 'Mes Favoris'}
                             </h3>
-                            <p className="text-sm text-slate-400 max-w-xs mx-auto">
+                            <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
                               {showFavoritesOnly 
-                                ? `Vous voyez actuellement vos ${favoritesCount} véhicules favoris.` 
-                                : `Activez cette option pour masquer les autres véhicules et ne voir que vos coups de cœur.`}
+                                ? `Affichage de vos ${favoritesCount} véhicules favoris.` 
+                                : `Activez cette option pour masquer les autres véhicules et ne voir que votre sélection.`}
                             </p>
                          </div>
-                         <button
+                         <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             onClick={onToggleFavorites}
-                            className={`px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
+                            className={`px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all border ${
                               showFavoritesOnly 
-                              ? 'bg-white/10 text-white hover:bg-white/20' 
-                              : 'bg-brand-gold text-black hover:bg-brand-gold/90 shadow-lg shadow-brand-gold/20'
+                              ? 'bg-transparent text-white border-white/20 hover:bg-white/10' 
+                              : 'bg-brand-gold text-black border-brand-gold hover:bg-brand-gold/90 shadow-lg shadow-brand-gold/20'
                             }`}
                          >
-                            {showFavoritesOnly ? 'Désactiver' : 'Activer le filtre'}
-                         </button>
+                            {showFavoritesOnly ? 'Tout Afficher' : 'Voir mes favoris'}
+                         </motion.button>
                       </div>
                     )}
 
@@ -318,8 +375,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 </AnimatePresence>
               </div>
 
-              {/* Pied de page du panneau */}
-              <div className="p-4 border-t border-white/5 bg-[#0f0f0f] flex justify-between items-center">
+              {/* PIED DE PAGE */}
+              <div className="p-4 border-t border-white/5 bg-[#0a0a0a] flex justify-between items-center">
                  <button 
                     onClick={onReset}
                     className="text-[10px] uppercase tracking-widest font-bold text-slate-500 hover:text-brand-crimsonBright transition-colors flex items-center gap-2 group"
@@ -327,8 +384,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     <span className="w-1.5 h-1.5 rounded-full bg-slate-500 group-hover:bg-brand-crimsonBright transition-colors" />
                     Réinitialiser tout
                  </button>
-                 <div className="text-[10px] text-slate-600 font-mono">
-                    {isFilterActive ? 'Filtres actifs' : 'Standard'}
+                 <div className="text-[10px] text-brand-gold/50 font-mono tracking-widest">
+                    BLACKWOOD ROYAL MOTORS
                  </div>
               </div>
 
@@ -341,32 +398,35 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   );
 };
 
-// --- COMPOSANTS UI REUTILISABLES ---
+// --- COMPOSANTS UI AUXILIAIRES ---
 
 const SectionHeader = ({ title, subtitle }: { title: string, subtitle: string }) => (
-  <div className="mb-6">
-    <h3 className="text-sm font-bold text-white uppercase tracking-wider">{title}</h3>
-    <p className="text-xs text-slate-500 mt-1">{subtitle}</p>
+  <div className="mb-4 pl-1">
+    <h3 className="text-xs font-bold text-brand-gold uppercase tracking-[0.15em]">{title}</h3>
+    <p className="text-[10px] text-slate-500 mt-1 font-medium">{subtitle}</p>
   </div>
 );
 
+// Carte de sélection (Marque / Catégorie) avec COULEUR ORANGE/DORÉE au lieu de noir
 const SelectionCard = ({ label, active, onClick, fullWidth }: { label: string, active: boolean, onClick: () => void, fullWidth?: boolean }) => (
   <motion.button
-    whileHover={{ scale: 1.02, backgroundColor: active ? 'rgb(197, 160, 89)' : 'rgba(255,255,255,0.08)' }}
+    whileHover={{ scale: 1.02 }}
     whileTap={{ scale: 0.98 }}
     onClick={onClick}
     className={`
       ${fullWidth ? 'col-span-full' : ''}
-      relative px-4 py-3 rounded-xl text-left border transition-all duration-200 group overflow-hidden
+      relative px-4 py-3.5 rounded-xl text-left border transition-all duration-300 group overflow-hidden
       ${active 
-        ? 'bg-brand-gold border-brand-gold text-black shadow-lg shadow-brand-gold/10' 
-        : 'bg-white/5 border-white/5 text-slate-400 hover:text-white hover:border-white/10'
+        ? 'bg-brand-gold/10 border-brand-gold shadow-[0_0_15px_-5px_rgba(197,160,89,0.2)]' // Active: Fond léger + Bordure Or
+        : 'bg-white/5 border-white/5 hover:border-white/20 hover:bg-white/10' // Inactive: Gris sombre
       }
     `}
   >
     <div className="flex items-center justify-between relative z-10">
-      <span className="text-xs font-bold uppercase tracking-wide truncate">{label}</span>
-      {active && <Check className="w-3.5 h-3.5" />}
+      <span className={`text-[11px] font-bold uppercase tracking-wider truncate ${active ? 'text-brand-gold' : 'text-slate-400 group-hover:text-white'}`}>
+        {label}
+      </span>
+      {active && <div className="w-1.5 h-1.5 rounded-full bg-brand-gold shadow-[0_0_8px_rgba(197,160,89,1)]" />}
     </div>
   </motion.button>
 );
@@ -376,11 +436,11 @@ const SortOptionItem = ({ label, active, onClick }: { label: string, active: boo
     onClick={onClick}
     className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
       active 
-      ? 'bg-brand-gold/10 border-brand-gold text-brand-gold' 
-      : 'bg-transparent border-transparent text-slate-400 hover:bg-white/5 hover:text-white'
+      ? 'bg-brand-gold/10 border-brand-gold' 
+      : 'bg-transparent border-transparent text-slate-500 hover:bg-white/5 hover:text-white'
     }`}
   >
-    <span className="text-xs font-medium">{label}</span>
+    <span className={`text-xs font-bold uppercase tracking-wide ${active ? 'text-brand-gold' : ''}`}>{label}</span>
     {active && <div className="w-2 h-2 rounded-full bg-brand-gold shadow-[0_0_10px_rgba(197,160,89,0.8)]" />}
   </button>
 );
