@@ -97,8 +97,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   };
 
   return (
-    // Fixed width constraint
-    <div className="sticky top-6 z-50 w-[98vw] left-[1vw] mb-12 relative group">
+    // CORRECTION ICI : Remplacement de w-[98vw] par w-full px-4 pour éviter le scroll horizontal
+    <div className="sticky top-6 z-50 w-full px-4 mb-12 relative group">
         
         {/* Main Floating Bar */}
         <motion.div 
@@ -151,7 +151,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     )}
                 </motion.button>
             </div>
-        <motion.div>
+        {/* CORRECTION ICI : Fermeture de la balise motion.div qui était manquante ou erronée */}
+        </motion.div>
 
         {/* Expanded Panel - Grid Layout */}
         <AnimatePresence>
@@ -189,13 +190,13 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                                             : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
                                         }`}
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <Heart className={`w-4 h-4 ${showFavoritesOnly ? 'fill-current' : ''}`} />
-                                            <span>Afficher mes favoris</span>
-                                        </div>
-                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${showFavoritesOnly ? 'bg-black/20' : 'bg-white/10'}`}>
-                                            {favoritesCount}
-                                        </span>
+                                            <div className="flex items-center gap-3">
+                                                <Heart className={`w-4 h-4 ${showFavoritesOnly ? 'fill-current' : ''}`} />
+                                                <span>Afficher mes favoris</span>
+                                            </div>
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${showFavoritesOnly ? 'bg-black/20' : 'bg-white/10'}`}>
+                                                {favoritesCount}
+                                            </span>
                                     </motion.button>
                                 </div>
 
@@ -281,38 +282,38 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                                         <h4 className="text-[10px] uppercase tracking-[0.2em] font-bold">Constructeurs (Multi)</h4>
                                     </div>
                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-[200px] overflow-y-auto custom-scrollbar pr-2">
-                                         <motion.button
-                                            layout
-                                            whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.98 }}
-                                            onClick={() => onBrandChange(['All'])}
-                                            className={`col-span-1 px-3 py-2 rounded border text-left text-[10px] uppercase tracking-wider font-bold transition-colors ${
-                                                selectedBrands.includes('All')
-                                                ? 'border-brand-gold text-brand-gold bg-brand-gold/5'
-                                                : 'border-white/5 text-slate-500 hover:text-white hover:bg-white/5'
-                                            }`}
-                                        >
-                                            Tout
-                                        </motion.button>
-                                        {brands.map(brand => {
-                                            const isActive = selectedBrands.includes(brand);
-                                            return (
-                                                <motion.button
-                                                    layout
-                                                    key={brand}
-                                                    whileHover={{ scale: 1.02, x: 2 }}
-                                                    whileTap={{ scale: 0.98 }}
-                                                    onClick={() => handleMultiSelect(selectedBrands, brand, onBrandChange)}
-                                                    className={`truncate px-3 py-2 rounded border text-left text-[10px] uppercase tracking-wider font-bold transition-colors ${
-                                                        isActive
-                                                        ? 'border-brand-gold text-brand-gold bg-brand-gold/5'
-                                                        : 'border-white/5 text-slate-500 hover:text-white hover:bg-white/5'
-                                                    }`}
-                                                >
-                                                    {brand}
-                                                </motion.button>
-                                            )
-                                        })}
+                                             <motion.button
+                                                layout
+                                                whileHover={{ scale: 1.02 }}
+                                                whileTap={{ scale: 0.98 }}
+                                                onClick={() => onBrandChange(['All'])}
+                                                className={`col-span-1 px-3 py-2 rounded border text-left text-[10px] uppercase tracking-wider font-bold transition-colors ${
+                                                    selectedBrands.includes('All')
+                                                    ? 'border-brand-gold text-brand-gold bg-brand-gold/5'
+                                                    : 'border-white/5 text-slate-500 hover:text-white hover:bg-white/5'
+                                                }`}
+                                            >
+                                                Tout
+                                            </motion.button>
+                                            {brands.map(brand => {
+                                                const isActive = selectedBrands.includes(brand);
+                                                return (
+                                                    <motion.button
+                                                        layout
+                                                        key={brand}
+                                                        whileHover={{ scale: 1.02, x: 2 }}
+                                                        whileTap={{ scale: 0.98 }}
+                                                        onClick={() => handleMultiSelect(selectedBrands, brand, onBrandChange)}
+                                                        className={`truncate px-3 py-2 rounded border text-left text-[10px] uppercase tracking-wider font-bold transition-colors ${
+                                                            isActive
+                                                            ? 'border-brand-gold text-brand-gold bg-brand-gold/5'
+                                                            : 'border-white/5 text-slate-500 hover:text-white hover:bg-white/5'
+                                                        }`}
+                                                    >
+                                                        {brand}
+                                                    </motion.button>
+                                                )
+                                            })}
                                     </div>
                                 </div>
                             </div>
