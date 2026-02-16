@@ -109,8 +109,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   ];
 
   return (
-    // CONTENEUR FIXED - Positionné par rapport à l'écran (Viewport)
-    <div className="fixed top-24 left-0 right-0 z-40 w-full flex justify-center pointer-events-none px-4">
+    // CONTENEUR FIXED - Position remontée à top-16 (64px) pour être juste sous la navbar
+    <div className="fixed top-8 left-0 right-0 z-40 w-full flex justify-center pointer-events-none px-4">
       
       <style>{`
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -218,7 +218,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               transition={{ type: "spring", stiffness: 180, damping: 25 }}
               className="absolute top-full left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl z-40 flex flex-col max-h-[65vh] mx-0"
             >
-              {/* Onglets de Navigation */}
+              {/* Onglets de Navigation - ARRONDIS SQUIRCLE PLUS PRONONCÉS */}
               <div className="px-2 py-2 border-b border-white/5 bg-[#050505]/50">
                 <div className="grid grid-cols-5 gap-1">
                   {tabs.map((tab) => {
@@ -228,7 +228,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`
-                          relative flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl transition-all duration-300
+                          relative flex flex-col items-center justify-center gap-1.5 py-3 rounded-[1.4rem] transition-all duration-300
                           ${isActive 
                             ? 'bg-white/5 text-brand-gold shadow-inner' 
                             : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
@@ -441,6 +441,7 @@ const SectionHeader = ({ title, subtitle, centered }: { title: string, subtitle:
   </div>
 );
 
+// Selection Card - ARRONDIS SQUIRCLE PLUS PRONONCÉS
 const SelectionCard = ({ label, active, onClick, fullWidth, special }: { label: string, active: boolean, onClick: () => void, fullWidth?: boolean, special?: boolean }) => (
   <motion.button
     whileHover={{ scale: 1.02, backgroundColor: active ? '' : "rgba(255,255,255,0.08)" }}
@@ -448,7 +449,7 @@ const SelectionCard = ({ label, active, onClick, fullWidth, special }: { label: 
     onClick={onClick}
     className={`
       ${fullWidth ? 'col-span-full' : ''}
-      relative px-4 py-3.5 rounded-2xl text-left border transition-all duration-300 group overflow-hidden
+      relative px-4 py-3.5 rounded-[1.25rem] text-left border transition-all duration-300 group overflow-hidden
       ${active 
         ? 'bg-brand-gold/10 border-brand-gold shadow-[0_0_15px_-5px_rgba(197,160,89,0.2)]' 
         : special 
@@ -472,11 +473,12 @@ const SelectionCard = ({ label, active, onClick, fullWidth, special }: { label: 
   </motion.button>
 );
 
+// Sort Option Item - ARRONDIS SQUIRCLE PLUS PRONONCÉS
 const SortOptionItem = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => (
   <motion.button
     whileHover={{ x: 4 }}
     onClick={onClick}
-    className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
+    className={`w-full flex items-center justify-between p-4 rounded-[1.5rem] border transition-all ${
       active 
       ? 'bg-brand-gold/10 border-brand-gold shadow-[0_0_15px_-5px_rgba(197,160,89,0.2)]' 
       : 'bg-[#151515] border-white/5 text-slate-500 hover:bg-white/5 hover:text-white hover:border-white/10'
