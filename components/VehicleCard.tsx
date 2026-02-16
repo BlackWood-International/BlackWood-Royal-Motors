@@ -80,14 +80,21 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.4 }}
-      className="group relative w-full h-full content-visibility-auto"
+      /* 
+         FIX: 'hover:z-50' force la carte survolée à passer au-dessus de tout le reste.
+         Suppression de content-visibility pour éviter le clipping.
+      */
+      className="group relative w-full h-full hover:z-50"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <motion.div 
-        whileHover={{ y: -4 }} 
+        /* FIX: Animation plus rapide (0.2s) et easing snappy */
+        whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }}
         className={`
-            relative h-full flex flex-col rounded-[2rem] overflow-hidden transition-all duration-500 z-0
+            relative h-full flex flex-col rounded-[2rem] overflow-hidden z-0
+            /* FIX: Suppression de transition-all duration-500 pour éviter le lag */
+            transition-colors duration-300
             ${hasBadge 
                 ? 'bg-[#0f0f0f]' // Base background
                 : 'bg-[#0a0a0a] border border-white/5 hover:border-brand-gold/40 hover:shadow-2xl'
@@ -98,7 +105,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
         {hasBadge && (
             <>
                 {/* 1. Golden Breathing Halo Shadow (Bottom Layer) */}
-                <div className="absolute -inset-[2px] rounded-[2.1rem] bg-brand-gold/20 blur-xl opacity-0 animate-pulse group-hover:opacity-60 transition-opacity duration-700 pointer-events-none z-0" />
+                <div className="absolute -inset-[2px] rounded-[2.1rem] bg-brand-gold/20 blur-xl opacity-0 animate-pulse group-hover:opacity-60 transition-opacity duration-300 pointer-events-none z-0" />
                 
                 {/* 2. Premium Border (Double layered) - Above Image */}
                 <div className="absolute inset-0 rounded-[2rem] border border-brand-gold/40 shadow-[inset_0_0_20px_rgba(197,160,89,0.05)] pointer-events-none z-20" />
@@ -128,7 +135,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
                     <img 
                         src={currentSrc}
                         alt={`${vehicle.brand} ${vehicle.model}`}
-                        className={`w-full h-full object-cover transition-all duration-700 ease-out 
+                        className={`w-full h-full object-cover transition-transform duration-300 ease-out 
                             ${isHovered ? 'scale-110' : 'scale-100'} 
                             ${imageState === 'loaded' ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'}`}
                         style={{ borderTopLeftRadius: '2rem', borderTopRightRadius: '2rem' }}
@@ -212,7 +219,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
              </h3>
 
              <div className="relative w-full h-[1px] bg-white/5 mb-5 overflow-hidden">
-                <div className={`absolute inset-0 bg-brand-gold h-full transition-transform duration-700 ease-out ${isHovered ? 'translate-x-0' : '-translate-x-full'}`} />
+                <div className={`absolute inset-0 bg-brand-gold h-full transition-transform duration-300 ease-out ${isHovered ? 'translate-x-0' : '-translate-x-full'}`} />
              </div>
              
              <div className={`flex flex-wrap gap-2 mb-4 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-60'}`}>
