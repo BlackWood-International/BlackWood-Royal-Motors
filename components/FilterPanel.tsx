@@ -1,10 +1,18 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SortOption } from '../types';
 import { 
   Search, X, SlidersHorizontal, ArrowUpDown, Building2, 
   Tag, DollarSign, Heart 
 } from 'lucide-react';
+
+// --- CONSTANTES ---
+const CATEGORY_ORDER = [
+  'COMPACTS', 'COUPES', 'SEDANS', 'SUVS', 'OFF-ROAD', 'MUSCLE', 
+  'SPORTS', 'SPORTS CLASSICS', 'SUPER', 'MOTORCYCLES', 'BIKES', 
+  'HELICOPTERS', 'PLANES', 'BOATS', 'COMMERCIAL', 'INDUSTRIAL', 
+  'MILITARY', 'SERVICE', 'EMERGENCY', 'UTILITY', 'VANS', 'CYCLES'
+];
 
 interface FilterPanelProps {
   categories: string[];
@@ -38,6 +46,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<TabID>('brands');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Fermeture au clic extérieur
@@ -60,20 +69,22 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     priceRange.max !== '' ||
     showFavoritesOnly;
 
-  // Gestion de la sélection multiple (sans "All")
+  // Tri des catégories
+  const sortedCategories = useMemo(() => {
+    return [...categories].sort((a, b) => {
+      const indexA = CATEGORY_ORDER.indexOf(a.toUpperCase());
+      const indexB = CATEGORY_ORDER.indexOf(b.toUpperCase());
+      return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+    });
+  }, [categories]);
+
   const handleMultiSelect = (current: string[], item: string, updater: (items: string[]) => void) => {
-    // Si "All" traîne dans la sélection, on l'enlève
     let newVal = current.filter(i => i !== 'All');
-    
     if (newVal.includes(item)) {
       newVal = newVal.filter(i => i !== item);
     } else {
       newVal.push(item);
     }
-    
-    // Si vide, on renvoie un tableau vide (ou 'All' si votre logique l'exige, mais ici on veut strict)
-    // Pour que le parent comprenne "tout", on peut envoyer tableau vide ou 'All' selon votre implémentation DataService.
-    // Ici je renvoie 'All' si vide pour garder la compatibilité, mais sans l'afficher.
     if (newVal.length === 0) newVal = ['All'];
     updater(newVal);
   };
@@ -87,12 +98,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   ];
 
   return (
-    // FIX STICKY: Remplacement par 'fixed' pour garantir que ça reste en haut
-    <div className="fixed top-0 left-0 right-0 z-50 w-full flex justify-center pointer-events-none pt-4 pb-4">
+    // STICKY NATUREL : top-4 permet à la barre de coller au plafond seulement quand on scrolle
+    <div className="sticky top-4 z-40 w-full flex justify-center pointer-events-none mb-8 pt-2">
       
-      {/* Fond dégradé subtil pour lisibilité quand on scroll */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-none h-32 -z-10" />
-
       <style>{`
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -105,70 +113,100 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       {/* Conteneur Principal */}
       <div ref={panelRef} className="w-full max-w-2xl px-4 pointer-events-auto relative">
         
-        {/* BARRE FLOTTANTE */}
+        {/* BARRE FLOTTANTE AVEC MOTION DESIGN AVANCÉ */}
         <motion.div 
-          layout
-          initial={{ y: -100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 80, damping: 20 }}
-          className={`bg-[#0f0f0f]/95 backdrop-blur-2xl border border-white/10 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5)] p-2 relative z-50 transition-colors duration-300 ${isExpanded ? 'border-brand-gold/40 bg-black' : 'hover:border-white/20'}`}
+          layout // Permet l'animation fluide de la largeur et position
+          transition={{ type: "spring", stiffness: 200, damping: 25 }} // Physique "Luxe"
+          className={`
+            bg-[#0f0f0f]/90 backdrop-blur-2xl border border-white/10 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5)] 
+            p-2 relative z-50 transition-colors duration-500 overflow-hidden
+            ${isExpanded ? 'border-brand-gold/40 bg-black' : 'hover:border-white/20'}
+          `}
         >
-          <div className="flex items-center gap-2">
+          <motion.div layout className="flex items-center gap-2">
             
-            {/* Recherche */}
-            <div className="relative flex-1 group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-brand-gold transition-colors" />
+            {/* Zone Recherche (Extensible) */}
+            <motion.div 
+              layout
+              className="relative flex items-center group bg-white/5 hover:bg-white/10 rounded-full focus-within:bg-white/10 transition-colors"
+              animate={{ flex: isSearchFocused ? 2 : 1 }} // S'agrandit au focus
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
+              <Search className="absolute left-4 w-4 h-4 text-slate-500 group-focus-within:text-brand-gold transition-colors duration-300" />
               <input 
                 type="text" 
-                placeholder="Rechercher un modèle..." 
+                placeholder="Rechercher..." 
                 value={searchQuery}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full bg-white/5 hover:bg-white/10 focus:bg-white/10 border border-transparent focus:border-brand-gold/30 rounded-full py-2.5 pl-10 pr-10 text-sm text-white placeholder:text-slate-500 focus:outline-none transition-all"
+                className="w-full bg-transparent border-none rounded-full py-2.5 pl-10 pr-10 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-0"
               />
-              {searchQuery && (
-                <button 
-                  onClick={() => onSearchChange('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-500 hover:text-white rounded-full hover:bg-white/10 transition-colors"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              )}
-            </div>
+              <AnimatePresence>
+                {searchQuery && (
+                  <motion.button 
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    onClick={() => onSearchChange('')}
+                    className="absolute right-2 p-1 text-slate-500 hover:text-white rounded-full hover:bg-white/10"
+                  >
+                    <X className="w-3 h-3" />
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </motion.div>
 
-            <div className="w-[1px] h-6 bg-white/10 mx-1 hidden sm:block" />
+            <motion.div layout className="w-[1px] h-6 bg-white/10 mx-1 hidden sm:block" />
 
-            {/* Bouton Toggle */}
+            {/* Bouton Toggle Filtres (Fluide) */}
             <motion.button 
+              layout
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsExpanded(!isExpanded)}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider border transition-all ${
-                isExpanded 
-                ? 'bg-brand-gold/10 text-brand-gold border-brand-gold shadow-[0_0_20px_-5px_rgba(197,160,89,0.3)]' 
-                : 'bg-white/5 text-white border-white/5 hover:bg-white/10 hover:border-white/20'
-              }`}
+              className={`
+                flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider border transition-colors duration-300
+                ${isExpanded 
+                  ? 'bg-brand-gold/10 text-brand-gold border-brand-gold shadow-[0_0_20px_-5px_rgba(197,160,89,0.3)]' 
+                  : 'bg-white/5 text-white border-white/5 hover:bg-white/10 hover:border-white/20'
+                }
+              `}
             >
-              <SlidersHorizontal className="w-4 h-4" />
-              <span className="hidden sm:inline">Filtres</span>
-              {isFilterActive && (
-                <span className="relative flex h-2 w-2 ml-1">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-gold"></span>
-                </span>
-              )}
+              <motion.div layout className="flex items-center gap-2">
+                <SlidersHorizontal className="w-4 h-4" />
+                <span className="hidden sm:inline whitespace-nowrap">Filtres</span>
+              </motion.div>
+              
+              {/* Animation fluide du point actif (ne décale pas brutalement) */}
+              <AnimatePresence>
+                {isFilterActive && (
+                  <motion.div 
+                    initial={{ width: 0, opacity: 0, scale: 0 }}
+                    animate={{ width: 'auto', opacity: 1, scale: 1 }}
+                    exit={{ width: 0, opacity: 0, scale: 0 }}
+                    className="flex items-center ml-1 overflow-hidden"
+                  >
+                    <span className="relative flex h-2 w-2 mx-1">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-gold"></span>
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.button>
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* PANNEAU DÉPLIÉ */}
         <AnimatePresence>
           {isExpanded && (
             <motion.div
-              initial={{ opacity: 0, y: -10, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 120, damping: 20 }}
-              className="absolute top-full left-4 right-4 mt-3 bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl z-40 flex flex-col max-h-[70vh]"
+              initial={{ opacity: 0, y: -20, scale: 0.95, filter: "blur(10px)" }}
+              animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: -20, scale: 0.95, filter: "blur(10px)" }}
+              transition={{ type: "spring", stiffness: 150, damping: 20 }}
+              className="absolute top-full left-4 right-4 mt-3 bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl z-30 flex flex-col max-h-[70vh]"
             >
               {/* Navigation des Onglets */}
               <div className="p-2 border-b border-white/5 bg-black/40">
@@ -209,7 +247,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     transition={{ duration: 0.2 }}
                     className="h-full"
                   >
-                    {/* MARQUES (Sans bouton ALL) */}
+                    {/* MARQUES */}
                     {activeTab === 'brands' && (
                       <div className="space-y-5">
                         <SectionHeader title="Constructeurs" subtitle="Sélection multiple possible" />
@@ -226,13 +264,12 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       </div>
                     )}
 
-                    {/* CATÉGORIES (Sans bouton ALL, Ordre exact du Sheets) */}
+                    {/* CATÉGORIES (Ordre CSV) */}
                     {activeTab === 'categories' && (
                       <div className="space-y-5">
-                         <SectionHeader title="Types de Véhicule" subtitle="Tel que défini au catalogue" />
+                         <SectionHeader title="Types de Véhicule" subtitle="Catalogue Officiel" />
                          <div className="grid grid-cols-2 gap-3">
-                            {/* Affichage direct de la prop 'categories' sans tri, ni bouton 'All' */}
-                            {categories.map(cat => (
+                            {sortedCategories.map(cat => (
                               <SelectionCard 
                                 key={cat}
                                 label={cat} 
@@ -357,7 +394,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   );
 };
 
-// --- COMPOSANTS UI ---
+// --- COMPOSANTS UI AUXILIAIRES ---
 
 const SectionHeader = ({ title, subtitle }: { title: string, subtitle: string }) => (
   <div className="mb-4 pl-1">
