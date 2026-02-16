@@ -208,26 +208,46 @@ ${carList}
     return result;
   }, [vehicles, activeCategories, selectedBrands, searchQuery, sortOption, priceRange, showFavoritesOnly, favorites]);
 
-  // --- INFINITE SCROLL OBSERVER ---
+  // --- INFINITE SCROLL OBSERVER (ROBUST FIX) ---
   useEffect(() => {
-    // Si tout est déjà affiché, on ne fait rien
-    if (visibleCount >= filteredAndSortedVehicles.length && filteredAndSortedVehicles.length > 0) return;
+    // Si la liste est vide ou si on a tout affiché, on arrête.
+    const totalItems = filteredAndSortedVehicles.length;
+    if (totalItems === 0 || visibleCount >= totalItems) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          setVisibleCount((prev) => Math.min(prev + LOAD_MORE_INCREMENT, filteredAndSortedVehicles.length));
+          // Chargement du lot suivant
+          setVisibleCount((prev) => Math.min(prev + LOAD_MORE_INCREMENT, totalItems));
         }
       },
-      { rootMargin: '200px' }
+      { rootMargin: '400px' } // Déclenche le chargement bien avant d'arriver en bas
     );
 
-    if (loaderRef.current) {
-      observer.observe(loaderRef.current);
+    const currentLoader = loaderRef.current;
+    if (currentLoader) {
+      observer.observe(currentLoader);
     }
 
-    return () => observer.disconnect();
-  }, [filteredAndSortedVehicles, visibleCount]); // FIX: Dépendance sur visibleCount pour forcer la ré-évaluation
+    return () => {
+      if (currentLoader) observer.unobserve(currentLoader);
+    };
+  }, [filteredAndSortedVehicles, visibleCount]);
+
+  // --- SAFETY CHECK POUR ECRANS LARGES ---
+  // Si après un render, le loader est TOUJOURS visible (car l'écran est grand et 24 items ne suffisent pas),
+  // on force le chargement de la suite immédiatement.
+  useEffect(() => {
+      const totalItems = filteredAndSortedVehicles.length;
+      if (visibleCount < totalItems && loaderRef.current) {
+          const rect = loaderRef.current.getBoundingClientRect();
+          if (rect.top < window.innerHeight) {
+              // Le loader est visible, on charge encore !
+              setVisibleCount(prev => Math.min(prev + LOAD_MORE_INCREMENT, totalItems));
+          }
+      }
+  }, [visibleCount, filteredAndSortedVehicles]);
+
 
   const visibleVehicles = filteredAndSortedVehicles.slice(0, visibleCount);
 
@@ -288,8 +308,8 @@ ${carList}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full flex flex-col"
             >
-                {/* FLOATING HEADER - MOBILE OPTIMIZED & Z-INDEX FIX */}
-                <header className="fixed top-0 left-0 w-full z-[70] pointer-events-none flex justify-between items-center px-4 py-3 md:px-8 md:py-6 bg-gradient-to-b from-black/95 via-black/80 to-transparent transition-all duration-300">
+                {/* FLOATING HEADER - Z-INDEX 100 (Highest) */}
+                <header className="fixed top-0 left-0 w-full z-[100] pointer-events-none flex justify-between items-center px-4 py-3 md:px-8 md:py-6 bg-gradient-to-b from-black/95 via-black/80 to-transparent transition-all duration-300">
                     <button 
                         onClick={handleReturnHome}
                         className="pointer-events-auto flex items-center gap-2 pl-2 pr-4 py-2 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 text-[10px] uppercase tracking-[0.2em] font-bold text-slate-300 hover:text-white hover:border-brand-gold/50 hover:bg-black/80 transition-all group shadow-lg"
@@ -405,8 +425,8 @@ ${carList}
                             </motion.div>
                         )}
 
-                        {/* LOAD MORE TRIGGER */}
-                        <div ref={loaderRef} className="h-20 w-full flex items-center justify-center mt-10 opacity-0 pointer-events-none">
+                        {/* LOAD MORE TRIGGER (Taille augmentée pour faciliter l'intersection) */}
+                        <div ref={loaderRef} className="h-32 w-full flex items-center justify-center mt-10 opacity-0 pointer-events-none">
                             <span className="text-slate-600">Chargement...</span>
                         </div>
                     </main>
