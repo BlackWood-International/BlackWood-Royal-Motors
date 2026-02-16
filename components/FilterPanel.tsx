@@ -98,7 +98,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
   return (
     // Fixed width constraint
-    <div className="sticky top-6 z-50 w-[98vw] left-[1vw] mb-12 relative group">
+    <div className="sticky top-6 z-50 w-full px-[1%] mb-12 relative group">
         
         {/* Main Floating Bar */}
         <motion.div 
@@ -151,7 +151,13 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     )}
                 </motion.button>
             </div>
-        </motion.div>
+        <motion.div
+          variants={panelVariants}
+          initial="hidden"
+          animate="visible"
+          exit="hidden"
+          className="absolute left-1/2 -translate-x-1/2 top-full mt-4 w-full max-w-6xl z-40 bg-[#0f0f0f]/95 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-2xl overflow-hidden"
+        >
 
         {/* Expanded Panel - Grid Layout */}
         <AnimatePresence>
