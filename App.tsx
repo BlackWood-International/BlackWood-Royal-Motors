@@ -95,12 +95,9 @@ function App() {
   // Reset pagination when filters change
   useEffect(() => {
     setVisibleCount(INITIAL_DISPLAY_COUNT);
-    // Scroll doux vers l'ancre si un filtre change (uniquement si ce n'est pas le premier render)
     if (view === 'catalog' && !isFirstRender.current) {
          const anchor = document.getElementById('catalog-anchor');
          if (anchor) {
-             // Logic to stay near top of list but not jump aggressively
-             // Only scroll if we are way down the page
              if (window.scrollY > 500) {
                  const offset = -200; 
                  const bodyRect = document.body.getBoundingClientRect().top;
@@ -236,8 +233,8 @@ function App() {
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full flex flex-col"
             >
-                {/* FLOATING HEADER */}
-                <header className="fixed top-0 left-0 w-full z-50 pointer-events-none p-6 flex justify-between items-start">
+                {/* FLOATING HEADER - FIXED & DISTINCT */}
+                <header className="fixed top-0 left-0 w-full z-50 pointer-events-none flex justify-between items-center px-4 py-4 md:px-8 md:py-6 bg-gradient-to-b from-black/80 via-black/40 to-transparent">
                     <button 
                         onClick={handleReturnHome}
                         className="pointer-events-auto flex items-center gap-2 pl-2 pr-4 py-2 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 text-[10px] uppercase tracking-[0.2em] font-bold text-slate-300 hover:text-white hover:border-brand-gold/50 hover:bg-black/80 transition-all group shadow-lg"
@@ -245,11 +242,15 @@ function App() {
                         <div className="p-1.5 rounded-full bg-white/5 group-hover:bg-brand-gold group-hover:text-black transition-colors">
                             <ChevronLeft className="w-3.5 h-3.5" />
                         </div>
-                        <span className="mt-[1px]">Accueil</span>
+                        <span className="mt-[1px] hidden sm:inline">Accueil</span>
                     </button>
 
-                    <div className="pointer-events-auto opacity-50 hover:opacity-100 transition-opacity">
-                         <img src="https://i.imgur.com/5QiFb0Y.png" alt="Logo" className="h-6 object-contain" />
+                    <div className="pointer-events-auto hover:opacity-100 transition-opacity">
+                         <img 
+                            src="https://i.imgur.com/5QiFb0Y.png" 
+                            alt="Logo" 
+                            className="h-10 md:h-14 object-contain drop-shadow-[0_0_10px_rgba(0,0,0,0.8)]" 
+                         />
                     </div>
                 </header>
 
@@ -276,10 +277,10 @@ function App() {
                         favoritesCount={favorites.length}
                     />
 
-                    {/* Contenu principal */}
-                    <main className="max-w-[1800px] mx-auto px-4 md:px-6 py-12 pt-32">
+                    {/* Contenu principal - PADDING TOP AJUSTÉ */}
+                    <main className="max-w-[1800px] mx-auto px-4 md:px-6 py-12 pt-40 md:pt-48">
                         {/* ANCRE DE CATALOGUE */}
-                        <div id="catalog-anchor" className="mb-12 flex flex-col md:flex-row md:items-end justify-between border-b border-white/5 pb-4 mx-4 scroll-mt-40">
+                        <div id="catalog-anchor" className="mb-12 flex flex-col md:flex-row md:items-end justify-between border-b border-white/5 pb-4 mx-4 scroll-mt-60">
                             <div>
                                 <motion.h2 
                                     initial={{ opacity: 0, x: -20 }}
