@@ -9,7 +9,12 @@ export const fetchCatalog = (): Promise<Vehicle[]> => {
       download: true,
       header: true,
       skipEmptyLines: true,
+      // IMPORTANT : Cette ligne nettoie les titres des colonnes (enlève les espaces invisibles)
+      transformHeader: (header) => header.trim(),
       complete: (results) => {
+        // DEBUG : Affiche dans la console les colonnes trouvées
+        console.log("Colonnes détectées dans le CSV :", results.meta.fields);
+        
         try {
           const vehicles: Vehicle[] = results.data.map((row, index) => {
             const priceStr = row['Prix Vente'] || '0';
@@ -18,6 +23,11 @@ export const fetchCatalog = (): Promise<Vehicle[]> => {
 
             // Get image from the specific column "URL img" shown in screenshot, or fallbacks
             const imageUrl = row['URL img'] || row['Image'] || row['image'] || row['URL Image'] || undefined;
+
+            // DEBUG : Si l'image est manquante, on affiche pourquoi dans la console
+            if (!imageUrl) {
+              console.warn(`Image manquante pour la voiture (Ligne ${index + 2}). Colonnes disponibles pour cette ligne :`, Object.keys(row));
+            }
 
             // Format price with spaces as thousand separators and $ prefix
             // Example: 1000000 -> $ 1 000 000
@@ -43,12 +53,15 @@ export const fetchCatalog = (): Promise<Vehicle[]> => {
             (v.brand !== 'Unknown Brand' || v.model !== 'Unknown Model') && v.category
           );
           
+          console.log(`${cleanVehicles.length} véhicules chargés avec succès.`);
           resolve(cleanVehicles);
         } catch (e) {
+          console.error("Erreur lors du traitement des données :", e);
           reject(e);
         }
       },
       error: (error) => {
+        console.error("Erreur de téléchargement du CSV :", error);
         reject(error);
       }
     });
