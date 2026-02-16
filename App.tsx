@@ -7,30 +7,31 @@ import { VehicleModal } from './components/VehicleModal';
 import { FilterPanel } from './components/FilterPanel';
 import { Footer } from './components/Footer';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Loader2, AlertCircle, Heart } from 'lucide-react';
+import { Loader2, AlertCircle, Heart, ChevronLeft } from 'lucide-react';
 
 function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+
+  // VIEW STATE: Gère l'affichage entre l'accueil (Hero) et le Catalogue
+  const [view, setView] = useState<'home' | 'catalog'>('home');
   
-  // Filter States - Now Arrays for Multi-select
+  // Filter States
   const [activeCategories, setActiveCategories] = useState<string[]>(['All']);
   const [selectedBrands, setSelectedBrands] = useState<string[]>(['All']);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [priceRange, setPriceRange] = useState<{min: string, max: string}>({ min: '', max: '' });
   const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(false);
   
-  // Favorites State (Persisted)
+  // Favorites State
   const [favorites, setFavorites] = useState<string[]>([]);
-
-  // Default sort is catalog order (Sheet order)
   const [sortOption, setSortOption] = useState<SortOption>('original');
   
   const isFirstRender = useRef(true);
 
-  // Load Data
+  // --- DATA LOADING ---
   useEffect(() => {
     fetchCatalog()
       .then((data) => {
@@ -44,54 +45,55 @@ function App() {
       });
   }, []);
 
-  // Load Favorites from LocalStorage
+  // --- FAVORITES PERSISTENCE ---
   useEffect(() => {
     const savedFavs = localStorage.getItem('bw_favorites');
     if (savedFavs) {
-        try {
-            setFavorites(JSON.parse(savedFavs));
-        } catch (e) {
-            console.error("Failed to parse favorites", e);
-        }
+        try { setFavorites(JSON.parse(savedFavs)); } catch (e) { console.error(e); }
     }
   }, []);
 
-  // Save Favorites to LocalStorage
   useEffect(() => {
     localStorage.setItem('bw_favorites', JSON.stringify(favorites));
   }, [favorites]);
 
   const toggleFavorite = (vehicleId: string) => {
     setFavorites(prev => 
-        prev.includes(vehicleId) 
-        ? prev.filter(id => id !== vehicleId)
-        : [...prev, vehicleId]
+        prev.includes(vehicleId) ? prev.filter(id => id !== vehicleId) : [...prev, vehicleId]
     );
   };
 
-  // Automatic scroll on filter change
+  // --- VIEW NAVIGATION ---
+  const handleEnterCatalog = () => {
+    setView('catalog');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleReturnHome = () => {
+    setView('home');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // --- SCROLL AUTOMATION (Only in Catalog View) ---
   useEffect(() => {
-    if (isFirstRender.current) {
-        isFirstRender.current = false;
+    if (view !== 'catalog' || isFirstRender.current) {
+        if (view === 'catalog') isFirstRender.current = false;
         return;
     }
-
+    // Scroll doux vers l'ancre si un filtre change
     const anchor = document.getElementById('catalog-anchor');
     if (anchor) {
-        const offset = -120; 
+        const offset = -180; // Ajusté pour la navbar sticky
         const bodyRect = document.body.getBoundingClientRect().top;
         const elementRect = anchor.getBoundingClientRect().top;
         const elementPosition = elementRect - bodyRect;
         const offsetPosition = elementPosition + offset;
-
-        window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth'
-        });
+        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
     }
   }, [activeCategories, selectedBrands, searchQuery, sortOption, priceRange.min, priceRange.max, showFavoritesOnly]);
 
-  // Reset all filters
+
+  // --- FILTERING LOGIC ---
   const resetFilters = () => {
     setActiveCategories(['All']);
     setSelectedBrands(['All']);
@@ -101,7 +103,6 @@ function App() {
     setShowFavoritesOnly(false);
   };
 
-  // Extract unique categories and brands
   const categories = useMemo(() => {
     const cats = Array.from(new Set(vehicles.map(v => v.category))).sort();
     return ['All', ...cats];
@@ -111,71 +112,41 @@ function App() {
     return Array.from(new Set(vehicles.map(v => v.brand))).sort();
   }, [vehicles]);
 
-  // Filtering Logic
   const filteredAndSortedVehicles = useMemo(() => {
     let result = [...vehicles];
 
-    // 0. Favorites Filter
-    if (showFavoritesOnly) {
-        result = result.filter(v => favorites.includes(v.id));
-    }
-
-    // 1. Category Filter (Multi-select OR logic)
-    if (!activeCategories.includes('All')) {
-      result = result.filter(v => activeCategories.includes(v.category));
-    }
-
-    // 2. Brand Filter (Multi-select OR logic)
-    if (!selectedBrands.includes('All')) {
-      result = result.filter(v => selectedBrands.includes(v.brand));
-    }
-
-    // 3. Search Filter
+    if (showFavoritesOnly) result = result.filter(v => favorites.includes(v.id));
+    if (!activeCategories.includes('All')) result = result.filter(v => activeCategories.includes(v.category));
+    if (!selectedBrands.includes('All')) result = result.filter(v => selectedBrands.includes(v.brand));
+    
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      result = result.filter(v => 
-        v.model.toLowerCase().includes(q) || 
-        v.brand.toLowerCase().includes(q)
-      );
+      result = result.filter(v => v.model.toLowerCase().includes(q) || v.brand.toLowerCase().includes(q));
     }
 
-    // 4. Price Range Filter
     if (priceRange.min !== '') {
         const min = parseFloat(priceRange.min);
-        if (!isNaN(min)) {
-            result = result.filter(v => v.priceValue >= min);
-        }
+        if (!isNaN(min)) result = result.filter(v => v.priceValue >= min);
     }
     if (priceRange.max !== '') {
         const max = parseFloat(priceRange.max);
-        if (!isNaN(max)) {
-            result = result.filter(v => v.priceValue <= max);
-        }
+        if (!isNaN(max)) result = result.filter(v => v.priceValue <= max);
     }
 
-    // 5. Sorting
     result.sort((a, b) => {
       switch (sortOption) {
-        case 'original':
-            return a.originalIndex - b.originalIndex;
-        case 'brand-asc':
-            const brandComparison = a.brand.localeCompare(b.brand);
-            if (brandComparison !== 0) return brandComparison;
-            return a.model.localeCompare(b.model);
-        case 'price-asc':
-          return a.priceValue - b.priceValue;
-        case 'price-desc':
-          return b.priceValue - a.priceValue;
-        case 'name-asc':
-          return a.model.localeCompare(b.model);
-        default:
-          return 0;
+        case 'original': return a.originalIndex - b.originalIndex;
+        case 'brand-asc': return a.brand.localeCompare(b.brand) || a.model.localeCompare(b.model);
+        case 'price-asc': return a.priceValue - b.priceValue;
+        case 'price-desc': return b.priceValue - a.priceValue;
+        case 'name-asc': return a.model.localeCompare(b.model);
+        default: return 0;
       }
     });
-
     return result;
   }, [vehicles, activeCategories, selectedBrands, searchQuery, sortOption, priceRange, showFavoritesOnly, favorites]);
 
+  // --- RENDER HELPERS ---
   if (loading) {
     return (
       <div className="h-screen w-full bg-brand-black flex flex-col items-center justify-center text-brand-gold relative overflow-hidden">
@@ -197,10 +168,9 @@ function App() {
   }
 
   return (
-    // MAIN WRAPPER WITH UNIFIED BACKGROUND
     <div className="bg-brand-black min-h-screen text-slate-200 selection:bg-brand-gold/30 flex flex-col font-sans relative overflow-x-hidden">
       
-      {/* GLOBAL BACKGROUND TEXTURE & GRADIENT */}
+      {/* Background Fixe */}
       <div className="fixed inset-0 pointer-events-none z-0">
          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-[#1a1a1a] via-[#050505] to-[#000000]"></div>
          <div className="absolute inset-0 opacity-[0.03]" style={{
@@ -209,11 +179,150 @@ function App() {
          }}></div>
       </div>
 
-      {/* Content z-index > 0 to sit on top of fixed background */}
-      <div className="relative z-10">
-        <Hero />
+      <div className="relative z-10 flex flex-col min-h-screen">
+        
+        {/* --- VUE: ACCUEIL OU CATALOGUE --- */}
+        <AnimatePresence mode="wait">
+          {view === 'home' ? (
+            <motion.div 
+                key="home-view"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, y: -50, filter: 'blur(10px)' }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                className="w-full"
+            >
+                {/* Hero reçoit la fonction de transition */}
+                <Hero onEnterCatalog={handleEnterCatalog} />
+            </motion.div>
+          ) : (
+            <motion.div 
+                key="catalog-view"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                className="w-full flex flex-col"
+            >
+                {/* NAVBAR STICKY : Retour Accueil */}
+                <nav className="sticky top-0 z-[60] bg-black/80 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between transition-all duration-300">
+                    <button 
+                        onClick={handleReturnHome}
+                        className="flex items-center gap-2 text-brand-gold hover:text-white transition-colors text-[10px] uppercase tracking-[0.2em] font-bold group"
+                    >
+                        <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                        Retour Accueil
+                    </button>
+                    <div className="absolute left-1/2 -translate-x-1/2 opacity-80">
+                         <img src="https://i.imgur.com/5QiFb0Y.png" alt="Logo" className="h-6 object-contain" />
+                    </div>
+                    <div className="w-24" /> {/* Spacer pour centrer le logo */}
+                </nav>
 
-        {/* Modal Overlay */}
+                <div className="pt-6 min-h-screen">
+                    
+                    {/* FILTER PANEL : Sticky position is handled inside the component with 'sticky top-4' */}
+                    {/* On s'assure que le z-index est cohérent avec la navbar */}
+                    <div className="relative z-50">
+                        <FilterPanel 
+                            categories={categories}
+                            activeCategories={activeCategories}
+                            onCategoryChange={setActiveCategories}
+                            brands={brands}
+                            selectedBrands={selectedBrands}
+                            onBrandChange={setSelectedBrands}
+                            searchQuery={searchQuery}
+                            onSearchChange={setSearchQuery}
+                            activeSort={sortOption}
+                            onSortChange={setSortOption}
+                            priceRange={priceRange}
+                            onPriceRangeChange={setPriceRange}
+                            onReset={resetFilters}
+                            showFavoritesOnly={showFavoritesOnly}
+                            onToggleFavorites={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                            favoritesCount={favorites.length}
+                        />
+                    </div>
+
+                    <main className="max-w-[1800px] mx-auto px-4 md:px-6 py-12">
+                        {/* ANCRE DE CATALOGUE */}
+                        <div id="catalog-anchor" className="mb-12 flex flex-col md:flex-row md:items-end justify-between border-b border-white/5 pb-4 mx-4 scroll-mt-32">
+                            <div>
+                                <motion.h2 
+                                    initial={{ opacity: 0, x: -20 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    viewport={{ once: true }}
+                                    className="text-3xl font-serif text-white mb-2"
+                                >
+                                    {showFavoritesOnly ? 'Ma Sélection Privée' : 'Catalogue Officiel'}
+                                </motion.h2>
+                                <motion.p 
+                                    initial={{ opacity: 0 }}
+                                    whileInView={{ opacity: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: 0.2 }}
+                                    className="text-slate-500 text-sm font-light tracking-wide"
+                                >
+                                    {showFavoritesOnly 
+                                        ? 'Vos véhicules d\'exception sauvegardés' 
+                                        : (activeCategories.includes('All') ? 'Inventaire Complet' : activeCategories.join(', '))} 
+                                    {' '}• <span className="text-brand-gold">{filteredAndSortedVehicles.length}</span> actifs disponibles
+                                </motion.p>
+                            </div>
+                        </div>
+
+                        {/* GRID DE VÉHICULES */}
+                        <motion.div 
+                            layout
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 md:gap-8"
+                        >
+                            <AnimatePresence mode='popLayout'>
+                                {filteredAndSortedVehicles.map((vehicle, index) => (
+                                    <VehicleCard 
+                                        key={vehicle.id} 
+                                        vehicle={vehicle} 
+                                        index={index % 20} 
+                                        onSelect={setSelectedVehicle}
+                                        isFavorite={favorites.includes(vehicle.id)}
+                                        onToggleFavorite={() => toggleFavorite(vehicle.id)}
+                                    />
+                                ))}
+                            </AnimatePresence>
+                        </motion.div>
+                        
+                        {/* EMPTY STATE */}
+                        {filteredAndSortedVehicles.length === 0 && (
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="py-32 text-center border border-dashed border-white/10 rounded-3xl bg-white/[0.02] mx-4"
+                            >
+                                <div className="flex justify-center mb-6">
+                                    {showFavoritesOnly ? <Heart className="w-16 h-16 text-brand-gold/20" /> : <AlertCircle className="w-16 h-16 text-white/20" />}
+                                </div>
+                                <p className="text-brand-gold font-serif text-3xl mb-3">Aucun véhicule trouvé</p>
+                                <p className="text-slate-500 text-sm font-mono uppercase tracking-wider mb-8">
+                                    {showFavoritesOnly 
+                                        ? "Votre sélection privée est vide." 
+                                        : "Ajustez vos filtres pour voir plus de résultats."}
+                                </p>
+                                <button 
+                                    onClick={resetFilters}
+                                    className="px-8 py-3 rounded-full bg-white text-brand-black text-xs font-bold hover:bg-brand-gold hover:shadow-lg transition-all uppercase tracking-widest"
+                                >
+                                    {showFavoritesOnly ? "Retour au catalogue" : "Réinitialiser les filtres"}
+                                </button>
+                            </motion.div>
+                        )}
+                    </main>
+                    
+                    <Footer />
+                </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* --- MODAL (Toujours accessible) --- */}
         <AnimatePresence>
             {selectedVehicle && (
                 <VehicleModal 
@@ -225,99 +334,6 @@ function App() {
             )}
         </AnimatePresence>
 
-        <div id="catalog" className="min-h-screen pt-10">
-          <FilterPanel 
-              categories={categories}
-              activeCategories={activeCategories}
-              onCategoryChange={(newCats) => setActiveCategories(newCats)}
-              brands={brands}
-              selectedBrands={selectedBrands}
-              onBrandChange={(newBrands) => setSelectedBrands(newBrands)}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              activeSort={sortOption}
-              onSortChange={setSortOption}
-              priceRange={priceRange}
-              onPriceRangeChange={setPriceRange}
-              onReset={resetFilters}
-              showFavoritesOnly={showFavoritesOnly}
-              onToggleFavorites={() => setShowFavoritesOnly(!showFavoritesOnly)}
-              favoritesCount={favorites.length}
-          />
-
-          <main className="max-w-[1800px] mx-auto px-4 md:px-6 py-12">
-            
-            <div id="catalog-anchor" className="mb-12 flex items-end justify-between border-b border-white/5 pb-4 mx-4 scroll-mt-32">
-                <div>
-                  <motion.h2 
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      className="text-3xl font-serif text-white mb-2"
-                  >
-                      {showFavoritesOnly ? 'Ma Sélection' : 'Catalogue Officiel'}
-                  </motion.h2>
-                  <motion.p 
-                      initial={{ opacity: 0 }}
-                      whileInView={{ opacity: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.2 }}
-                      className="text-slate-500 text-sm font-light tracking-wide"
-                  >
-                      {showFavoritesOnly 
-                        ? 'Véhicules sauvegardés' 
-                        : (activeCategories.includes('All') ? 'Inventaire Complet' : activeCategories.join(', '))} 
-                      {' '}• <span className="text-brand-gold">{filteredAndSortedVehicles.length}</span> véhicules disponibles
-                  </motion.p>
-                </div>
-            </div>
-
-            <motion.div 
-              layout
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 md:gap-8"
-            >
-              <AnimatePresence mode='popLayout'>
-                {filteredAndSortedVehicles.map((vehicle, index) => (
-                  <VehicleCard 
-                    key={vehicle.id} 
-                    vehicle={vehicle} 
-                    index={index % 20} 
-                    onSelect={setSelectedVehicle}
-                    isFavorite={favorites.includes(vehicle.id)}
-                    onToggleFavorite={() => toggleFavorite(vehicle.id)}
-                  />
-                ))}
-              </AnimatePresence>
-            </motion.div>
-            
-            {filteredAndSortedVehicles.length === 0 && (
-              <motion.div 
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="py-32 text-center border border-dashed border-white/10 rounded-3xl bg-white/[0.02] mx-4"
-              >
-                <div className="flex justify-center mb-4">
-                    {showFavoritesOnly ? <Heart className="w-16 h-16 text-brand-gold/20" /> : <AlertCircle className="w-16 h-16 text-white/20" />}
-                </div>
-                <p className="text-brand-gold font-serif text-3xl mb-3">Aucun actif trouvé</p>
-                <p className="text-slate-500 text-sm font-mono uppercase tracking-wider mb-8">
-                    {showFavoritesOnly 
-                        ? "Vous n'avez ajouté aucun véhicule à vos favoris." 
-                        : "Veuillez ajuster vos critères de recherche"}
-                </p>
-                <button 
-                  onClick={resetFilters}
-                  className="px-8 py-3 rounded-full bg-white text-brand-black text-xs font-bold hover:bg-brand-gold hover:shadow-lg transition-all uppercase tracking-widest"
-                >
-                  {showFavoritesOnly ? "Retour au catalogue" : "Réinitialiser les filtres"}
-                </button>
-              </motion.div>
-            )}
-
-          </main>
-        </div>
-
-        <Footer />
       </div>
     </div>
   );
