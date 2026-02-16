@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
-import { motion } from 'framer-motion';
+import React from 'react';
+import { motion, Variants } from 'framer-motion';
 import { Vehicle } from '../types';
-import { X, MessageCircle, Gauge, Car, ShieldCheck, Heart, Sparkles, Fuel, Wind, Users, Briefcase } from 'lucide-react';
+import { X, MessageCircle, Heart, Sparkles, Share2 } from 'lucide-react';
 import { Button } from './Button';
 
 interface VehicleModalProps {
@@ -14,210 +14,176 @@ interface VehicleModalProps {
 export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, isFavorite, onToggleFavorite }) => {
   const hasBadge = !!vehicle.badge && vehicle.badge.length > 0;
 
-  // --- FAUSSES SPECS VISUELLES BASÉES SUR CATÉGORIE (Pour le look) ---
-  const specs = useMemo(() => {
-    const cat = vehicle.category.toUpperCase();
-    let speed = "200 km/h";
-    let acc = "4.5s";
-    let seats = "2";
-    let trunk = "25kg";
+  // Animation variants
+  const containerVariants: Variants = {
+    hidden: { opacity: 0, scale: 0.95, y: 20 },
+    visible: { 
+      opacity: 1, 
+      scale: 1, 
+      y: 0,
+      transition: { type: "spring", duration: 0.5, bounce: 0.3 }
+    },
+    exit: { opacity: 0, scale: 0.95, y: 20, transition: { duration: 0.3 } }
+  };
 
-    if (['SUPER', 'SPORTS'].includes(cat)) { speed = "320 km/h"; acc = "3.2s"; seats = "2"; trunk = "10kg"; }
-    else if (['SUVS', 'OFF-ROAD'].includes(cat)) { speed = "240 km/h"; acc = "5.5s"; seats = "4"; trunk = "80kg"; }
-    else if (['SEDANS', 'COMPACTS'].includes(cat)) { speed = "220 km/h"; acc = "6.0s"; seats = "4"; trunk = "50kg"; }
-    else if (['MOTORCYCLES', 'BIKES'].includes(cat)) { speed = "280 km/h"; acc = "2.9s"; seats = "1"; trunk = "5kg"; }
-    else if (['VANS', 'COMMERCIAL'].includes(cat)) { speed = "180 km/h"; acc = "8.0s"; seats = "2"; trunk = "500kg"; }
-
-    return [
-      { icon: <Wind className="w-4 h-4" />, label: "Vitesse Max", value: speed },
-      { icon: <Gauge className="w-4 h-4" />, label: "0-100 km/h", value: acc },
-      { icon: <Users className="w-4 h-4" />, label: "Places", value: seats },
-      { icon: <Briefcase className="w-4 h-4" />, label: "Coffre", value: trunk },
-    ];
-  }, [vehicle.category]);
-
+  const contentVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.2 } }
+  };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-end md:items-center justify-center sm:p-4">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-0 sm:p-4 md:p-8">
       
-      {/* Backdrop */}
+      {/* Backdrop Flou */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-black/60 backdrop-blur-xl"
+        className="absolute inset-0 bg-black/80 backdrop-blur-xl"
       />
 
-      {/* Modal Container */}
+      {/* Modal Card */}
       <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
         layoutId={`card-container-${vehicle.id}`}
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        transition={{ type: "spring", damping: 25, stiffness: 200 }}
-        className={`
-            relative w-full max-w-6xl h-[95vh] md:h-[85vh] 
-            bg-[#080808] 
-            rounded-t-[2.5rem] md:rounded-[2.5rem] 
-            overflow-hidden 
-            flex flex-col md:flex-row
-            border border-white/10
-            shadow-2xl
-            ${hasBadge ? 'shadow-brand-gold/10 border-brand-gold/30' : ''}
-        `}
+        className="relative w-full max-w-7xl h-[100dvh] sm:h-[90vh] md:h-[80vh] bg-[#050505] sm:rounded-[2rem] border border-white/10 shadow-2xl flex flex-col md:flex-row overflow-hidden"
       >
-        {/* --- HEADER MOBILE STICKY (Close Button) --- */}
-        <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-50 pointer-events-none">
-             {/* Brand Tag */}
-             <div className="pointer-events-auto bg-black/40 backdrop-blur-md border border-white/5 rounded-full px-4 py-2 flex items-center gap-2">
-                 <div className="w-1.5 h-1.5 bg-brand-gold rounded-full animate-pulse" />
-                 <span className="text-[10px] font-bold uppercase tracking-widest text-white">{vehicle.brand}</span>
-             </div>
+        
+        {/* --- ACTIONS FLOTTANTES (Fermer / Favoris) --- */}
+        <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+            <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+                className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md border transition-all duration-300 ${
+                    isFavorite 
+                    ? 'bg-brand-gold border-brand-gold text-black shadow-[0_0_15px_rgba(197,160,89,0.5)]' 
+                    : 'bg-black/20 border-white/10 text-white hover:bg-white/10'
+                }`}
+            >
+                <Heart className={`w-5 h-5 ${isFavorite ? 'fill-black' : ''}`} />
+            </motion.button>
 
-             {/* Actions */}
-             <div className="pointer-events-auto flex gap-2">
-                 <button 
-                    onClick={onToggleFavorite}
-                    className={`p-3 rounded-full backdrop-blur-md border transition-all active:scale-95 ${isFavorite ? 'bg-brand-gold border-brand-gold text-black' : 'bg-black/40 border-white/10 text-white hover:bg-white/10'}`}
-                 >
-                    <Heart className={`w-5 h-5 ${isFavorite ? 'fill-black' : ''}`} />
-                 </button>
-                 <button 
-                    onClick={onClose}
-                    className="p-3 rounded-full bg-white text-black hover:bg-brand-gold transition-colors active:scale-95 shadow-lg"
-                 >
-                    <X className="w-5 h-5" />
-                 </button>
-             </div>
+            <motion.button
+                whileHover={{ scale: 1.05, rotate: 90 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={onClose}
+                className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:bg-brand-gold transition-colors shadow-lg"
+            >
+                <X className="w-5 h-5" />
+            </motion.button>
         </div>
 
-        {/* --- LEFT: IMMERSIVE IMAGE (Top on Mobile) --- */}
-        <div className="relative w-full md:w-[55%] h-[40vh] md:h-full bg-[#050505] shrink-0">
+        {/* --- PARTIE GAUCHE : IMAGE --- */}
+        <div className="relative w-full md:w-3/5 h-[45vh] md:h-full bg-[#080808] flex items-center justify-center overflow-hidden group">
+            
+            {/* Background Spotlights */}
+            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,_rgba(255,255,255,0.03),transparent_70%)]" />
+            
+            {/* Image du véhicule */}
             {vehicle.image ? (
                 <motion.img 
                     initial={{ scale: 1.1, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.7 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
                     src={vehicle.image} 
                     alt={vehicle.model} 
-                    className="w-full h-full object-cover md:object-contain p-0 md:p-8"
+                    className="w-full h-full object-cover md:object-contain relative z-10 transition-transform duration-700 group-hover:scale-105"
                 />
             ) : (
-                <div className="w-full h-full flex items-center justify-center opacity-20">
-                    <Car className="w-24 h-24 text-white" />
+                <div className="opacity-20 flex flex-col items-center">
+                    <span className="text-4xl">🏎️</span>
+                    <span className="text-xs uppercase tracking-widest mt-4">Image indisponible</span>
                 </div>
             )}
-            
-            {/* Gradients pour fusionner l'image */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#080808] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[#080808]" />
-            
-            {/* Badge Overlay */}
+
+            {/* Gradient d'intégration (Bas sur mobile, Droite sur Desktop) */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[#050505] z-20 pointer-events-none" />
+
+            {/* Badge Flottant */}
             {hasBadge && (
-                <div className="absolute bottom-6 left-6 md:bottom-10 md:left-10 z-20">
-                     <div className="inline-flex items-center gap-2 bg-brand-gold/90 text-black backdrop-blur-xl px-4 py-2 rounded-full shadow-[0_0_30px_rgba(197,160,89,0.4)]">
-                        <Sparkles className="w-4 h-4" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">{vehicle.badge}</span>
-                     </div>
-                </div>
-            )}
-        </div>
-
-        {/* --- RIGHT: CONTENT SCROLLABLE --- */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar relative bg-[#080808]">
-            <div className="p-6 md:p-10 pb-24 md:pb-10 flex flex-col gap-8">
-                
-                {/* 1. TITLE & PRICE */}
-                <div className="mt-2 md:mt-12">
-                    <motion.div 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="flex items-center gap-3 mb-4"
-                    >
-                        <span className="text-xs font-bold text-brand-gold uppercase tracking-widest border border-brand-gold/30 px-3 py-1 rounded-full">
-                            {vehicle.category}
-                        </span>
-                        <div className="h-[1px] flex-1 bg-white/10" />
-                    </motion.div>
-
-                    <motion.h1 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="text-4xl md:text-6xl font-serif text-white leading-[0.9] mb-4"
-                    >
-                        {vehicle.model}
-                    </motion.h1>
-
-                    <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.4 }}
-                        className="flex flex-col"
-                    >
-                        <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Prix Catalogue</span>
-                        <div className="flex items-baseline gap-2">
-                             <span className="text-3xl md:text-4xl font-mono text-brand-gold font-light tracking-tight">{vehicle.price}</span>
-                             <span className="text-xs text-slate-500 font-bold">TTC</span>
-                        </div>
-                    </motion.div>
-                </div>
-
-                {/* 2. SPECS GRID (Visual Flair) */}
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="grid grid-cols-2 gap-3"
+                    transition={{ delay: 0.3 }}
+                    className="absolute bottom-6 left-6 md:bottom-10 md:left-10 z-30"
                 >
-                    {specs.map((spec, i) => (
-                        <div key={i} className="bg-white/5 border border-white/5 rounded-2xl p-4 flex flex-col gap-2 hover:bg-white/10 transition-colors">
-                            <div className="flex items-center gap-2 text-slate-400">
-                                {spec.icon}
-                                <span className="text-[10px] uppercase tracking-wider font-bold">{spec.label}</span>
-                            </div>
-                            <span className="text-lg text-white font-mono">{spec.value}</span>
-                        </div>
-                    ))}
-                </motion.div>
-
-                {/* 3. DESCRIPTION */}
-                <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.6 }}
-                    className="prose prose-invert"
-                >
-                    <h3 className="text-sm font-bold uppercase tracking-widest text-white mb-2 flex items-center gap-2">
-                        <ShieldCheck className="w-4 h-4 text-brand-gold" />
-                        Description & Notes
-                    </h3>
-                    <p className="text-slate-400 text-sm leading-relaxed font-light">
-                        {vehicle.description}
-                    </p>
-                </motion.div>
-
-                {/* 4. FOOTER ACTION (Sticky Bottom on Mobile) */}
-                <div className="md:mt-auto pt-8">
-                    <a href="https://discord.gg/88peMJRz95" target="_blank" rel="noopener noreferrer">
-                        <Button className="w-full !py-6 text-sm !tracking-[0.2em] bg-white text-black hover:bg-brand-gold">
-                            <div className="flex items-center gap-3">
-                                <MessageCircle className="w-5 h-5" />
-                                Contacter un Vendeur
-                            </div>
-                        </Button>
-                    </a>
-                    <div className="mt-4 text-center">
-                        <span className="text-[9px] text-slate-600 uppercase tracking-widest">
-                            Véhicule certifié BlackWood Royal Motors
-                        </span>
+                    <div className="flex items-center gap-2 bg-brand-gold/90 text-brand-black px-4 py-2 rounded-full shadow-[0_0_20px_rgba(197,160,89,0.3)] backdrop-blur-md">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">{vehicle.badge}</span>
                     </div>
-                </div>
-
-            </div>
+                </motion.div>
+            )}
         </div>
 
+        {/* --- PARTIE DROITE : INFORMATION --- */}
+        <div className="relative w-full md:w-2/5 h-full flex flex-col bg-[#050505]">
+            
+            {/* Contenu Scrollable */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-10 lg:p-12 flex flex-col justify-center">
+                
+                <motion.div variants={contentVariants} initial="hidden" animate="visible" className="space-y-8">
+                    
+                    {/* Header Info */}
+                    <div>
+                        <div className="flex items-center gap-3 mb-4 opacity-70">
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-gold border border-brand-gold/30 px-2 py-1 rounded">
+                                {vehicle.brand}
+                            </span>
+                            <div className="w-1 h-1 bg-slate-500 rounded-full" />
+                            <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400">
+                                {vehicle.category}
+                            </span>
+                        </div>
+
+                        <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif text-white leading-[0.9] tracking-tight mb-4">
+                            {vehicle.model}
+                        </h2>
+
+                        <div className="w-16 h-[1px] bg-gradient-to-r from-brand-gold to-transparent mb-6" />
+
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Prix Catalogue</span>
+                            <div className="flex items-baseline gap-2 text-brand-gold">
+                                <span className="text-3xl md:text-4xl font-mono font-light tracking-tight">{vehicle.price}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Description */}
+                    <div className="prose prose-invert">
+                        <p className="text-sm md:text-base text-slate-400 font-light leading-relaxed">
+                            {vehicle.description}
+                        </p>
+                    </div>
+
+                </motion.div>
+            </div>
+
+            {/* Footer Fixe avec CTA */}
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="p-6 md:p-10 border-t border-white/5 bg-[#050505] relative z-30"
+            >
+                <a href="https://discord.gg/88peMJRz95" target="_blank" rel="noopener noreferrer" className="block">
+                    <Button className="w-full !h-14 !text-xs md:!text-sm !tracking-[0.25em] bg-white hover:bg-brand-gold text-brand-black shadow-[0_0_30px_-5px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_-5px_rgba(197,160,89,0.4)]">
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Contacter un Vendeur
+                    </Button>
+                </a>
+                
+                <div className="mt-4 flex items-center justify-center gap-2 opacity-40 hover:opacity-100 transition-opacity">
+                    <span className="text-[9px] uppercase tracking-widest text-slate-500">Ref. {vehicle.id}</span>
+                </div>
+            </motion.div>
+
+        </div>
       </motion.div>
     </div>
   );
