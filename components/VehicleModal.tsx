@@ -89,6 +89,7 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, is
                             src={vehicle.image} 
                             alt={vehicle.model} 
                             className="w-full h-full object-contain" 
+                            referrerPolicy="no-referrer"
                         />
                     ) : (
                         <div className="flex flex-col items-center opacity-20">
@@ -140,17 +141,17 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, is
 
                     {/* Price & Description */}
                     <motion.div variants={itemVariants} className="space-y-6">
-                         <div>
-                            <span className="block text-[10px] text-slate-500 uppercase tracking-widest mb-1 font-bold">Prix d'acquisition</span>
-                            <div className="flex items-baseline gap-2">
-                                <span className="text-3xl md:text-4xl font-light text-white tracking-tight">{vehicle.price}</span>
-                                <span className="text-xs text-slate-500 font-bold uppercase">TTC</span>
-                            </div>
-                         </div>
-                         
-                         <p className="text-slate-400 text-sm font-light leading-relaxed border-l-2 border-white/5 pl-4">
-                             {vehicle.description}
-                         </p>
+                          <div>
+                             <span className="block text-[10px] text-slate-500 uppercase tracking-widest mb-1 font-bold">Prix d'acquisition</span>
+                             <div className="flex items-baseline gap-2">
+                                 <span className="text-3xl md:text-4xl font-light text-white tracking-tight">{vehicle.price}</span>
+                                 <span className="text-xs text-slate-500 font-bold uppercase">TTC</span>
+                             </div>
+                          </div>
+                          
+                          <p className="text-slate-400 text-sm font-light leading-relaxed border-l-2 border-white/5 pl-4">
+                              {vehicle.description}
+                          </p>
                     </motion.div>
                 </div>
 
