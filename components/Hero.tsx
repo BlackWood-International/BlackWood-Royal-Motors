@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './Button';
-import { ArrowRight, Star, Shield, Zap } from 'lucide-react';
+import { ArrowRight, Globe, MessageCircle } from 'lucide-react';
 
 interface HeroProps {
   onEnterCatalog: () => void;
@@ -44,29 +44,29 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog }) => {
                 className="w-full h-full object-cover opacity-50 md:opacity-60"
              />
              {/* Gradient Overlays for Readability */}
-             <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/20 to-black/90" />
-             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000000_150%)]" />
+             <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/30 to-black/90" />
+             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000000_120%)]" />
           </motion.div>
         </AnimatePresence>
         
         {/* Animated Grain/Noise */}
-        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] pointer-events-none" />
+        <div className="absolute inset-0 opacity-[0.04] bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] pointer-events-none" />
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="relative z-20 w-full max-w-[1800px] mx-auto px-6 flex flex-col items-center justify-center h-full text-center">
+      <div className="relative z-20 w-full max-w-[1800px] mx-auto px-6 flex flex-col items-center justify-center h-full text-center pb-12">
         
         {/* LOGO */}
         <motion.div
            initial={{ opacity: 0, y: -20 }}
            animate={{ opacity: 1, y: 0 }}
            transition={{ duration: 0.8 }}
-           className="mb-8 md:mb-12"
+           className="mb-6 md:mb-10"
         >
             <img 
                 src="https://i.imgur.com/5QiFb0Y.png" 
                 alt="BlackWood Logo" 
-                className="h-16 md:h-24 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                className="h-20 md:h-32 w-auto object-contain drop-shadow-[0_0_25px_rgba(197,160,89,0.2)]"
             />
         </motion.div>
 
@@ -75,22 +75,22 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog }) => {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.3 }}
-          className="mb-6 flex items-center justify-center gap-4"
+          className="mb-4 flex items-center justify-center gap-4"
         >
-            <div className="h-[1px] w-8 md:w-12 bg-brand-gold/50" />
-            <span className="text-brand-gold text-[10px] md:text-xs font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase whitespace-nowrap">
-              Collection 2026
+            <div className="h-[1px] w-8 md:w-16 bg-gradient-to-r from-transparent to-brand-gold" />
+            <span className="text-brand-gold text-[10px] md:text-xs font-bold tracking-[0.4em] uppercase whitespace-nowrap px-2">
+              Excellence in Motion
             </span>
-            <div className="h-[1px] w-8 md:w-12 bg-brand-gold/50" />
+            <div className="h-[1px] w-8 md:w-16 bg-gradient-to-l from-transparent to-brand-gold" />
         </motion.div>
 
-        {/* Massive Typography - Optimized for Mobile */}
-        <div className="relative mb-8 md:mb-12 flex flex-col items-center">
+        {/* Massive Typography */}
+        <div className="relative mb-10 flex flex-col items-center">
           <motion.h1 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
-            className="text-5xl sm:text-7xl md:text-8xl lg:text-[9rem] leading-[0.9] font-serif text-white mix-blend-overlay tracking-tight"
+            className="text-5xl sm:text-7xl md:text-8xl lg:text-[10rem] leading-[0.85] font-serif text-white mix-blend-overlay tracking-tight"
           >
             BlackWood
           </motion.h1>
@@ -98,61 +98,59 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog }) => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.7, ease: "easeOut" }}
-            className="text-4xl sm:text-6xl md:text-8xl lg:text-[9rem] leading-[0.9] font-serif text-transparent bg-clip-text bg-gradient-to-b from-brand-gold via-[#e8c683] to-brand-gold/40 tracking-tight mt-1 md:mt-[-10px]"
+            className="text-4xl sm:text-6xl md:text-8xl lg:text-[10rem] leading-[0.85] font-serif text-transparent bg-clip-text bg-gradient-to-b from-brand-gold via-[#F0E6D2] to-brand-gold/40 tracking-tight mt-1 md:mt-[-15px]"
           >
             Royal Motors
           </motion.h1>
         </div>
 
-        {/* Description & CTA */}
+        {/* CTA Section */}
         <div className="flex flex-col items-center gap-8 w-full max-w-2xl mx-auto">
-            <motion.p 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1, delay: 0.9 }}
-              className="text-slate-300 text-xs sm:text-sm md:text-lg leading-relaxed font-light px-4 md:px-0"
-            >
-              L'excellence n'est pas un acte, c'est une habitude. <br className="hidden md:block" />
-              Découvrez notre catalogue exclusif de véhicules d'exception.
-            </motion.p>
-
+            
+            {/* Main Entry Button */}
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 1.1 }}
+              transition={{ duration: 0.8, delay: 0.9 }}
               className="w-full sm:w-auto"
             >
-               <Button onClick={onEnterCatalog} className="w-full sm:w-auto h-14 md:h-16 px-8 md:px-12 text-xs md:text-sm !tracking-[0.25em] bg-white text-black hover:bg-brand-gold hover:text-black border-none shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]">
-                  Entrer
+               <Button onClick={onEnterCatalog} className="w-full sm:w-auto h-14 md:h-16 px-10 md:px-16 text-xs md:text-sm !tracking-[0.3em] bg-white text-black hover:bg-brand-gold hover:text-black border-none shadow-[0_0_50px_-15px_rgba(255,255,255,0.4)]">
+                  Découvrir le Catalogue
                   <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2" />
                </Button>
             </motion.div>
+
+            {/* Discrete Links */}
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 1.2 }}
+                className="flex flex-wrap justify-center gap-4 md:gap-8 mt-2"
+            >
+                <a 
+                    href="https://discord.gg/88peMJRz95" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-black/20 backdrop-blur-sm text-[9px] md:text-[10px] uppercase tracking-widest text-slate-400 hover:text-brand-gold hover:border-brand-gold/50 transition-all duration-300"
+                >
+                    <MessageCircle className="w-3 h-3" />
+                    <span>Intranet & News</span>
+                </a>
+                
+                <div className="w-[1px] h-4 bg-white/10 my-auto hidden md:block"></div>
+
+                <a 
+                    href="https://blackwood-international.github.io/BlackWood/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-black/20 backdrop-blur-sm text-[9px] md:text-[10px] uppercase tracking-widest text-slate-400 hover:text-brand-gold hover:border-brand-gold/50 transition-all duration-300"
+                >
+                    <Globe className="w-3 h-3" />
+                    <span>BlackWood Corp</span>
+                </a>
+            </motion.div>
         </div>
       </div>
-
-      {/* Minimal Footer Stats - Hidden on small mobile to save space */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1, delay: 1.5 }}
-        className="absolute bottom-8 w-full hidden md:flex justify-center"
-      >
-         <div className="flex gap-8 md:gap-16 text-[9px] md:text-[10px] uppercase tracking-widest text-slate-500 font-mono">
-             <div className="flex items-center gap-2">
-                <Star className="w-3 h-3 text-brand-gold" />
-                <span>Premium Dealer</span>
-             </div>
-             <div className="flex items-center gap-2">
-                <Shield className="w-3 h-3 text-brand-gold" />
-                <span>Garantie à Vie</span>
-             </div>
-             <div className="flex items-center gap-2">
-                <Zap className="w-3 h-3 text-brand-gold" />
-                <span>Import Express</span>
-             </div>
-         </div>
-      </motion.div>
-
     </div>
   );
 };
