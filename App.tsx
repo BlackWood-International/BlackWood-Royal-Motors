@@ -83,7 +83,7 @@ function App() {
     // Scroll doux vers l'ancre si un filtre change
     const anchor = document.getElementById('catalog-anchor');
     if (anchor) {
-        const offset = -180; // Ajusté pour la navbar sticky
+        const offset = -200; // Ajusté pour navbar + filter panel fixed
         const bodyRect = document.body.getBoundingClientRect().top;
         const elementRect = anchor.getBoundingClientRect().top;
         const elementPosition = elementRect - bodyRect;
@@ -204,7 +204,7 @@ function App() {
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full flex flex-col"
             >
-                {/* NAVBAR STICKY : Retour Accueil */}
+                {/* NAVBAR STICKY : Retour Accueil (z-60 pour passer au dessus du filtre si besoin) */}
                 <nav className="sticky top-0 z-[60] bg-black/80 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between transition-all duration-300">
                     <button 
                         onClick={handleReturnHome}
@@ -219,34 +219,33 @@ function App() {
                     <div className="w-24" /> {/* Spacer pour centrer le logo */}
                 </nav>
 
-                <div className="pt-6 min-h-screen">
+                {/* Main Content Area - Added top padding for fixed filter bar */}
+                <div className="min-h-screen">
                     
-                    {/* FILTER PANEL : Sticky position is handled inside the component with 'sticky top-4' */}
-                    {/* On s'assure que le z-index est cohérent avec la navbar */}
-                    <div className="relative z-50">
-                        <FilterPanel 
-                            categories={categories}
-                            activeCategories={activeCategories}
-                            onCategoryChange={setActiveCategories}
-                            brands={brands}
-                            selectedBrands={selectedBrands}
-                            onBrandChange={setSelectedBrands}
-                            searchQuery={searchQuery}
-                            onSearchChange={setSearchQuery}
-                            activeSort={sortOption}
-                            onSortChange={setSortOption}
-                            priceRange={priceRange}
-                            onPriceRangeChange={setPriceRange}
-                            onReset={resetFilters}
-                            showFavoritesOnly={showFavoritesOnly}
-                            onToggleFavorites={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                            favoritesCount={favorites.length}
-                        />
-                    </div>
+                    {/* FILTER PANEL - Fixed Position handled inside component */}
+                    <FilterPanel 
+                        categories={categories}
+                        activeCategories={activeCategories}
+                        onCategoryChange={setActiveCategories}
+                        brands={brands}
+                        selectedBrands={selectedBrands}
+                        onBrandChange={setSelectedBrands}
+                        searchQuery={searchQuery}
+                        onSearchChange={setSearchQuery}
+                        activeSort={sortOption}
+                        onSortChange={setSortOption}
+                        priceRange={priceRange}
+                        onPriceRangeChange={setPriceRange}
+                        onReset={resetFilters}
+                        showFavoritesOnly={showFavoritesOnly}
+                        onToggleFavorites={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                        favoritesCount={favorites.length}
+                    />
 
-                    <main className="max-w-[1800px] mx-auto px-4 md:px-6 py-12">
+                    {/* Contenu avec Padding Top important pour dégager la barre de filtre */}
+                    <main className="max-w-[1800px] mx-auto px-4 md:px-6 py-12 pt-32">
                         {/* ANCRE DE CATALOGUE */}
-                        <div id="catalog-anchor" className="mb-12 flex flex-col md:flex-row md:items-end justify-between border-b border-white/5 pb-4 mx-4 scroll-mt-32">
+                        <div id="catalog-anchor" className="mb-12 flex flex-col md:flex-row md:items-end justify-between border-b border-white/5 pb-4 mx-4 scroll-mt-40">
                             <div>
                                 <motion.h2 
                                     initial={{ opacity: 0, x: -20 }}
