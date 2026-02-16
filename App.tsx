@@ -102,7 +102,7 @@ function App() {
 
     // 3. Construct Message with Discord Markdown
     const message = `
-# ⚜️ BLACKWOOD ROYAL MOTORS
+# 👑 BLACKWOOD ROYAL MOTORS
 ### 📂 SÉLECTION PRIVÉE CLIENT
 
 > Voici la liste des véhicules retenus pour le dossier d'acquisition :
@@ -210,13 +210,16 @@ ${carList}
 
   // --- INFINITE SCROLL OBSERVER ---
   useEffect(() => {
+    // Si tout est déjà affiché, on ne fait rien
+    if (visibleCount >= filteredAndSortedVehicles.length && filteredAndSortedVehicles.length > 0) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          setVisibleCount((prev) => prev + LOAD_MORE_INCREMENT);
+          setVisibleCount((prev) => Math.min(prev + LOAD_MORE_INCREMENT, filteredAndSortedVehicles.length));
         }
       },
-      { rootMargin: '400px' }
+      { rootMargin: '200px' }
     );
 
     if (loaderRef.current) {
@@ -224,7 +227,7 @@ ${carList}
     }
 
     return () => observer.disconnect();
-  }, [filteredAndSortedVehicles]);
+  }, [filteredAndSortedVehicles, visibleCount]); // FIX: Dépendance sur visibleCount pour forcer la ré-évaluation
 
   const visibleVehicles = filteredAndSortedVehicles.slice(0, visibleCount);
 
@@ -285,8 +288,8 @@ ${carList}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full flex flex-col"
             >
-                {/* FLOATING HEADER - MOBILE OPTIMIZED */}
-                <header className="fixed top-0 left-0 w-full z-50 pointer-events-none flex justify-between items-center px-4 py-3 md:px-8 md:py-6 bg-gradient-to-b from-black/95 via-black/80 to-transparent transition-all duration-300">
+                {/* FLOATING HEADER - MOBILE OPTIMIZED & Z-INDEX FIX */}
+                <header className="fixed top-0 left-0 w-full z-[70] pointer-events-none flex justify-between items-center px-4 py-3 md:px-8 md:py-6 bg-gradient-to-b from-black/95 via-black/80 to-transparent transition-all duration-300">
                     <button 
                         onClick={handleReturnHome}
                         className="pointer-events-auto flex items-center gap-2 pl-2 pr-4 py-2 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 text-[10px] uppercase tracking-[0.2em] font-bold text-slate-300 hover:text-white hover:border-brand-gold/50 hover:bg-black/80 transition-all group shadow-lg"
