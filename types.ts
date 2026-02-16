@@ -4,14 +4,15 @@ export interface RawVehicleData {
   'Catégorie': string;
   'Prix Vente': string;
   'Image'?: string; 
-  'URL img'?: string; // Specific column from GSheet screenshot
-  'Description'?: string; // New field
+  'URL img'?: string;
+  'Description'?: string;
+  'Badge'?: string; // Nouvelle colonne GSheet
   [key: string]: string | undefined;
 }
 
 export interface Vehicle {
   id: string;
-  originalIndex: number; // To keep track of sheet order
+  originalIndex: number;
   brand: string;
   model: string;
   category: string;
@@ -19,6 +20,7 @@ export interface Vehicle {
   priceValue: number;
   image?: string;
   description?: string;
+  badge?: string; // Nouveau champ
 }
 
 export type SortOption = 'original' | 'brand-asc' | 'price-asc' | 'price-desc' | 'name-asc';
