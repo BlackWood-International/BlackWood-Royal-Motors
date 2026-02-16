@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, Variants } from 'framer-motion';
 import { Vehicle } from '../types';
-import { X, MessageCircle, Gauge, Car, ShieldCheck, Heart } from 'lucide-react';
+import { X, MessageCircle, Gauge, Car, ShieldCheck, Heart, Sparkles } from 'lucide-react';
 import { Button } from './Button';
 
 interface VehicleModalProps {
@@ -12,6 +12,8 @@ interface VehicleModalProps {
 }
 
 export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, isFavorite, onToggleFavorite }) => {
+  const hasBadge = !!vehicle.badge && vehicle.badge.length > 0;
+
   // Staggered animation variants for content
   const contentVariants: Variants = {
     hidden: { opacity: 0 },
@@ -51,8 +53,19 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, is
         animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
         exit={{ opacity: 0, scale: 0.95, y: 20, filter: "blur(10px)" }}
         transition={{ type: "spring", stiffness: 200, damping: 25, mass: 0.8 }}
-        className="relative w-full max-w-7xl bg-[#0a0a0a] border border-brand-gold/20 rounded-[2.5rem] shadow-[0_20px_100px_-20px_rgba(197,160,89,0.1)] flex flex-col overflow-hidden max-h-[90vh]"
+        className={`
+            relative w-full max-w-7xl bg-[#0a0a0a] rounded-[2.5rem] flex flex-col overflow-hidden max-h-[90vh]
+            ${hasBadge 
+                ? 'border border-brand-gold/40 shadow-[0_0_80px_-20px_rgba(197,160,89,0.2)]' 
+                : 'border border-brand-gold/20 shadow-[0_20px_100px_-20px_rgba(197,160,89,0.1)]'
+            }
+        `}
       >
+        {/* Subtle Background Glow for Badged vehicles */}
+        {hasBadge && (
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-gold/5 via-transparent to-brand-gold/5 pointer-events-none" />
+        )}
+
         {/* Actions (Close & Favorite) */}
         <div className="absolute top-4 right-4 z-50 flex gap-2">
             <motion.button 
@@ -74,7 +87,7 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, is
         </div>
 
         {/* Content Layout */}
-        <div className="flex flex-col md:flex-row h-full overflow-y-auto custom-scrollbar p-3 md:p-4 gap-6 md:gap-10">
+        <div className="relative z-10 flex flex-col md:flex-row h-full overflow-y-auto custom-scrollbar p-3 md:p-4 gap-6 md:gap-10">
             
             {/* LEFT: Image Container - 16:9 */}
             <motion.div 
@@ -106,6 +119,16 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, is
                             {vehicle.category}
                         </span>
                     </div>
+
+                    {/* Badge on Image if exists */}
+                    {hasBadge && (
+                        <div className="absolute bottom-6 right-6">
+                            <div className="flex items-center gap-2 bg-brand-gold/90 text-black backdrop-blur-md px-4 py-2 rounded-full shadow-lg">
+                                <Sparkles className="w-3.5 h-3.5" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">{vehicle.badge}</span>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </motion.div>
 
@@ -120,12 +143,12 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, is
                 <div className="flex-1 flex flex-col">
                     {/* Header: Brand & State */}
                     <motion.div variants={itemVariants} className="flex items-center gap-4 mb-4">
-                        <span className="text-brand-gold text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2">
+                        <span className={`text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 ${hasBadge ? 'text-brand-gold drop-shadow-sm' : 'text-brand-gold'}`}>
                              <span className="w-6 h-[1px] bg-brand-gold/50"></span>
                              {vehicle.brand}
                         </span>
                         
-                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/5">
+                        <div className="flex items-center gap-2 px-a3 py-1 rounded-full bg-white/5 border border-white/5">
                            <Gauge className="w-3 h-3 text-brand-gold" />
                            <span className="text-[9px] text-slate-300 font-bold uppercase tracking-wider">Neuf</span>
                         </div>
@@ -144,7 +167,7 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, is
                           <div>
                              <span className="block text-[10px] text-slate-500 uppercase tracking-widest mb-1 font-bold">Prix d'acquisition</span>
                              <div className="flex items-baseline gap-2">
-                                 <span className="text-3xl md:text-4xl font-light text-white tracking-tight">{vehicle.price}</span>
+                                 <span className={`text-3xl md:text-4xl font-light tracking-tight ${hasBadge ? 'text-brand-gold' : 'text-white'}`}>{vehicle.price}</span>
                                  <span className="text-xs text-slate-500 font-bold uppercase">TTC</span>
                              </div>
                           </div>
