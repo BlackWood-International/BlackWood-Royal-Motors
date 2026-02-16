@@ -98,7 +98,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
   return (
     // Fixed width constraint
-    <div className="sticky top-6 z-50 w-full px-4 mb-12 relative group">
+    <div className="sticky top-6 z-50 w-[98vw] left-[1vw] mb-12 relative group">
         
         {/* Main Floating Bar */}
         <motion.div 
