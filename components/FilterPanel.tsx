@@ -109,8 +109,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   ];
 
   return (
-    // CONTENEUR FIXED - AJUSTÉ POUR ÊTRE SOUS LE HEADER (top-[5.5rem] approx 88px)
-    <div className="fixed top-[5.5rem] md:top-24 left-0 right-0 z-40 w-full flex justify-center pointer-events-none px-4 transition-all duration-300">
+    // CONTENEUR FIXED - Position ajustée pour mobile (top-[4.5rem])
+    <div className="fixed top-[4.5rem] md:top-24 left-0 right-0 z-40 w-full flex justify-center pointer-events-none px-2 sm:px-4 transition-all duration-300">
       
       <style>{`
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -131,7 +131,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: "spring", stiffness: 120, damping: 20 }}
           className={`
-            relative flex items-center justify-between p-2 pl-4 md:pl-5 pr-2
+            relative flex items-center justify-between p-1.5 sm:p-2 pl-4 sm:pl-5 pr-1.5 sm:pr-2
             bg-[#050505]/90 backdrop-blur-xl border border-white/10 
             rounded-full shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)]
             transition-all duration-500 z-50
@@ -140,10 +140,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         >
             {/* Zone Input Recherche */}
             <motion.div 
-              className="flex-1 flex items-center gap-3 mr-4 group/search"
+              className="flex-1 flex items-center gap-2 sm:gap-3 mr-2 group/search"
               layout
             >
-              <Search className={`w-4 h-4 transition-colors ${isSearchFocused ? 'text-brand-gold' : 'text-slate-500 group-hover/search:text-white'}`} />
+              <Search className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-colors ${isSearchFocused ? 'text-brand-gold' : 'text-slate-500 group-hover/search:text-white'}`} />
               <input 
                 type="text" 
                 placeholder="Rechercher..." 
@@ -151,7 +151,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setIsSearchFocused(false)}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full bg-transparent border-none text-xs md:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-0 font-medium h-10 tracking-wide"
+                className="w-full bg-transparent border-none text-[11px] sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-0 font-medium h-9 sm:h-10 tracking-wide"
               />
               <AnimatePresence>
                 {searchQuery && (
@@ -162,7 +162,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     onClick={() => onSearchChange('')}
                     className="p-1 text-slate-500 hover:text-white rounded-full hover:bg-white/10"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </motion.button>
                 )}
               </AnimatePresence>
@@ -178,7 +178,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               whileTap={{ scale: 0.98 }}
               onClick={() => setIsExpanded(!isExpanded)}
               className={`
-                flex items-center gap-3 px-4 md:px-6 h-10 md:h-11 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300
+                flex items-center gap-2 sm:gap-3 px-3 sm:px-6 h-9 sm:h-11 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest transition-all duration-300
                 ${isExpanded 
                   ? 'bg-brand-gold text-black shadow-[0_0_20px_-5px_rgba(197,160,89,0.4)]' 
                   : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/10'
@@ -186,12 +186,12 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               `}
             >
               <div className="flex items-center gap-2">
-                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <SlidersHorizontal className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 <span className="hidden sm:inline">Filtres</span>
               </div>
               
               {/* Indicateur d'état */}
-              <div className="flex items-center justify-center w-3 h-3 ml-1">
+              <div className="flex items-center justify-center w-3 h-3 ml-0 sm:ml-1">
                  {isExpanded ? (
                     <ChevronDown className="w-3 h-3 transition-transform rotate-180" />
                  ) : (
@@ -216,12 +216,12 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               animate={{ opacity: 1, y: 12, scale: 1, filter: "blur(0px)" }}
               exit={{ opacity: 0, y: -20, scale: 0.98, filter: "blur(10px)" }}
               transition={{ type: "spring", stiffness: 180, damping: 25 }}
-              /* rounded-[3rem] pour épouser parfaitement les onglets rounded-full avec le padding */
-              className="absolute top-full left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-[3rem] overflow-hidden shadow-2xl z-40 flex flex-col max-h-[65vh] mx-0"
+              /* rounded-[2.5rem] sur mobile pour gagner de la place */
+              className="absolute top-full left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] sm:rounded-[3rem] overflow-hidden shadow-2xl z-40 flex flex-col max-h-[75vh] mx-0"
             >
-              {/* Onglets de Navigation - CORRIGÉ : ROUNDED-FULL */}
-              <div className="p-3 border-b border-white/5 bg-[#050505]/50">
-                <div className="grid grid-cols-5 gap-1.5 md:gap-2">
+              {/* Onglets de Navigation */}
+              <div className="p-2 sm:p-3 border-b border-white/5 bg-[#050505]/50">
+                <div className="grid grid-cols-5 gap-1 sm:gap-2">
                   {tabs.map((tab) => {
                     const isActive = activeTab === tab.id;
                     return (
@@ -229,7 +229,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`
-                          relative flex flex-col items-center justify-center gap-1.5 py-4 rounded-full transition-all duration-300 group
+                          relative flex flex-col items-center justify-center gap-1.5 py-3 sm:py-4 rounded-full transition-all duration-300 group
                           ${isActive 
                             ? 'bg-white/10 text-brand-gold shadow-inner' 
                             : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
@@ -244,7 +244,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                         )}
                         {/* Badge Notification */}
                         {tab.badge !== undefined && (
-                          <span className={`absolute top-2 right-2 sm:top-2 sm:right-4 min-w-[14px] h-[14px] flex items-center justify-center rounded-full text-[8px] font-bold px-1 ${isActive ? 'bg-brand-gold text-black' : 'bg-white/20 text-white'}`}>
+                          <span className={`absolute top-1 right-1 sm:top-2 sm:right-4 min-w-[12px] h-[12px] sm:min-w-[14px] sm:h-[14px] flex items-center justify-center rounded-full text-[7px] sm:text-[8px] font-bold px-1 ${isActive ? 'bg-brand-gold text-black' : 'bg-white/20 text-white'}`}>
                             {tab.badge}
                           </span>
                         )}
@@ -267,10 +267,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                   >
                     {/* ONGLET MARQUES */}
                     {activeTab === 'brands' && (
-                      <div className="space-y-6">
+                      <div className="space-y-4 sm:space-y-6">
                         <SectionHeader title="Constructeurs" subtitle="Sélectionnez vos marques favorites" />
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                          {/* BOUTON TOUT - Spécialement intégré */}
                           <SelectionCard 
                             label="TOUT" 
                             active={selectedBrands.includes('All')} 
@@ -291,10 +290,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
                     {/* ONGLET CATÉGORIES */}
                     {activeTab === 'categories' && (
-                      <div className="space-y-6">
+                      <div className="space-y-4 sm:space-y-6">
                          <SectionHeader title="Catégories Officielles" subtitle="Classification BlackWood" />
                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                             {/* BOUTON TOUT - Spécialement intégré */}
                              <SelectionCard 
                                 label="TOUT" 
                                 active={activeCategories.includes('All')} 
@@ -315,7 +313,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
                     {/* ONGLET BUDGET */}
                     {activeTab === 'budget' && (
-                      <div className="space-y-10 py-8 px-4 flex flex-col items-center">
+                      <div className="space-y-8 sm:space-y-10 py-4 sm:py-8 px-2 sm:px-4 flex flex-col items-center">
                         <SectionHeader title="Investissement" subtitle="Définissez votre fourchette de prix" centered />
                         
                         <div className="flex flex-col md:flex-row items-center gap-6 justify-center w-full max-w-xl">
@@ -373,7 +371,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     {activeTab === 'favorites' && (
                       <div className="flex flex-col items-center justify-center h-full py-8 space-y-8 text-center">
                          <motion.div 
-                            onClick={onToggleFavorites} /* AJOUT DE L'INTERACTION */
+                            onClick={onToggleFavorites}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             initial={{ scale: 0.9, opacity: 0 }}
@@ -413,17 +411,17 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 </AnimatePresence>
               </div>
 
-              {/* Footer du Panneau - MODIFIÉ: px-8 pour décaler vers l'intérieur */}
-              <div className="px-8 py-5 border-t border-white/5 bg-[#050505] flex justify-between items-center rounded-b-[3rem]">
+              {/* Footer du Panneau - Ajusté pour mobile */}
+              <div className="px-6 sm:px-8 py-4 sm:py-5 border-t border-white/5 bg-[#050505] flex justify-between items-center rounded-b-[2.5rem] sm:rounded-b-[3rem]">
                  <button 
                     onClick={onReset}
-                    className="text-[9px] uppercase tracking-widest font-bold text-slate-500 hover:text-white transition-colors flex items-center gap-2 group px-2 py-1"
+                    className="text-[8px] sm:text-[9px] uppercase tracking-widest font-bold text-slate-500 hover:text-white transition-colors flex items-center gap-2 group px-2 py-1"
                  >
                     <div className="w-1.5 h-1.5 rounded-full bg-slate-500 group-hover:bg-brand-crimsonBright transition-colors" />
-                    Réinitialiser tout
+                    Réinitialiser
                  </button>
-                 <div className="text-[9px] text-brand-gold/30 font-mono tracking-[0.2em] uppercase">
-                    BlackWood Royal Motors
+                 <div className="text-[8px] sm:text-[9px] text-brand-gold/30 font-mono tracking-[0.2em] uppercase">
+                    BlackWood
                  </div>
               </div>
 
@@ -439,13 +437,13 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 // --- COMPOSANTS UI AUXILIAIRES ---
 
 const SectionHeader = ({ title, subtitle, centered }: { title: string, subtitle: string, centered?: boolean }) => (
-  <div className={`mb-6 ${centered ? 'text-center' : 'pl-4 border-l-2 border-brand-gold/30'}`}>
+  <div className={`mb-4 sm:mb-6 ${centered ? 'text-center' : 'pl-4 border-l-2 border-brand-gold/30'}`}>
     <h3 className="text-xs font-bold text-white uppercase tracking-[0.15em]">{title}</h3>
     <p className="text-[10px] text-slate-500 mt-1 font-medium tracking-wide">{subtitle}</p>
   </div>
 );
 
-// Selection Card - ARRONDIS SQUIRCLE PLUS PRONONCÉS
+// Selection Card
 const SelectionCard = ({ label, active, onClick, fullWidth, special }: { label: string, active: boolean, onClick: () => void, fullWidth?: boolean, special?: boolean }) => (
   <motion.button
     whileHover={{ scale: 1.02, backgroundColor: active ? '' : "rgba(255,255,255,0.08)" }}
@@ -453,7 +451,7 @@ const SelectionCard = ({ label, active, onClick, fullWidth, special }: { label: 
     onClick={onClick}
     className={`
       ${fullWidth ? 'col-span-full' : ''}
-      relative px-4 py-3.5 rounded-[1.5rem] text-left border transition-all duration-300 group overflow-hidden
+      relative px-3 sm:px-4 py-3 sm:py-3.5 rounded-[1.2rem] sm:rounded-[1.5rem] text-left border transition-all duration-300 group overflow-hidden
       ${active 
         ? 'bg-brand-gold/10 border-brand-gold shadow-[0_0_15px_-5px_rgba(197,160,89,0.2)]' 
         : special 
@@ -463,32 +461,32 @@ const SelectionCard = ({ label, active, onClick, fullWidth, special }: { label: 
     `}
   >
     <div className="flex items-center justify-between relative z-10">
-      <span className={`text-[10px] font-bold uppercase tracking-wider truncate ${active ? 'text-brand-gold' : (special ? 'text-inherit' : 'text-slate-400 group-hover:text-white')}`}>
+      <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-wider truncate ${active ? 'text-brand-gold' : (special ? 'text-inherit' : 'text-slate-400 group-hover:text-white')}`}>
         {label === 'All' ? 'TOUT' : label}
       </span>
       {active ? (
          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-brand-gold">
-           <Check className="w-3.5 h-3.5" />
+           <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
          </motion.div>
       ) : special && (
-         <Layers className="w-3.5 h-3.5 opacity-50" />
+         <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5 opacity-50" />
       )}
     </div>
   </motion.button>
 );
 
-// Sort Option Item - ARRONDIS SQUIRCLE PLUS PRONONCÉS
+// Sort Option Item
 const SortOptionItem = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => (
   <motion.button
     whileHover={{ x: 4 }}
     onClick={onClick}
-    className={`w-full flex items-center justify-between p-4 rounded-[1.5rem] border transition-all ${
+    className={`w-full flex items-center justify-between p-3 sm:p-4 rounded-[1.2rem] sm:rounded-[1.5rem] border transition-all ${
       active 
       ? 'bg-brand-gold/10 border-brand-gold shadow-[0_0_15px_-5px_rgba(197,160,89,0.2)]' 
       : 'bg-[#151515] border-white/5 text-slate-500 hover:bg-white/5 hover:text-white hover:border-white/10'
     }`}
   >
-    <span className={`text-[10px] font-bold uppercase tracking-wider ${active ? 'text-brand-gold' : ''}`}>{label}</span>
-    {active && <Check className="w-3.5 h-3.5 text-brand-gold" />}
+    <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${active ? 'text-brand-gold' : ''}`}>{label}</span>
+    {active && <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-brand-gold" />}
   </motion.button>
 );
