@@ -2,9 +2,28 @@
 <html lang="fr" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="https://i.imgur.com/5QiFb0Y.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- FAVICON UPDATE -->
+    <link rel="icon" type="image/png" href="https://i.imgur.com/zJYl9CS.png" />
+    
     <title>BlackWood Royal Motors | Excellence in Motion</title>
+    
+    <!-- DISCORD & SOCIAL EMBED METADATA -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://blackwood-royal-motors.com/" />
+    <meta property="og:title" content="BlackWood Royal Motors | Catalogue Privé" />
+    <meta property="og:description" content="Découvrez l'excellence automobile. Accédez au catalogue exclusif de véhicules de luxe, sportifs et de collection. Une expérience réservée à l'élite." />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=1738&auto=format&fit=crop" />
+    <meta property="og:site_name" content="BlackWood Royal Motors" />
+    <meta name="theme-color" content="#C5A059" />
+    
+    <!-- Twitter Card for Large Image Display -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="BlackWood Royal Motors" />
+    <meta name="twitter:description" content="Catalogue officiel. Excellence, Performance, Luxe." />
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=1738&auto=format&fit=crop" />
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -75,13 +94,21 @@
         perspective: 1000px;
       }
       
-      /* Skip rendering for off-screen content */
-      .content-visibility-auto {
-        content-visibility: auto;
-        contain-intrinsic-size: 0 500px; /* Estimation de la taille d'une carte */
-      }
+      /* content-visibility-auto Removed for better overflow handling */
     </style>
 <link rel="stylesheet" href="./index.css">
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.564.0",
+    "framer-motion": "https://esm.sh/framer-motion@^12.34.0",
+    "papaparse": "https://esm.sh/papaparse@^5.5.3"
+  }
+}
+</script>
 </head>
   <body class="bg-brand-black text-slate-300 antialiased overflow-x-hidden selection:bg-brand-gold selection:text-brand-black">
     <div id="root"></div>
