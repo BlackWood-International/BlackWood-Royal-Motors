@@ -109,8 +109,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   ];
 
   return (
-    // CONTENEUR FIXED - Position remontée à top-16 (64px) pour être juste sous la navbar
-    <div className="fixed top-8 left-0 right-0 z-40 w-full flex justify-center pointer-events-none px-4">
+    // CONTENEUR FIXED - Remonté à top-6 pour éviter le conflit, la navbar noire est supprimée
+    <div className="fixed top-6 left-0 right-0 z-40 w-full flex justify-center pointer-events-none px-4">
       
       <style>{`
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -132,10 +132,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           transition={{ type: "spring", stiffness: 120, damping: 20 }}
           className={`
             relative flex items-center justify-between p-2 pl-5 pr-2
-            bg-[#121212]/80 backdrop-blur-xl border border-white/10 
-            rounded-full shadow-[0_20px_40px_-10px_rgba(0,0,0,0.6)]
+            bg-[#050505]/90 backdrop-blur-xl border border-white/10 
+            rounded-full shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)]
             transition-all duration-500 z-50
-            ${isExpanded ? 'border-brand-gold/30 bg-[#0f0f0f]' : 'hover:border-white/20 hover:bg-[#151515]/90'}
+            ${isExpanded ? 'border-brand-gold/30' : 'hover:border-white/20 hover:bg-[#0a0a0a]/90'}
           `}
         >
             {/* Zone Input Recherche */}
@@ -146,7 +146,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               <Search className={`w-4 h-4 transition-colors ${isSearchFocused ? 'text-brand-gold' : 'text-slate-500 group-hover/search:text-white'}`} />
               <input 
                 type="text" 
-                placeholder="Rechercher..." 
+                placeholder="Rechercher une perle rare..." 
                 value={searchQuery}
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setIsSearchFocused(false)}
@@ -178,7 +178,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               whileTap={{ scale: 0.98 }}
               onClick={() => setIsExpanded(!isExpanded)}
               className={`
-                flex items-center gap-3 px-5 h-10 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300
+                flex items-center gap-3 px-6 h-11 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300
                 ${isExpanded 
                   ? 'bg-brand-gold text-black shadow-[0_0_20px_-5px_rgba(197,160,89,0.4)]' 
                   : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/10'
@@ -216,10 +216,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               animate={{ opacity: 1, y: 12, scale: 1, filter: "blur(0px)" }}
               exit={{ opacity: 0, y: -20, scale: 0.98, filter: "blur(10px)" }}
               transition={{ type: "spring", stiffness: 180, damping: 25 }}
-              className="absolute top-full left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl z-40 flex flex-col max-h-[65vh] mx-0"
+              className="absolute top-full left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl z-40 flex flex-col max-h-[70vh] mx-0"
             >
-              {/* Onglets de Navigation - ARRONDIS SQUIRCLE PLUS PRONONCÉS */}
-              <div className="px-2 py-2 border-b border-white/5 bg-[#050505]/50">
+              {/* Onglets de Navigation - CORRIGÉ : ROUNDED-FULL */}
+              <div className="px-3 py-3 border-b border-white/5 bg-[#050505]/50">
                 <div className="grid grid-cols-5 gap-1">
                   {tabs.map((tab) => {
                     const isActive = activeTab === tab.id;
@@ -228,9 +228,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`
-                          relative flex flex-col items-center justify-center gap-1.5 py-3 rounded-[1.4rem] transition-all duration-300
+                          relative flex flex-col items-center justify-center gap-1.5 py-4 rounded-full transition-all duration-300
                           ${isActive 
-                            ? 'bg-white/5 text-brand-gold shadow-inner' 
+                            ? 'bg-white/10 text-brand-gold shadow-inner' 
                             : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
                           }
                         `}
@@ -449,7 +449,7 @@ const SelectionCard = ({ label, active, onClick, fullWidth, special }: { label: 
     onClick={onClick}
     className={`
       ${fullWidth ? 'col-span-full' : ''}
-      relative px-4 py-3.5 rounded-[1.25rem] text-left border transition-all duration-300 group overflow-hidden
+      relative px-4 py-3.5 rounded-[1.5rem] text-left border transition-all duration-300 group overflow-hidden
       ${active 
         ? 'bg-brand-gold/10 border-brand-gold shadow-[0_0_15px_-5px_rgba(197,160,89,0.2)]' 
         : special 
