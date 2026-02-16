@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { SortOption } from '../types';
 import { 
   Search, X, SlidersHorizontal, ArrowUpDown, Building2, 
-  Tag, DollarSign, Heart 
+  Tag, DollarSign, Heart, ChevronDown, Check, Layers 
 } from 'lucide-react';
 
 // --- CONSTANTES ---
@@ -69,37 +69,48 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     priceRange.max !== '' ||
     showFavoritesOnly;
 
-  // Tri des catégories
+  // Tri des catégories (Exclure 'All' de la liste triée pour l'affichage manuel)
   const sortedCategories = useMemo(() => {
-    return [...categories].sort((a, b) => {
-      const indexA = CATEGORY_ORDER.indexOf(a.toUpperCase());
-      const indexB = CATEGORY_ORDER.indexOf(b.toUpperCase());
-      return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
-    });
+    return [...categories]
+      .filter(c => c !== 'All') // On retire 'All' ici pour le gérer manuellement
+      .sort((a, b) => {
+        const indexA = CATEGORY_ORDER.indexOf(a.toUpperCase());
+        const indexB = CATEGORY_ORDER.indexOf(b.toUpperCase());
+        return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+      });
   }, [categories]);
 
+  // Idem pour les marques
+  const sortedBrands = useMemo(() => {
+      return [...brands].filter(b => b !== 'All');
+  }, [brands]);
+
   const handleMultiSelect = (current: string[], item: string, updater: (items: string[]) => void) => {
+    // Si on clique sur un item spécifique, on enlève 'All'
     let newVal = current.filter(i => i !== 'All');
+    
     if (newVal.includes(item)) {
-      newVal = newVal.filter(i => i !== item);
+      newVal = newVal.filter(i => i !== item); // Deselect
     } else {
-      newVal.push(item);
+      newVal.push(item); // Select
     }
+    
+    // Si plus rien n'est sélectionné, on remet 'All'
     if (newVal.length === 0) newVal = ['All'];
     updater(newVal);
   };
 
   const tabs = [
     { id: 'brands' as const, label: 'Marques', icon: <Building2 className="w-4 h-4" /> },
-    { id: 'categories' as const, label: 'Types', icon: <Tag className="w-4 h-4" /> },
+    { id: 'categories' as const, label: 'Catégories', icon: <Tag className="w-4 h-4" /> },
     { id: 'budget' as const, label: 'Budget', icon: <DollarSign className="w-4 h-4" /> },
     { id: 'sort' as const, label: 'Trier', icon: <ArrowUpDown className="w-4 h-4" /> },
     { id: 'favorites' as const, label: 'Favoris', icon: <Heart className="w-4 h-4" />, badge: favoritesCount > 0 ? favoritesCount : undefined },
   ];
 
   return (
-    // STICKY NATUREL : top-4 permet à la barre de coller au plafond seulement quand on scrolle
-    <div className="sticky top-4 z-40 w-full flex justify-center pointer-events-none mb-8 pt-2">
+    // CONTENEUR FIXED - Positionné par rapport à l'écran (Viewport)
+    <div className="fixed top-24 left-0 right-0 z-40 w-full flex justify-center pointer-events-none px-4">
       
       <style>{`
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -111,28 +122,28 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       `}</style>
 
       {/* Conteneur Principal */}
-      <div ref={panelRef} className="w-full max-w-2xl px-4 pointer-events-auto relative">
+      <div ref={panelRef} className="w-full max-w-3xl pointer-events-auto relative">
         
-        {/* BARRE FLOTTANTE AVEC MOTION DESIGN AVANCÉ */}
+        {/* BARRE FLOTTANTE (Pill Design) */}
         <motion.div 
-          layout // Permet l'animation fluide de la largeur et position
-          transition={{ type: "spring", stiffness: 200, damping: 25 }} // Physique "Luxe"
+          layout
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 120, damping: 20 }}
           className={`
-            bg-[#0f0f0f]/90 backdrop-blur-2xl border border-white/10 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5)] 
-            p-2 relative z-50 transition-colors duration-500 overflow-hidden
-            ${isExpanded ? 'border-brand-gold/40 bg-black' : 'hover:border-white/20'}
+            relative flex items-center justify-between p-2 pl-5 pr-2
+            bg-[#121212]/80 backdrop-blur-xl border border-white/10 
+            rounded-full shadow-[0_20px_40px_-10px_rgba(0,0,0,0.6)]
+            transition-all duration-500 z-50
+            ${isExpanded ? 'border-brand-gold/30 bg-[#0f0f0f]' : 'hover:border-white/20 hover:bg-[#151515]/90'}
           `}
         >
-          <motion.div layout className="flex items-center gap-2">
-            
-            {/* Zone Recherche (Extensible) */}
+            {/* Zone Input Recherche */}
             <motion.div 
+              className="flex-1 flex items-center gap-3 mr-4 group/search"
               layout
-              className="relative flex items-center group bg-white/5 hover:bg-white/10 rounded-full focus-within:bg-white/10 transition-colors"
-              animate={{ flex: isSearchFocused ? 2 : 1 }} // S'agrandit au focus
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
-              <Search className="absolute left-4 w-4 h-4 text-slate-500 group-focus-within:text-brand-gold transition-colors duration-300" />
+              <Search className={`w-4 h-4 transition-colors ${isSearchFocused ? 'text-brand-gold' : 'text-slate-500 group-hover/search:text-white'}`} />
               <input 
                 type="text" 
                 placeholder="Rechercher..." 
@@ -140,7 +151,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setIsSearchFocused(false)}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full bg-transparent border-none rounded-full py-2.5 pl-10 pr-10 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-0"
+                className="w-full bg-transparent border-none text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-0 font-medium h-10 tracking-wide"
               />
               <AnimatePresence>
                 {searchQuery && (
@@ -149,67 +160,66 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.8 }}
                     onClick={() => onSearchChange('')}
-                    className="absolute right-2 p-1 text-slate-500 hover:text-white rounded-full hover:bg-white/10"
+                    className="p-1 text-slate-500 hover:text-white rounded-full hover:bg-white/10"
                   >
-                    <X className="w-3 h-3" />
+                    <X className="w-4 h-4" />
                   </motion.button>
                 )}
               </AnimatePresence>
             </motion.div>
 
-            <motion.div layout className="w-[1px] h-6 bg-white/10 mx-1 hidden sm:block" />
+            {/* Séparateur */}
+            <div className="w-[1px] h-6 bg-white/10 hidden sm:block mr-2" />
 
-            {/* Bouton Toggle Filtres (Fluide) */}
+            {/* Bouton Toggle Filtres */}
             <motion.button 
               layout
               whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.95 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setIsExpanded(!isExpanded)}
               className={`
-                flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider border transition-colors duration-300
+                flex items-center gap-3 px-5 h-10 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300
                 ${isExpanded 
-                  ? 'bg-brand-gold/10 text-brand-gold border-brand-gold shadow-[0_0_20px_-5px_rgba(197,160,89,0.3)]' 
-                  : 'bg-white/5 text-white border-white/5 hover:bg-white/10 hover:border-white/20'
+                  ? 'bg-brand-gold text-black shadow-[0_0_20px_-5px_rgba(197,160,89,0.4)]' 
+                  : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white border border-transparent hover:border-white/10'
                 }
               `}
             >
-              <motion.div layout className="flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4" />
-                <span className="hidden sm:inline whitespace-nowrap">Filtres</span>
-              </motion.div>
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Filtres</span>
+              </div>
               
-              {/* Animation fluide du point actif (ne décale pas brutalement) */}
-              <AnimatePresence>
-                {isFilterActive && (
-                  <motion.div 
-                    initial={{ width: 0, opacity: 0, scale: 0 }}
-                    animate={{ width: 'auto', opacity: 1, scale: 1 }}
-                    exit={{ width: 0, opacity: 0, scale: 0 }}
-                    className="flex items-center ml-1 overflow-hidden"
-                  >
-                    <span className="relative flex h-2 w-2 mx-1">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-gold"></span>
-                    </span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {/* Indicateur d'état */}
+              <div className="flex items-center justify-center w-3 h-3 ml-1">
+                 {isExpanded ? (
+                    <ChevronDown className="w-3 h-3 transition-transform rotate-180" />
+                 ) : (
+                    isFilterActive ? (
+                        <div className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-gold shadow-[0_0_8px_rgba(197,160,89,0.8)]"></span>
+                        </div>
+                    ) : (
+                        <ChevronDown className="w-3 h-3 text-white/30" />
+                    )
+                 )}
+              </div>
             </motion.button>
-          </motion.div>
         </motion.div>
 
-        {/* PANNEAU DÉPLIÉ */}
+        {/* PANNEAU DÉROULANT (Contenu Filtres) */}
         <AnimatePresence>
           {isExpanded && (
             <motion.div
-              initial={{ opacity: 0, y: -20, scale: 0.95, filter: "blur(10px)" }}
-              animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-              exit={{ opacity: 0, y: -20, scale: 0.95, filter: "blur(10px)" }}
-              transition={{ type: "spring", stiffness: 150, damping: 20 }}
-              className="absolute top-full left-4 right-4 mt-3 bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl z-30 flex flex-col max-h-[70vh]"
+              initial={{ opacity: 0, y: -20, scale: 0.98, filter: "blur(10px)" }}
+              animate={{ opacity: 1, y: 12, scale: 1, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: -20, scale: 0.98, filter: "blur(10px)" }}
+              transition={{ type: "spring", stiffness: 180, damping: 25 }}
+              className="absolute top-full left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl z-40 flex flex-col max-h-[65vh] mx-0"
             >
-              {/* Navigation des Onglets */}
-              <div className="p-2 border-b border-white/5 bg-black/40">
+              {/* Onglets de Navigation */}
+              <div className="px-2 py-2 border-b border-white/5 bg-[#050505]/50">
                 <div className="grid grid-cols-5 gap-1">
                   {tabs.map((tab) => {
                     const isActive = activeTab === tab.id;
@@ -217,16 +227,23 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`relative flex flex-col sm:flex-row items-center justify-center gap-1.5 py-3 rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-wide transition-all ${
-                          isActive 
-                            ? 'text-brand-gold bg-brand-gold/10 border border-brand-gold/20' 
-                            : 'text-slate-500 hover:text-white hover:bg-white/5 border border-transparent'
-                        }`}
+                        className={`
+                          relative flex flex-col items-center justify-center gap-1.5 py-3 rounded-2xl transition-all duration-300
+                          ${isActive 
+                            ? 'bg-white/5 text-brand-gold shadow-inner' 
+                            : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
+                          }
+                        `}
                       >
                         {tab.icon}
-                        <span className="hidden sm:inline">{tab.label}</span>
+                        <span className="text-[9px] font-bold uppercase tracking-wider hidden sm:block">{tab.label}</span>
+                        {/* Indicateur actif */}
+                        {isActive && (
+                            <motion.div layoutId="activeTabIndicator" className="absolute bottom-1 w-1 h-1 rounded-full bg-brand-gold" />
+                        )}
+                        {/* Badge Notification */}
                         {tab.badge !== undefined && (
-                          <span className={`absolute top-1 right-1 sm:static sm:ml-1 w-4 h-4 sm:w-auto sm:h-auto sm:px-1.5 sm:py-0.5 flex items-center justify-center rounded-full text-[9px] ${isActive ? 'bg-brand-gold text-black' : 'bg-white/20 text-white'}`}>
+                          <span className={`absolute top-2 right-2 sm:top-2 sm:right-4 min-w-[14px] h-[14px] flex items-center justify-center rounded-full text-[8px] font-bold px-1 ${isActive ? 'bg-brand-gold text-black' : 'bg-white/20 text-white'}`}>
                             {tab.badge}
                           </span>
                         )}
@@ -236,23 +253,30 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 </div>
               </div>
 
-              {/* Contenu */}
-              <div className="p-6 overflow-y-auto custom-scrollbar bg-gradient-to-b from-[#0f0f0f] to-[#050505] min-h-[350px]">
+              {/* Contenu de l'onglet actif */}
+              <div className="p-6 overflow-y-auto custom-scrollbar bg-[#0a0a0a] min-h-[300px]">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeTab}
                     initial={{ opacity: 0, x: 10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
                     className="h-full"
                   >
-                    {/* MARQUES */}
+                    {/* ONGLET MARQUES */}
                     {activeTab === 'brands' && (
-                      <div className="space-y-5">
-                        <SectionHeader title="Constructeurs" subtitle="Sélection multiple possible" />
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                          {brands.map(brand => (
+                      <div className="space-y-6">
+                        <SectionHeader title="Constructeurs" subtitle="Sélectionnez vos marques favorites" />
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                          {/* BOUTON TOUT - Spécialement intégré */}
+                          <SelectionCard 
+                            label="TOUT" 
+                            active={selectedBrands.includes('All')} 
+                            onClick={() => onBrandChange(['All'])}
+                            special
+                          />
+                          {sortedBrands.map(brand => (
                             <SelectionCard 
                               key={brand}
                               label={brand} 
@@ -264,11 +288,18 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       </div>
                     )}
 
-                    {/* CATÉGORIES (Ordre CSV) */}
+                    {/* ONGLET CATÉGORIES */}
                     {activeTab === 'categories' && (
-                      <div className="space-y-5">
-                         <SectionHeader title="Types de Véhicule" subtitle="Catalogue Officiel" />
-                         <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-6">
+                         <SectionHeader title="Catégories Officielles" subtitle="Classification BlackWood" />
+                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                             {/* BOUTON TOUT - Spécialement intégré */}
+                             <SelectionCard 
+                                label="TOUT" 
+                                active={activeCategories.includes('All')} 
+                                onClick={() => onCategoryChange(['All'])}
+                                special
+                             />
                             {sortedCategories.map(cat => (
                               <SelectionCard 
                                 key={cat}
@@ -281,37 +312,42 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       </div>
                     )}
 
-                    {/* BUDGET */}
+                    {/* ONGLET BUDGET */}
                     {activeTab === 'budget' && (
-                      <div className="space-y-8 py-4">
-                        <SectionHeader title="Budget" subtitle="Définissez votre fourchette de prix" />
-                        <div className="flex flex-col sm:flex-row items-center gap-6">
-                           <div className="w-full space-y-3">
-                              <label className="text-xs text-brand-gold uppercase font-bold tracking-widest ml-1">Minimum</label>
-                              <div className="relative group">
-                                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-brand-gold transition-colors" />
+                      <div className="space-y-10 py-8 px-4 flex flex-col items-center">
+                        <SectionHeader title="Investissement" subtitle="Définissez votre fourchette de prix" centered />
+                        
+                        <div className="flex flex-col md:flex-row items-center gap-6 justify-center w-full max-w-xl">
+                           {/* MIN */}
+                           <div className="w-full relative group">
+                              <label className="text-[9px] text-brand-gold/70 font-bold uppercase tracking-widest mb-2 block pl-4">Minimum</label>
+                              <div className="relative flex items-center">
+                                <span className="absolute left-6 text-slate-500 text-xl font-light">$</span>
                                 <input 
                                   type="number" 
                                   value={priceRange.min}
                                   onChange={(e) => onPriceRangeChange({...priceRange, min: e.target.value})}
-                                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-lg font-mono text-white focus:border-brand-gold focus:bg-white/5 focus:outline-none transition-all placeholder:text-slate-700"
+                                  className="w-full bg-[#151515] border border-white/5 rounded-[2rem] py-5 pl-10 pr-6 text-2xl font-mono text-white focus:border-brand-gold/50 focus:bg-[#1a1a1a] focus:outline-none transition-all placeholder:text-slate-700 text-center"
                                   placeholder="0"
                                 />
                               </div>
                            </div>
                            
-                           <div className="w-8 h-[1px] sm:w-[1px] sm:h-12 bg-white/10" />
+                           <div className="text-slate-700 hidden md:block pt-6">
+                              <ArrowUpDown className="w-5 h-5 rotate-90 opacity-50" />
+                           </div>
 
-                           <div className="w-full space-y-3">
-                              <label className="text-xs text-brand-gold uppercase font-bold tracking-widest ml-1">Maximum</label>
-                              <div className="relative group">
-                                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-brand-gold transition-colors" />
+                           {/* MAX */}
+                           <div className="w-full relative group">
+                              <label className="text-[9px] text-brand-gold/70 font-bold uppercase tracking-widest mb-2 block pl-4">Maximum</label>
+                              <div className="relative flex items-center">
+                                <span className="absolute left-6 text-slate-500 text-xl font-light">$</span>
                                 <input 
                                   type="number" 
                                   value={priceRange.max}
                                   onChange={(e) => onPriceRangeChange({...priceRange, max: e.target.value})}
-                                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-lg font-mono text-white focus:border-brand-gold focus:bg-white/5 focus:outline-none transition-all placeholder:text-slate-700"
-                                  placeholder="Illimité"
+                                  className="w-full bg-[#151515] border border-white/5 rounded-[2rem] py-5 pl-10 pr-6 text-2xl font-mono text-white focus:border-brand-gold/50 focus:bg-[#1a1a1a] focus:outline-none transition-all placeholder:text-slate-700 text-center"
+                                  placeholder="∞"
                                 />
                               </div>
                            </div>
@@ -319,50 +355,52 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       </div>
                     )}
 
-                    {/* TRI */}
+                    {/* ONGLET TRI */}
                     {activeTab === 'sort' && (
-                      <div className="space-y-5">
-                        <SectionHeader title="Trier par" subtitle="Organiser les résultats" />
+                      <div className="space-y-6 max-w-md mx-auto">
+                        <SectionHeader title="Ordre d'affichage" subtitle="Organiser la collection" centered />
                         <div className="space-y-3">
-                          <SortOptionItem active={activeSort === 'original'} onClick={() => onSortChange('original')} label="Pertinence (Par défaut)" />
-                          <SortOptionItem active={activeSort === 'price-asc'} onClick={() => onSortChange('price-asc')} label="Prix Croissant" />
-                          <SortOptionItem active={activeSort === 'price-desc'} onClick={() => onSortChange('price-desc')} label="Prix Décroissant" />
-                          <SortOptionItem active={activeSort === 'brand-asc'} onClick={() => onSortChange('brand-asc')} label="Marque (A-Z)" />
+                          <SortOptionItem active={activeSort === 'original'} onClick={() => onSortChange('original')} label="Pertinence (Catalogue)" />
+                          <SortOptionItem active={activeSort === 'price-asc'} onClick={() => onSortChange('price-asc')} label="Prix : Croissant" />
+                          <SortOptionItem active={activeSort === 'price-desc'} onClick={() => onSortChange('price-desc')} label="Prix : Décroissant" />
+                          <SortOptionItem active={activeSort === 'brand-asc'} onClick={() => onSortChange('brand-asc')} label="Alphabétique (Marque)" />
                         </div>
                       </div>
                     )}
 
-                    {/* FAVORIS */}
+                    {/* ONGLET FAVORIS */}
                     {activeTab === 'favorites' && (
-                      <div className="flex flex-col items-center justify-center py-10 space-y-6 text-center">
+                      <div className="flex flex-col items-center justify-center h-full py-8 space-y-8 text-center">
                          <motion.div 
-                            initial={{ scale: 0.8, opacity: 0 }}
+                            initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            className={`p-6 rounded-full border-2 ${showFavoritesOnly ? 'bg-brand-gold/10 border-brand-gold text-brand-gold' : 'bg-white/5 border-white/5 text-slate-600'}`}
+                            className={`p-6 rounded-full border-[3px] transition-colors duration-500 ${showFavoritesOnly ? 'bg-brand-gold/10 border-brand-gold text-brand-gold shadow-[0_0_50px_-10px_rgba(197,160,89,0.4)]' : 'bg-white/5 border-white/5 text-slate-600'}`}
                           >
-                            <Heart className={`w-10 h-10 ${showFavoritesOnly ? 'fill-brand-gold' : ''}`} />
+                            <Heart className={`w-12 h-12 ${showFavoritesOnly ? 'fill-brand-gold' : ''}`} />
                          </motion.div>
-                         <div className="space-y-2">
-                            <h3 className="text-xl font-bold text-white uppercase tracking-wider">
-                              {showFavoritesOnly ? 'Filtre Actif' : 'Mes Favoris'}
+                         
+                         <div className="space-y-3 max-w-sm">
+                            <h3 className="text-xl font-bold text-white font-serif">
+                              {showFavoritesOnly ? 'Mode Privé Actif' : 'Vos Favoris'}
                             </h3>
-                            <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
+                            <p className="text-xs text-slate-400 leading-relaxed">
                               {showFavoritesOnly 
-                                ? `Affichage de vos ${favoritesCount} véhicules favoris.` 
-                                : `Activez cette option pour masquer les autres véhicules et ne voir que votre sélection.`}
+                                ? `Affichage exclusif de vos ${favoritesCount} véhicules sélectionnés.` 
+                                : `Activez ce mode pour filtrer le catalogue et ne voir que vos coups de cœur.`}
                             </p>
                          </div>
+                         
                          <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={onToggleFavorites}
-                            className={`px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all border ${
+                            className={`px-8 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${
                               showFavoritesOnly 
                               ? 'bg-transparent text-white border-white/20 hover:bg-white/10' 
                               : 'bg-brand-gold text-black border-brand-gold hover:bg-brand-gold/90 shadow-lg shadow-brand-gold/20'
                             }`}
                          >
-                            {showFavoritesOnly ? 'Tout Afficher' : 'Voir mes favoris'}
+                            {showFavoritesOnly ? 'Retour au catalogue' : 'Activer le filtre favoris'}
                          </motion.button>
                       </div>
                     )}
@@ -371,17 +409,17 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 </AnimatePresence>
               </div>
 
-              {/* PIED DE PAGE */}
-              <div className="p-4 border-t border-white/5 bg-[#0a0a0a] flex justify-between items-center">
+              {/* Footer du Panneau */}
+              <div className="p-4 border-t border-white/5 bg-[#050505] flex justify-between items-center rounded-b-[2.5rem]">
                  <button 
                     onClick={onReset}
-                    className="text-[10px] uppercase tracking-widest font-bold text-slate-500 hover:text-brand-crimsonBright transition-colors flex items-center gap-2 group"
+                    className="text-[9px] uppercase tracking-widest font-bold text-slate-500 hover:text-white transition-colors flex items-center gap-2 group px-2 py-1"
                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-500 group-hover:bg-brand-crimsonBright transition-colors" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-slate-500 group-hover:bg-brand-crimsonBright transition-colors" />
                     Réinitialiser tout
                  </button>
-                 <div className="text-[10px] text-brand-gold/50 font-mono tracking-widest">
-                    BLACKWOOD ROYAL MOTORS
+                 <div className="text-[9px] text-brand-gold/30 font-mono tracking-[0.2em] uppercase">
+                    BlackWood Systems
                  </div>
               </div>
 
@@ -396,46 +434,55 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
 // --- COMPOSANTS UI AUXILIAIRES ---
 
-const SectionHeader = ({ title, subtitle }: { title: string, subtitle: string }) => (
-  <div className="mb-4 pl-1">
-    <h3 className="text-xs font-bold text-brand-gold uppercase tracking-[0.15em]">{title}</h3>
-    <p className="text-[10px] text-slate-500 mt-1 font-medium">{subtitle}</p>
+const SectionHeader = ({ title, subtitle, centered }: { title: string, subtitle: string, centered?: boolean }) => (
+  <div className={`mb-6 ${centered ? 'text-center' : 'pl-4 border-l-2 border-brand-gold/30'}`}>
+    <h3 className="text-xs font-bold text-white uppercase tracking-[0.15em]">{title}</h3>
+    <p className="text-[10px] text-slate-500 mt-1 font-medium tracking-wide">{subtitle}</p>
   </div>
 );
 
-const SelectionCard = ({ label, active, onClick, fullWidth }: { label: string, active: boolean, onClick: () => void, fullWidth?: boolean }) => (
+const SelectionCard = ({ label, active, onClick, fullWidth, special }: { label: string, active: boolean, onClick: () => void, fullWidth?: boolean, special?: boolean }) => (
   <motion.button
-    whileHover={{ scale: 1.02 }}
+    whileHover={{ scale: 1.02, backgroundColor: active ? '' : "rgba(255,255,255,0.08)" }}
     whileTap={{ scale: 0.98 }}
     onClick={onClick}
     className={`
       ${fullWidth ? 'col-span-full' : ''}
-      relative px-4 py-3.5 rounded-xl text-left border transition-all duration-300 group overflow-hidden
+      relative px-4 py-3.5 rounded-2xl text-left border transition-all duration-300 group overflow-hidden
       ${active 
         ? 'bg-brand-gold/10 border-brand-gold shadow-[0_0_15px_-5px_rgba(197,160,89,0.2)]' 
-        : 'bg-white/5 border-white/5 hover:border-white/20 hover:bg-white/10' 
+        : special 
+            ? 'bg-transparent border-brand-gold/30 text-brand-gold/80 hover:border-brand-gold hover:text-brand-gold'
+            : 'bg-[#151515] border-white/5 hover:border-white/20' 
       }
     `}
   >
     <div className="flex items-center justify-between relative z-10">
-      <span className={`text-[11px] font-bold uppercase tracking-wider truncate ${active ? 'text-brand-gold' : 'text-slate-400 group-hover:text-white'}`}>
-        {label}
+      <span className={`text-[10px] font-bold uppercase tracking-wider truncate ${active ? 'text-brand-gold' : (special ? 'text-inherit' : 'text-slate-400 group-hover:text-white')}`}>
+        {label === 'All' ? 'TOUT' : label}
       </span>
-      {active && <div className="w-1.5 h-1.5 rounded-full bg-brand-gold shadow-[0_0_8px_rgba(197,160,89,1)]" />}
+      {active ? (
+         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-brand-gold">
+           <Check className="w-3.5 h-3.5" />
+         </motion.div>
+      ) : special && (
+         <Layers className="w-3.5 h-3.5 opacity-50" />
+      )}
     </div>
   </motion.button>
 );
 
 const SortOptionItem = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => (
-  <button
+  <motion.button
+    whileHover={{ x: 4 }}
     onClick={onClick}
-    className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
+    className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
       active 
-      ? 'bg-brand-gold/10 border-brand-gold' 
-      : 'bg-transparent border-transparent text-slate-500 hover:bg-white/5 hover:text-white'
+      ? 'bg-brand-gold/10 border-brand-gold shadow-[0_0_15px_-5px_rgba(197,160,89,0.2)]' 
+      : 'bg-[#151515] border-white/5 text-slate-500 hover:bg-white/5 hover:text-white hover:border-white/10'
     }`}
   >
-    <span className={`text-xs font-bold uppercase tracking-wide ${active ? 'text-brand-gold' : ''}`}>{label}</span>
-    {active && <div className="w-2 h-2 rounded-full bg-brand-gold shadow-[0_0_10px_rgba(197,160,89,0.8)]" />}
-  </button>
+    <span className={`text-[10px] font-bold uppercase tracking-wider ${active ? 'text-brand-gold' : ''}`}>{label}</span>
+    {active && <Check className="w-3.5 h-3.5 text-brand-gold" />}
+  </motion.button>
 );
