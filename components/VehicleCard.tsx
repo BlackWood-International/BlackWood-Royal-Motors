@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Vehicle } from '../types';
-import { BadgeCheck, ArrowUpRight, ShieldCheck, Car, Star, Heart } from 'lucide-react';
+import { BadgeCheck, ArrowUpRight, ShieldCheck, Car, Heart } from 'lucide-react';
 
 interface VehicleCardProps {
   vehicle: Vehicle;
@@ -152,11 +152,17 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
                 <Heart className={`w-4 h-4 ${isFavorite ? 'fill-black' : ''}`} />
              </motion.button>
              
-             {/* Etoile si cher */}
-             {parseInt(vehicle.priceValue?.toString() || '0') > 500000 && (
-                 <div className="w-8 h-8 rounded-full bg-brand-gold/20 backdrop-blur-sm flex items-center justify-center border border-brand-gold/50">
-                    <Star className="w-3.5 h-3.5 text-brand-gold fill-brand-gold" />
-                 </div>
+             {/* NEW DYNAMIC BADGE SYSTEM */}
+             {vehicle.badge && (
+                 <motion.div 
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="px-3 py-1.5 rounded-full bg-gradient-to-r from-brand-gold to-[#e8c683] shadow-[0_0_15px_rgba(197,160,89,0.4)] flex items-center justify-center border border-white/20"
+                 >
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-black whitespace-nowrap">
+                        {vehicle.badge}
+                    </span>
+                 </motion.div>
              )}
           </div>
         </div>
