@@ -11,7 +11,8 @@ interface VehicleCardProps {
   onToggleFavorite: () => void;
 }
 
-export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onSelect, isFavorite, onToggleFavorite }) => {
+// Optimization: Memoize the component to prevent unnecessary re-renders
+export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, onSelect, isFavorite, onToggleFavorite }) => {
   const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>('loading');
   const [currentSrc, setCurrentSrc] = useState<string>('');
   const [isHovered, setIsHovered] = useState(false);
@@ -81,19 +82,17 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onSelect, isF
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.4 }}
       className="group relative w-full h-full content-visibility-auto"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <motion.div 
         whileHover={{ y: -2 }} 
-        /* AJOUT: overflow-hidden strict et arrondi défini ici */
         className="relative h-full flex flex-col bg-[#0a0a0a] rounded-[2rem] overflow-hidden border border-white/5 transition-colors duration-500 group-hover:border-brand-gold/40 group-hover:shadow-2xl z-0"
       >
         
         {/* Zone Image */}
-        {/* AJOUT: Rounded-t explicite pour forcer l'image à suivre la courbe */}
         <div className="relative w-full aspect-[16/10] bg-[#050505] cursor-pointer rounded-t-[2rem] overflow-hidden" onClick={() => onSelect(vehicle)}>
           
           {/* Cas 1: L'image charge ou est chargée */}
@@ -106,7 +105,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onSelect, isF
                         className={`w-full h-full object-cover transition-all duration-700 ease-out 
                             ${isHovered ? 'scale-110' : 'scale-100'} 
                             ${imageState === 'loaded' ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'}`}
-                        style={{ borderTopLeftRadius: '2rem', borderTopRightRadius: '2rem' }} /* Force inline radius */
+                        style={{ borderTopLeftRadius: '2rem', borderTopRightRadius: '2rem' }}
                         onLoad={() => setImageState('loaded')}
                         onError={handleImageError}
                         referrerPolicy="no-referrer"
@@ -210,4 +209,10 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, onSelect, isF
       </motion.div>
     </motion.div>
   );
-};
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.vehicle.id === nextProps.vehicle.id &&
+    prevProps.isFavorite === nextProps.isFavorite &&
+    prevProps.index === nextProps.index
+  );
+});
