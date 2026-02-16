@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Vehicle } from '../types';
-import { BadgeCheck, ArrowUpRight, ShieldCheck, Car, Heart } from 'lucide-react';
+import { BadgeCheck, ArrowUpRight, ShieldCheck, Car, Heart, Sparkles } from 'lucide-react';
 
 interface VehicleCardProps {
   vehicle: Vehicle;
@@ -11,7 +11,6 @@ interface VehicleCardProps {
   onToggleFavorite: () => void;
 }
 
-// Optimization: Memoize the component to prevent unnecessary re-renders
 export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, onSelect, isFavorite, onToggleFavorite }) => {
   const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>('loading');
   const [currentSrc, setCurrentSrc] = useState<string>('');
@@ -19,7 +18,8 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
   const [shouldLoadImage, setShouldLoadImage] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   
-  // Fonction de nettoyage d'URL robuste
+  const hasBadge = !!vehicle.badge && vehicle.badge.length > 0;
+
   const cleanUrl = (rawUrl: string): string => {
     if (!rawUrl) return '';
     let url = rawUrl.trim().replace(/['"]/g, '');
@@ -31,7 +31,6 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
     return url;
   };
 
-  // Logique de chargement intelligent
   useEffect(() => {
     if (!vehicle.image) {
         setImageState('error');
@@ -55,12 +54,10 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
     return () => observer.disconnect();
   }, [vehicle.image]);
 
-  // Stratégie de source d'image
   useEffect(() => {
     if (!shouldLoadImage || !vehicle.image) return;
 
     const originalUrl = cleanUrl(vehicle.image);
-    // Proxy pour optimiser et éviter les 403
     const proxyUrl = `https://wsrv.nl/?url=${encodeURIComponent(originalUrl)}&w=800&output=webp&il`;
     setCurrentSrc(proxyUrl);
   }, [shouldLoadImage, vehicle.image]);
@@ -88,14 +85,29 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
       onMouseLeave={() => setIsHovered(false)}
     >
       <motion.div 
-        whileHover={{ y: -2 }} 
-        className="relative h-full flex flex-col bg-[#0a0a0a] rounded-[2rem] overflow-hidden border border-white/5 transition-colors duration-500 group-hover:border-brand-gold/40 group-hover:shadow-2xl z-0"
+        whileHover={{ y: -4 }} 
+        className={`
+            relative h-full flex flex-col rounded-[2rem] overflow-hidden transition-all duration-500 z-0
+            ${hasBadge 
+                ? 'bg-[#0f0f0f] border border-brand-gold/60 shadow-[0_0_20px_-5px_rgba(197,160,89,0.3)]' 
+                : 'bg-[#0a0a0a] border border-white/5 hover:border-brand-gold/40 hover:shadow-2xl'
+            }
+        `}
       >
+        {/* SPECIAL BADGE ANIMATED BACKGROUND EFFECT */}
+        {hasBadge && (
+            <div className="absolute inset-0 z-[-1] overflow-hidden rounded-[2rem]">
+                 {/* Moving Gradient Shine */}
+                 <div className="absolute -inset-[200%] bg-[conic-gradient(from_0deg,transparent_0_340deg,rgba(197,160,89,0.2)_360deg)] animate-[spin_5s_linear_infinite] opacity-30" />
+                 {/* Inner Glow */}
+                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(197,160,89,0.15),transparent_60%)]" />
+            </div>
+        )}
         
         {/* Zone Image */}
         <div className="relative w-full aspect-[16/10] bg-[#050505] cursor-pointer rounded-t-[2rem] overflow-hidden" onClick={() => onSelect(vehicle)}>
           
-          {/* Cas 1: L'image charge ou est chargée */}
+          {/* Image Loader logic remains same */}
           {vehicle.image && imageState !== 'error' ? (
             <div className="w-full h-full relative overflow-hidden rounded-t-[2rem]">
                 {shouldLoadImage && (
@@ -112,7 +124,6 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
                         loading="lazy"
                     />
                 )}
-                {/* Loader pendant le chargement */}
                 {imageState === 'loading' && (
                     <div className="absolute inset-0 flex items-center justify-center bg-[#0a0a0a]">
                         <div className="w-6 h-6 border-2 border-brand-gold/30 border-t-brand-gold rounded-full animate-spin"></div>
@@ -120,7 +131,6 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
                 )}
             </div>
           ) : (
-            /* Cas 2: Pas d'image ou Erreur définitive */
             <div className="absolute inset-0 flex items-center justify-center bg-[#050505] pattern-grid-lg rounded-t-[2rem]">
                <div className="text-center opacity-30 group-hover:opacity-60 transition-opacity duration-500">
                   <Car className="w-12 h-12 mx-auto mb-3 text-brand-gold" />
@@ -151,27 +161,34 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
              >
                 <Heart className={`w-4 h-4 ${isFavorite ? 'fill-black' : ''}`} />
              </motion.button>
-             
-             {/* NEW DYNAMIC BADGE SYSTEM */}
-             {vehicle.badge && (
-                 <motion.div 
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="px-3 py-1.5 rounded-full bg-gradient-to-r from-brand-gold to-[#e8c683] shadow-[0_0_15px_rgba(197,160,89,0.4)] flex items-center justify-center border border-white/20"
-                 >
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-black whitespace-nowrap">
-                        {vehicle.badge}
-                    </span>
-                 </motion.div>
-             )}
           </div>
+
+          {/* DYNAMIC BADGE - CENTRÉ EN BAS DE L'IMAGE POUR IMPACT */}
+          {hasBadge && (
+             <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute bottom-4 left-4 right-4 z-30 flex justify-center pointer-events-none"
+             >
+                <div className="relative overflow-hidden rounded-full shadow-[0_4px_20px_rgba(197,160,89,0.4)] border border-white/40 backdrop-blur-xl bg-brand-gold/90">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shimmer_2.5s_infinite]" />
+                    <div className="relative px-6 py-2 flex items-center justify-center gap-2">
+                        <Sparkles className="w-3.5 h-3.5 text-black animate-pulse" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-black whitespace-nowrap drop-shadow-sm">
+                            {vehicle.badge}
+                        </span>
+                        <Sparkles className="w-3.5 h-3.5 text-black animate-pulse" />
+                    </div>
+                </div>
+             </motion.div>
+          )}
         </div>
         
         {/* Contenu Texte */}
         <div className="flex-1 p-6 flex flex-col justify-between relative z-10">
           <div>
              <div className="flex items-center justify-between mb-3">
-                 <span className="text-[10px] font-bold text-brand-gold/90 uppercase tracking-[0.2em] bg-brand-gold/5 px-2 py-1 rounded">
+                 <span className={`text-[10px] font-bold uppercase tracking-[0.2em] px-2 py-1 rounded ${hasBadge ? 'text-brand-black bg-brand-gold' : 'text-brand-gold/90 bg-brand-gold/5'}`}>
                    {vehicle.brand}
                  </span>
                  <BadgeCheck className={`w-4 h-4 text-brand-gold transition-opacity ${isHovered ? 'opacity-100' : 'opacity-0'}`} />
@@ -196,7 +213,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
           <div className="flex items-end justify-between pt-2">
             <div className="flex flex-col">
               <span className="text-[9px] text-slate-500 uppercase tracking-widest mb-1 font-bold">Prix</span>
-              <span className="text-lg font-mono text-white tracking-tight">
+              <span className={`text-lg font-mono tracking-tight ${hasBadge ? 'text-brand-gold font-bold' : 'text-white'}`}>
                 {vehicle.price}
               </span>
             </div>
