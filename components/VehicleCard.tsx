@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Vehicle } from '../types';
-import { BadgeCheck, ArrowUpRight, ShieldCheck, Car, Heart, Sparkles } from 'lucide-react';
+import { BadgeCheck, ArrowUpRight, ShieldCheck, Car, Heart, Sparkles, Scale } from 'lucide-react';
 
 interface VehicleCardProps {
   vehicle: Vehicle;
@@ -9,9 +9,13 @@ interface VehicleCardProps {
   onSelect: (vehicle: Vehicle) => void;
   isFavorite: boolean;
   onToggleFavorite: () => void;
+  isComparing?: boolean;
+  onToggleCompare?: () => void;
 }
 
-export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, onSelect, isFavorite, onToggleFavorite }) => {
+export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ 
+    vehicle, onSelect, isFavorite, onToggleFavorite, isComparing, onToggleCompare 
+}) => {
   const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>('loading');
   const [currentSrc, setCurrentSrc] = useState<string>('');
   const [isHovered, setIsHovered] = useState(false);
@@ -80,21 +84,16 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.4 }}
-      /* 
-         FIX: 'hover:z-50' force la carte survolée à passer au-dessus de tout le reste.
-         Suppression de content-visibility pour éviter le clipping.
-      */
       className="group relative w-full h-full hover:z-50"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <motion.div 
-        /* FIX: Animation plus rapide (0.2s) et easing snappy */
         whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }}
         className={`
             relative h-full flex flex-col rounded-[2rem] overflow-hidden z-0
-            /* FIX: Suppression de transition-all duration-500 pour éviter le lag */
-            transition-colors duration-300
+            transition-all duration-300
+            ${isComparing ? 'ring-2 ring-brand-gold shadow-[0_0_20px_rgba(197,160,89,0.3)]' : ''}
             ${hasBadge 
                 ? 'bg-[#0f0f0f]' // Base background
                 : 'bg-[#0a0a0a] border border-white/5 hover:border-brand-gold/40 hover:shadow-2xl'
@@ -104,17 +103,11 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
         {/* === GLOBAL BADGE EFFECTS (Z-INDEX LAYERING) === */}
         {hasBadge && (
             <>
-                {/* 1. Golden Breathing Halo Shadow (Bottom Layer) */}
                 <div className="absolute -inset-[2px] rounded-[2.1rem] bg-brand-gold/20 blur-xl opacity-0 animate-pulse group-hover:opacity-60 transition-opacity duration-300 pointer-events-none z-0" />
-                
-                {/* 2. Premium Border (Double layered) - Above Image */}
                 <div className="absolute inset-0 rounded-[2rem] border border-brand-gold/40 shadow-[inset_0_0_20px_rgba(197,160,89,0.05)] pointer-events-none z-20" />
-                
-                {/* 3. The "Sheen" Effect (Global Overlay) - Covers Image too */}
                 <div className="absolute inset-0 z-20 overflow-hidden rounded-[2rem] pointer-events-none mix-blend-overlay">
                      <div className="absolute -inset-[200%] w-[400%] h-[400%] bg-gradient-to-r from-transparent via-white/20 to-transparent -rotate-45 translate-x-[-100%] animate-[sheen_4s_infinite_ease-in-out]" />
                 </div>
-
                 <style>{`
                     @keyframes sheen {
                         0% { transform: translateX(-100%) rotate(-45deg); }
@@ -174,13 +167,26 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
 
           {/* Actions (Top Right) - Z-INDEX HIGH */}
           <div className="absolute top-4 right-4 z-40 flex items-center gap-2">
+             {/* COMPARE BUTTON */}
+             {onToggleCompare && (
+                 <motion.button 
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={(e) => { e.stopPropagation(); onToggleCompare(); }}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border transition-colors ${isComparing ? 'bg-brand-gold border-brand-gold text-black' : 'bg-black/40 border-white/10 text-white hover:bg-white/20'}`}
+                    title="Comparer"
+                 >
+                    <Scale className="w-3.5 h-3.5" />
+                 </motion.button>
+             )}
+
              <motion.button 
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
                 className={`w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border transition-colors ${isFavorite ? 'bg-brand-gold border-brand-gold text-black' : 'bg-black/40 border-white/10 text-white hover:bg-white/20'}`}
              >
-                <Heart className={`w-4 h-4 ${isFavorite ? 'fill-black' : ''}`} />
+                <Heart className={`w-3.5 h-3.5 ${isFavorite ? 'fill-black' : ''}`} />
              </motion.button>
           </div>
 
@@ -204,7 +210,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
           )}
         </div>
         
-        {/* Contenu Texte - Z-index < Sheen Effect (mix-blend-overlay allows text to be readable but affected) */}
+        {/* Contenu Texte */}
         <div className="flex-1 p-6 flex flex-col justify-between relative z-10">
           <div>
              <div className="flex items-center justify-between mb-3">
@@ -256,6 +262,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({ vehicle, on
   return (
     prevProps.vehicle.id === nextProps.vehicle.id &&
     prevProps.isFavorite === nextProps.isFavorite &&
+    prevProps.isComparing === nextProps.isComparing && // Check comparator state update
     prevProps.index === nextProps.index
   );
 });
