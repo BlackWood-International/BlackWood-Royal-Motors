@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { fetchCatalog } from './services/dataService';
 import { Vehicle, SortOption } from './types';
@@ -267,10 +266,24 @@ ${carList}
   }, [vehicles, activeCategories, selectedBrands, searchQuery, sortOption, priceRange, showFavoritesOnly, favorites, vipFilter]);
 
   // Determine if we should show the "Grouped by Category" view (Scroll Spy compatible)
-  // Logic: Only group if using "Original" sort (which implies catalog order) and not searching text specifically
+  // Logic: Only group if using "Original" sort (which implies catalog order) AND NO FILTERS are active
   const isGroupedView = useMemo(() => {
-      return sortOption === 'original' && searchQuery === '';
-  }, [sortOption, searchQuery]);
+      const isDefaultSort = sortOption === 'original';
+      const noSearch = searchQuery === '';
+      const noCategoryFilter = activeCategories.includes('All');
+      const noBrandFilter = selectedBrands.includes('All');
+      const noPriceFilter = priceRange.min === '' && priceRange.max === '';
+      const noFavoritesFilter = !showFavoritesOnly;
+      const noVipFilter = vipFilter === 'all';
+
+      return isDefaultSort && 
+             noSearch && 
+             noCategoryFilter && 
+             noBrandFilter && 
+             noPriceFilter && 
+             noFavoritesFilter && 
+             noVipFilter;
+  }, [sortOption, searchQuery, activeCategories, selectedBrands, priceRange, showFavoritesOnly, vipFilter]);
 
   // Group vehicles for rendering if isGroupedView is true
   const groupedVehicles = useMemo(() => {
