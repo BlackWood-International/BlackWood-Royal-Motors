@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Scale, X, ArrowRight } from 'lucide-react';
@@ -11,16 +12,6 @@ interface CompareBarProps {
 export const CompareBar: React.FC<CompareBarProps> = ({ count, onOpenComparator, onClear }) => {
   return (
     <>
-      <style>{`
-        @keyframes sheen-fast {
-          0% { transform: translateX(-150%) skewX(12deg); }
-          20% { transform: translateX(150%) skewX(12deg); }
-          100% { transform: translateX(150%) skewX(12deg); }
-        }
-        .animate-sheen-fast {
-          animation: sheen-fast 3s infinite;
-        }
-      `}</style>
       <AnimatePresence>
         {count > 0 && (
           <motion.div
@@ -35,9 +26,6 @@ export const CompareBar: React.FC<CompareBarProps> = ({ count, onOpenComparator,
               {/* Reduced horizontal padding to push items closer to rounded edges */}
               <div className="flex items-center gap-3 md:gap-4 py-2 pl-2 pr-1.5 md:py-3 md:px-3 bg-[#080808]/90 backdrop-blur-2xl rounded-full border border-white/10 relative overflow-hidden">
                   
-                  {/* Shine effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-sheen-fast pointer-events-none" />
-
                   {/* Counter */}
                   <div className="flex items-center gap-3">
                      <div className="relative flex items-center justify-center w-8 h-8 rounded-full bg-brand-gold/10 border border-brand-gold/30 shrink-0">
