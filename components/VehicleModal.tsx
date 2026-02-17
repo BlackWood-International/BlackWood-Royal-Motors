@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion, Variants } from 'framer-motion';
 import { Vehicle } from '../types';
-import { X, MessageCircle, Heart, Sparkles, BadgeCheck, ArrowLeft, Crown } from 'lucide-react';
+import { X, MessageCircle, Heart, Sparkles, BadgeCheck, ArrowLeft, Crown, Info } from 'lucide-react';
 import { Button } from './Button';
 
 interface VehicleModalProps {
@@ -10,9 +10,10 @@ interface VehicleModalProps {
   onClose: () => void;
   isFavorite: boolean;
   onToggleFavorite: () => void;
+  onOpenVIP?: () => void;
 }
 
-export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, isFavorite, onToggleFavorite }) => {
+export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, isFavorite, onToggleFavorite, onOpenVIP }) => {
   const hasBadge = !!vehicle.badge && vehicle.badge.length > 0;
   const isVip = vehicle.vip;
 
@@ -189,10 +190,18 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, is
 
                 {isVip && (
                     <div className="mt-8 p-4 bg-gradient-to-r from-brand-gold/10 to-transparent border-l-2 border-brand-gold rounded-r-xl">
-                        <h4 className="text-brand-gold font-serif text-lg mb-1 flex items-center gap-2">
-                             <Crown className="w-4 h-4 fill-brand-gold" />
-                             Réservé aux Membres VIP
-                        </h4>
+                        <div className="flex justify-between items-start mb-2">
+                             <h4 className="text-brand-gold font-serif text-lg flex items-center gap-2">
+                                 <Crown className="w-4 h-4 fill-brand-gold" />
+                                 Réservé aux Membres VIP
+                            </h4>
+                            {onOpenVIP && (
+                                <button onClick={onOpenVIP} className="text-[9px] uppercase tracking-widest font-bold text-white hover:text-brand-gold flex items-center gap-1 transition-colors border-b border-white/20 pb-0.5 hover:border-brand-gold">
+                                    <Info className="w-3 h-3" />
+                                    Infos Avantages
+                                </button>
+                            )}
+                        </div>
                         <p className="text-xs text-slate-400 leading-relaxed">
                             Ce véhicule fait partie de la collection exclusive Royal Elite. Son acquisition est strictement réservée aux détenteurs de l'abonnement VIP BlackWood actif.
                         </p>
