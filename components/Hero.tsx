@@ -39,12 +39,12 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog }) => {
       {/* MAIN CONTENT */}
       <div className="relative z-20 w-full max-w-[1800px] mx-auto px-4 sm:px-6 flex flex-col items-center justify-center h-full text-center pb-12 sm:pb-0">
         
-        {/* LOGO */}
+        {/* LOGO - Responsive sizing */}
         <motion.div
            initial={{ opacity: 0, y: -20 }}
            animate={{ opacity: 1, y: 0 }}
            transition={{ duration: 0.8 }}
-           className="mb-6 md:mb-10"
+           className="mb-4 sm:mb-6 md:mb-10"
         >
             <img 
                 src="https://i.imgur.com/5QiFb0Y.png" 
@@ -68,12 +68,12 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog }) => {
         </motion.div>
 
         {/* Massive Typography - Optimized for Mobile */}
-        <div className="relative mb-8 md:mb-14 flex flex-col items-center w-full">
+        <div className="relative mb-8 md:mb-14 flex flex-col items-center w-full px-2">
           <motion.h1 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
-            className="text-4xl sm:text-6xl md:text-8xl lg:text-[9rem] leading-[0.9] font-serif text-white mix-blend-overlay tracking-tight"
+            className="text-4xl xs:text-5xl sm:text-6xl md:text-8xl lg:text-[9rem] leading-[0.95] md:leading-[0.9] font-serif text-white mix-blend-overlay tracking-tight"
           >
             BlackWood
           </motion.h1>
@@ -81,7 +81,7 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog }) => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.7, ease: "easeOut" }}
-            className="text-[2rem] sm:text-5xl md:text-8xl lg:text-[9rem] leading-[0.9] font-serif text-transparent bg-clip-text bg-gradient-to-b from-brand-gold via-[#F0E6D2] to-brand-gold/40 tracking-tight mt-1 md:mt-[-10px]"
+            className="text-[2rem] xs:text-[2.5rem] sm:text-5xl md:text-8xl lg:text-[9rem] leading-[1] md:leading-[0.9] font-serif text-transparent bg-clip-text bg-gradient-to-b from-brand-gold via-[#F0E6D2] to-brand-gold/40 tracking-tight mt-1 md:mt-[-10px] break-words"
           >
             Royal Motors
           </motion.h1>
@@ -97,7 +97,7 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog }) => {
               transition={{ duration: 0.8, delay: 0.9 }}
               className="w-full px-8 sm:px-0 sm:w-auto mb-8 md:mb-12"
             >
-               <Button onClick={onEnterCatalog} className="w-full sm:w-auto h-12 md:h-16 px-8 md:px-14 text-xs md:text-sm !tracking-[0.25em] bg-white text-black hover:bg-brand-gold hover:text-black border-none shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]">
+               <Button onClick={onEnterCatalog} className="w-full sm:w-auto h-14 md:h-16 px-8 md:px-14 text-xs md:text-sm !tracking-[0.25em] bg-white text-black hover:bg-brand-gold hover:text-black border-none shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] active:scale-95">
                   Entrer
                   <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2" />
                </Button>
@@ -108,7 +108,7 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.8, delay: 1.2 }}
-                className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full px-6 sm:px-0"
+                className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full px-6 sm:px-0"
             >
                 {/* Intranet Button */}
                 <a 
@@ -117,7 +117,7 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog }) => {
                     rel="noopener noreferrer"
                     className="group w-full sm:w-auto"
                 >
-                    <div className="relative overflow-hidden rounded-full border border-white/10 bg-black/30 backdrop-blur-md px-6 py-3.5 transition-all duration-300 hover:border-white/30 hover:bg-black/50 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]">
+                    <div className="relative overflow-hidden rounded-full border border-white/10 bg-black/30 backdrop-blur-md px-6 py-3.5 transition-all duration-300 hover:border-white/30 hover:bg-black/50 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)] active:scale-95">
                         {/* Blur Background behind button text */}
                         <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                         
@@ -140,7 +140,7 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog }) => {
                     rel="noopener noreferrer"
                     className="group w-full sm:w-auto"
                 >
-                    <div className="relative overflow-hidden rounded-full border border-white/10 bg-black/30 backdrop-blur-md px-6 py-3.5 transition-all duration-300 hover:border-white/30 hover:bg-black/50 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]">
+                    <div className="relative overflow-hidden rounded-full border border-white/10 bg-black/30 backdrop-blur-md px-6 py-3.5 transition-all duration-300 hover:border-white/30 hover:bg-black/50 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)] active:scale-95">
                          {/* Blur Background behind button text */}
                          <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
