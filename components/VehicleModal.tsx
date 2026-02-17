@@ -54,7 +54,7 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, is
         className="
             relative w-full h-[100dvh] md:h-auto md:max-h-[85vh] md:max-w-[90rem] 
             bg-[#050505] 
-            md:rounded-[2rem] border border-white/10 shadow-2xl 
+            md:rounded-[3.5rem] border border-white/10 shadow-2xl 
             flex flex-col md:flex-row overflow-hidden
         "
         onClick={(e) => e.stopPropagation()}
@@ -78,7 +78,7 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, is
         </div>
 
         {/* --- DESKTOP FLOATING ACTIONS --- */}
-        <div className="absolute top-6 right-6 z-50 hidden md:flex items-center gap-3">
+        <div className="absolute top-8 right-8 z-50 hidden md:flex items-center gap-3">
              <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -120,7 +120,7 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, is
             <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent opacity-100 md:opacity-0" />
             
             {hasBadge && (
-                <div className="absolute bottom-6 left-6 md:bottom-8 md:left-8 z-30">
+                <div className="absolute bottom-6 left-6 md:bottom-10 md:left-10 z-30">
                     <div className="flex items-center gap-2 bg-brand-gold/90 backdrop-blur-xl px-4 py-2 rounded-full shadow-lg">
                         <Sparkles className="w-3.5 h-3.5 text-black" />
                         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-black">{vehicle.badge}</span>
@@ -129,7 +129,7 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, is
             )}
 
             {isVip && (
-                <div className="absolute top-6 left-6 z-30">
+                <div className="absolute top-6 left-6 md:top-10 md:left-10 z-30">
                      <div className="flex items-center gap-2 bg-black/80 backdrop-blur-xl border border-brand-gold/50 px-5 py-2.5 rounded-full shadow-[0_0_30px_rgba(197,160,89,0.3)]">
                         <Crown className="w-4 h-4 text-brand-gold fill-brand-gold animate-pulse" />
                         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-gold">VIP Collection</span>
