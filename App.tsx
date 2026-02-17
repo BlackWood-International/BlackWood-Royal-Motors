@@ -34,6 +34,9 @@ function App() {
   
   const [sortOption, setSortOption] = useState<SortOption>('original');
   const isFirstRender = useRef(true);
+  
+  // Scroll Locking State
+  const [scrollbarWidth, setScrollbarWidth] = useState(0);
 
   // --- DATA LOADING ---
   useEffect(() => {
@@ -106,6 +109,30 @@ function App() {
         localStorage.removeItem('bw_favorites'); 
     }
   }, [favorites]);
+
+  // --- SCROLL LOCK LOGIC (Prevents Layout Shift) ---
+  useEffect(() => {
+    const isLocked = !!selectedVehicle || isComparatorOpen;
+    
+    if (isLocked) {
+      const width = window.innerWidth - document.documentElement.clientWidth;
+      setScrollbarWidth(width);
+      
+      document.body.style.overflow = 'hidden';
+      document.body.style.paddingRight = `${width}px`;
+    } else {
+      setScrollbarWidth(0);
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    }
+
+    return () => {
+      // Cleanup on unmount
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    };
+  }, [selectedVehicle, isComparatorOpen]);
+
 
   const toggleFavorite = useCallback((vehicleId: string) => {
     setFavorites(prev => 
@@ -327,8 +354,11 @@ ${carList}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full flex flex-col"
             >
-                {/* FLOATING HEADER */}
-                <header className="fixed top-0 left-0 w-full z-[100] pointer-events-none flex justify-between items-center px-4 py-3 md:px-8 md:py-6 bg-gradient-to-b from-black/95 via-black/80 to-transparent transition-all duration-300">
+                {/* FLOATING HEADER - FIXED WITH SCROLLBAR COMPENSATION */}
+                <header 
+                    className="fixed top-0 left-0 w-full z-[100] pointer-events-none flex justify-between items-center px-4 py-3 md:px-8 md:py-6 bg-gradient-to-b from-black/95 via-black/80 to-transparent transition-all duration-300"
+                    style={{ paddingRight: scrollbarWidth ? `${scrollbarWidth + (window.innerWidth >= 768 ? 32 : 16)}px` : undefined }}
+                >
                     <button 
                         onClick={handleReturnHome}
                         className="pointer-events-auto flex items-center gap-2 pl-2 pr-4 py-2 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 text-[10px] uppercase tracking-[0.2em] font-bold text-slate-300 hover:text-white hover:border-brand-gold/50 hover:bg-black/80 transition-all group shadow-lg active:scale-95"
