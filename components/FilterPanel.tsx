@@ -121,7 +121,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
   return (
     // CONTENEUR FIXED - Z-INDEX 90 pour être au dessus des cartes (z-50)
-    <div className="fixed top-[4.5rem] md:top-24 left-0 right-0 z-[90] w-full flex justify-center pointer-events-none px-2 sm:px-4 transition-all duration-300">
+    <div className="fixed top-[4rem] sm:top-[4.5rem] md:top-24 left-0 right-0 z-[90] w-full flex justify-center pointer-events-none px-2 sm:px-4 transition-all duration-300">
       
       <style>{`
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -143,7 +143,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           transition={{ type: "spring", stiffness: 120, damping: 20 }}
           className={`
             relative flex items-center justify-between p-1.5 sm:p-2 pl-4 sm:pl-5 pr-1.5 sm:pr-2
-            bg-[#050505]/90 backdrop-blur-xl border border-white/10 
+            bg-[#050505]/95 backdrop-blur-xl border border-white/10 
             rounded-full shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)]
             transition-all duration-500 z-50
             ${isExpanded ? 'border-brand-gold/30' : 'hover:border-white/20 hover:bg-[#0a0a0a]/90'}
@@ -157,12 +157,13 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               <Search className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-colors ${isSearchFocused ? 'text-brand-gold' : 'text-slate-500 group-hover/search:text-white'}`} />
               <input 
                 type="text" 
-                placeholder="Rechercher..." 
+                placeholder="Rechercher un modèle..." 
                 value={searchQuery}
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setIsSearchFocused(false)}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full bg-transparent border-none text-[11px] sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-0 font-medium h-9 sm:h-10 tracking-wide"
+                // MOBILE UX: Text-base (16px) prevents iOS zoom on focus. Scale down visually if needed.
+                className="w-full bg-transparent border-none text-base sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-0 font-medium h-9 sm:h-10 tracking-wide"
               />
               <AnimatePresence>
                 {searchQuery && (
@@ -227,8 +228,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               animate={{ opacity: 1, y: 12, scale: 1, filter: "blur(0px)" }}
               exit={{ opacity: 0, y: -20, scale: 0.98, filter: "blur(10px)" }}
               transition={{ type: "spring", stiffness: 180, damping: 25 }}
-              /* rounded-[2.5rem] sur mobile pour gagner de la place */
-              className="absolute top-full left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] sm:rounded-[3rem] overflow-hidden shadow-2xl z-40 flex flex-col max-h-[75vh] mx-0"
+              /* MOBILE: max-h-[80vh] prevents cut-off on small screens */
+              className="absolute top-full left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-2xl z-40 flex flex-col max-h-[75vh] sm:max-h-[75vh] mx-0"
             >
               {/* Onglets de Navigation */}
               <div className="p-2 sm:p-3 border-b border-white/5 bg-[#050505]/50">
@@ -248,7 +249,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                         `}
                       >
                         {tab.icon}
-                        <span className="text-[8px] md:text-[9px] font-bold uppercase tracking-wider hidden sm:block">{tab.label}</span>
+                        <span className="text-[7px] xs:text-[8px] md:text-[9px] font-bold uppercase tracking-wider hidden xs:block">{tab.label}</span>
                         {/* Indicateur actif */}
                         {isActive && (
                             <motion.div layoutId="activeTabIndicator" className="absolute bottom-1 w-1 h-1 rounded-full bg-brand-gold" />
@@ -274,7 +275,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
                     transition={{ duration: 0.25, ease: "easeOut" }}
-                    className="h-full"
+                    className="h-full pb-8" // Extra padding bottom for safe scrolling
                   >
                     {/* ONGLET MARQUES */}
                     {activeTab === 'brands' && (
@@ -337,7 +338,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                                   type="number" 
                                   value={priceRange.min}
                                   onChange={(e) => onPriceRangeChange({...priceRange, min: e.target.value})}
-                                  className="w-full bg-[#151515] border border-white/5 rounded-[2rem] py-5 pl-10 pr-6 text-2xl font-mono text-white focus:border-brand-gold/50 focus:bg-[#1a1a1a] focus:outline-none transition-all placeholder:text-slate-700 text-center"
+                                  className="w-full bg-[#151515] border border-white/5 rounded-[2rem] py-4 sm:py-5 pl-10 pr-6 text-xl sm:text-2xl font-mono text-white focus:border-brand-gold/50 focus:bg-[#1a1a1a] focus:outline-none transition-all placeholder:text-slate-700 text-center"
                                   placeholder="0"
                                 />
                               </div>
@@ -356,7 +357,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                                   type="number" 
                                   value={priceRange.max}
                                   onChange={(e) => onPriceRangeChange({...priceRange, max: e.target.value})}
-                                  className="w-full bg-[#151515] border border-white/5 rounded-[2rem] py-5 pl-10 pr-6 text-2xl font-mono text-white focus:border-brand-gold/50 focus:bg-[#1a1a1a] focus:outline-none transition-all placeholder:text-slate-700 text-center"
+                                  className="w-full bg-[#151515] border border-white/5 rounded-[2rem] py-4 sm:py-5 pl-10 pr-6 text-xl sm:text-2xl font-mono text-white focus:border-brand-gold/50 focus:bg-[#1a1a1a] focus:outline-none transition-all placeholder:text-slate-700 text-center"
                                   placeholder="∞"
                                 />
                               </div>
@@ -453,7 +454,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               </div>
 
               {/* Footer du Panneau - Ajusté pour mobile */}
-              <div className="px-6 sm:px-8 py-4 sm:py-5 border-t border-white/5 bg-[#050505] flex justify-between items-center rounded-b-[2.5rem] sm:rounded-b-[3rem]">
+              <div className="px-6 sm:px-8 py-4 sm:py-5 border-t border-white/5 bg-[#050505] flex justify-between items-center rounded-b-[2rem] sm:rounded-b-[3rem]">
                  <button 
                     onClick={onReset}
                     className="text-[8px] sm:text-[9px] uppercase tracking-widest font-bold text-slate-500 hover:text-white transition-colors flex items-center gap-2 group px-2 py-1"
