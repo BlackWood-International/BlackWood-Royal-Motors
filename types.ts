@@ -6,7 +6,8 @@ export interface RawVehicleData {
   'Image'?: string; 
   'URL img'?: string;
   'Description'?: string;
-  'Badge'?: string; // Nouvelle colonne GSheet
+  'Badge'?: string;
+  'VIP'?: string; // Nouvelle colonne GSheet (Checkbox = TRUE/FALSE)
   [key: string]: string | undefined;
 }
 
@@ -20,7 +21,8 @@ export interface Vehicle {
   priceValue: number;
   image?: string;
   description?: string;
-  badge?: string; // Nouveau champ
+  badge?: string;
+  vip: boolean; // Nouveau champ booléen
 }
 
 export type SortOption = 'original' | 'brand-asc' | 'price-asc' | 'price-desc' | 'name-asc';
