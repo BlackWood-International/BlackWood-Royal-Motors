@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { fetchCatalog } from './services/dataService';
 import { Vehicle, SortOption } from './types';
@@ -26,6 +27,9 @@ function App() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [priceRange, setPriceRange] = useState<{min: string, max: string}>({ min: '', max: '' });
   const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(false);
+  
+  // VIP Filter State ('all' | 'only-vip' | 'no-vip')
+  const [vipFilter, setVipFilter] = useState<'all' | 'only-vip' | 'no-vip'>('all');
   
   // Favorites & Comparator State
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -203,6 +207,7 @@ ${carList}
     setSortOption('original');
     setPriceRange({ min: '', max: '' });
     setShowFavoritesOnly(false);
+    setVipFilter('all');
   };
 
   // --- FILTERING & GROUPING LOGIC ---
@@ -226,6 +231,13 @@ ${carList}
     if (!activeCategories.includes('All')) result = result.filter(v => activeCategories.includes(v.category));
     if (!selectedBrands.includes('All')) result = result.filter(v => selectedBrands.includes(v.brand));
     
+    // VIP Filter Logic
+    if (vipFilter === 'only-vip') {
+        result = result.filter(v => v.vip);
+    } else if (vipFilter === 'no-vip') {
+        result = result.filter(v => !v.vip);
+    }
+
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter(v => v.model.toLowerCase().includes(q) || v.brand.toLowerCase().includes(q));
@@ -252,7 +264,7 @@ ${carList}
       }
     });
     return result;
-  }, [vehicles, activeCategories, selectedBrands, searchQuery, sortOption, priceRange, showFavoritesOnly, favorites]);
+  }, [vehicles, activeCategories, selectedBrands, searchQuery, sortOption, priceRange, showFavoritesOnly, favorites, vipFilter]);
 
   // Determine if we should show the "Grouped by Category" view (Scroll Spy compatible)
   // Logic: Only group if using "Original" sort (which implies catalog order) and not searching text specifically
@@ -295,7 +307,7 @@ ${carList}
          }
     }
     if (view === 'catalog') isFirstRender.current = false;
-  }, [activeCategories, selectedBrands, searchQuery, sortOption, priceRange, showFavoritesOnly, view]);
+  }, [activeCategories, selectedBrands, searchQuery, sortOption, priceRange, showFavoritesOnly, view, vipFilter]);
 
   // --- RENDER HELPERS ---
   if (loading) {
@@ -401,6 +413,8 @@ ${carList}
                         favoritesCount={favorites.length}
                         onShare={handleShareSelection}
                         onClearFavorites={clearFavorites}
+                        vipFilter={vipFilter}
+                        onVipFilterChange={setVipFilter}
                     />
 
                     {/* COMPARE BAR (Floating) */}
