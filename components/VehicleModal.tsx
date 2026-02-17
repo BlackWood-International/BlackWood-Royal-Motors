@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { motion, Variants } from 'framer-motion';
 import { Vehicle } from '../types';
-import { X, MessageCircle, Heart, Sparkles, BadgeCheck, ArrowLeft } from 'lucide-react';
+import { X, MessageCircle, Heart, Sparkles, BadgeCheck, ArrowLeft, Crown } from 'lucide-react';
 import { Button } from './Button';
 
 interface VehicleModalProps {
@@ -13,6 +14,7 @@ interface VehicleModalProps {
 
 export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, isFavorite, onToggleFavorite }) => {
   const hasBadge = !!vehicle.badge && vehicle.badge.length > 0;
+  const isVip = vehicle.vip;
 
   const backdropVariants: Variants = {
     hidden: { opacity: 0 },
@@ -125,6 +127,15 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, is
                     </div>
                 </div>
             )}
+
+            {isVip && (
+                <div className="absolute top-6 left-6 z-30">
+                     <div className="flex items-center gap-2 bg-black/80 backdrop-blur-xl border border-brand-gold/50 px-5 py-2.5 rounded-full shadow-[0_0_30px_rgba(197,160,89,0.3)]">
+                        <Crown className="w-4 h-4 text-brand-gold fill-brand-gold animate-pulse" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-gold">VIP Collection</span>
+                    </div>
+                </div>
+            )}
         </div>
 
         {/* --- PARTIE DROITE (Content) --- */}
@@ -140,6 +151,12 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, is
                         <div className="w-1 h-1 bg-slate-500 rounded-full" />
                         {vehicle.category}
                     </span>
+                    {isVip && (
+                         <span className="text-[9px] font-black uppercase tracking-[0.2em] text-black bg-brand-gold px-2 py-1 rounded flex items-center gap-1">
+                            <Crown className="w-3 h-3 fill-black" />
+                            VIP
+                        </span>
+                    )}
                 </div>
 
                 <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif text-white leading-[0.9] tracking-tight mb-6 md:mb-8">
@@ -148,8 +165,15 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, is
 
                 <div className="mb-8 p-4 rounded-2xl bg-white/5 border border-white/5">
                     <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1">Prix Catalogue</span>
-                    <div className="flex items-baseline gap-2">
+                    <div className="flex items-center justify-between">
                         <span className="text-2xl md:text-3xl font-mono text-brand-gold font-light tracking-tight">{vehicle.price}</span>
+                        
+                        {isVip && (
+                             <div className="flex items-center gap-2 text-brand-gold/80 border border-brand-gold/30 px-3 py-1 rounded-full bg-brand-gold/5">
+                                 <Crown className="w-4 h-4" />
+                                 <span className="text-[9px] font-bold uppercase tracking-widest">Abonnement Requis</span>
+                             </div>
+                        )}
                     </div>
                 </div>
 
@@ -162,14 +186,26 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, is
                         {vehicle.description}
                     </p>
                 </div>
+
+                {isVip && (
+                    <div className="mt-8 p-4 bg-gradient-to-r from-brand-gold/10 to-transparent border-l-2 border-brand-gold rounded-r-xl">
+                        <h4 className="text-brand-gold font-serif text-lg mb-1 flex items-center gap-2">
+                             <Crown className="w-4 h-4 fill-brand-gold" />
+                             Réservé aux Membres VIP
+                        </h4>
+                        <p className="text-xs text-slate-400 leading-relaxed">
+                            Ce véhicule fait partie de la collection exclusive Royal Elite. Son acquisition est strictement réservée aux détenteurs de l'abonnement VIP BlackWood actif.
+                        </p>
+                    </div>
+                )}
             </div>
 
             {/* STICKY FOOTER ACTION */}
             <div className="p-4 md:p-8 border-t border-white/5 bg-[#080808] z-20 md:relative absolute bottom-0 w-full safe-pb">
                 <a href="https://discord.gg/88peMJRz95" target="_blank" rel="noopener noreferrer" className="block w-full">
-                    <Button className="w-full !py-4 md:!py-5 !text-xs !tracking-[0.25em] bg-white hover:bg-brand-gold text-brand-black rounded-full shadow-lg active:scale-95">
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        Contacter Un Vendeur
+                    <Button className={`w-full !py-4 md:!py-5 !text-xs !tracking-[0.25em] rounded-full shadow-lg active:scale-95 ${isVip ? 'bg-gradient-to-r from-brand-gold via-[#e8c683] to-brand-gold text-black hover:brightness-110' : 'bg-white hover:bg-brand-gold text-brand-black'}`}>
+                        {isVip ? <Crown className="w-4 h-4 mr-2 fill-black" /> : <MessageCircle className="w-4 h-4 mr-2" />}
+                        {isVip ? "Contacter (Accès VIP)" : "Contacter Un Vendeur"}
                     </Button>
                 </a>
             </div>
