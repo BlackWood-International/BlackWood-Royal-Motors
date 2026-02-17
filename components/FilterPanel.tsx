@@ -1,9 +1,10 @@
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SortOption } from '../types';
 import { 
   Search, X, SlidersHorizontal, ArrowUpDown, Building2, 
-  Tag, DollarSign, Heart, ChevronDown, Check, Layers, Copy, Trash2 
+  Tag, DollarSign, Heart, ChevronDown, Check, Layers, Copy, Trash2, Crown
 } from 'lucide-react';
 
 interface FilterPanelProps {
@@ -25,9 +26,11 @@ interface FilterPanelProps {
   favoritesCount: number;
   onShare?: () => void;
   onClearFavorites: () => void;
+  vipFilter: 'all' | 'only-vip' | 'no-vip';
+  onVipFilterChange: (val: 'all' | 'only-vip' | 'no-vip') => void;
 }
 
-type TabID = 'brands' | 'categories' | 'budget' | 'sort' | 'favorites';
+type TabID = 'brands' | 'categories' | 'budget' | 'sort' | 'vip' | 'favorites';
 
 export const FilterPanel: React.FC<FilterPanelProps> = ({
   categories, activeCategories, onCategoryChange,
@@ -37,7 +40,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   priceRange, onPriceRangeChange,
   onReset,
   showFavoritesOnly, onToggleFavorites, favoritesCount,
-  onShare, onClearFavorites
+  onShare, onClearFavorites,
+  vipFilter, onVipFilterChange
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<TabID>('brands');
@@ -89,7 +93,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     activeSort !== 'original' ||
     priceRange.min !== '' ||
     priceRange.max !== '' ||
-    showFavoritesOnly;
+    showFavoritesOnly ||
+    vipFilter !== 'all';
 
   // Filtrage simple sans tri alphabétique (respect de l'ordre CSV)
   const displayCategories = useMemo(() => {
@@ -135,6 +140,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     { id: 'brands' as const, label: 'Marques', icon: <Building2 className="w-4 h-4" /> },
     { id: 'categories' as const, label: 'Catégories', icon: <Tag className="w-4 h-4" /> },
     { id: 'budget' as const, label: 'Budget', icon: <DollarSign className="w-4 h-4" /> },
+    { id: 'vip' as const, label: 'VIP', icon: <Crown className="w-4 h-4" /> },
     { id: 'sort' as const, label: 'Trier', icon: <ArrowUpDown className="w-4 h-4" /> },
     { id: 'favorites' as const, label: 'Favoris', icon: <Heart className="w-4 h-4" />, badge: favoritesCount > 0 ? favoritesCount : undefined },
   ];
@@ -253,7 +259,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             >
               {/* Onglets */}
               <div className="p-2 sm:p-3 border-b border-white/5 bg-[#050505]/50">
-                <div className="grid grid-cols-5 gap-1 sm:gap-2">
+                <div className="grid grid-cols-6 gap-1 sm:gap-2">
                   {tabs.map((tab) => {
                     const isActive = activeTab === tab.id;
                     return (
@@ -269,7 +275,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                         `}
                       >
                         {tab.icon}
-                        <span className="text-[7px] xs:text-[8px] md:text-[9px] font-bold uppercase tracking-wider hidden xs:block">{tab.label}</span>
+                        <span className="text-[6px] xs:text-[7px] md:text-[9px] font-bold uppercase tracking-wider hidden xs:block">{tab.label}</span>
                         {isActive && (
                             <motion.div layoutId="activeTabIndicator" className="absolute bottom-1 w-1 h-1 rounded-full bg-brand-gold" />
                         )}
@@ -380,6 +386,31 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                            </div>
                         </div>
                       </div>
+                    )}
+                    
+                    {/* VIP FILTERS */}
+                    {activeTab === 'vip' && (
+                        <div className="space-y-6 max-w-md mx-auto">
+                            <SectionHeader title="Collection VIP" subtitle="Gérer l'affichage des véhicules exclusifs" centered />
+                            <div className="space-y-3">
+                                <SortOptionItem 
+                                    active={vipFilter === 'all'} 
+                                    onClick={() => onVipFilterChange('all')} 
+                                    label="Tout Afficher (Standard + VIP)" 
+                                />
+                                <SortOptionItem 
+                                    active={vipFilter === 'only-vip'} 
+                                    onClick={() => onVipFilterChange('only-vip')} 
+                                    label="Collection VIP Uniquement" 
+                                    highlightGold
+                                />
+                                <SortOptionItem 
+                                    active={vipFilter === 'no-vip'} 
+                                    onClick={() => onVipFilterChange('no-vip')} 
+                                    label="Masquer les exclusivités" 
+                                />
+                            </div>
+                        </div>
                     )}
 
                     {/* TRI */}
@@ -561,8 +592,9 @@ interface SortOptionItemProps {
   label: string;
   active: boolean;
   onClick: () => void;
+  highlightGold?: boolean;
 }
-const SortOptionItem: React.FC<SortOptionItemProps> = ({ label, active, onClick }) => (
+const SortOptionItem: React.FC<SortOptionItemProps> = ({ label, active, onClick, highlightGold }) => (
   <motion.button
     whileHover={{ x: 4 }}
     onClick={onClick}
@@ -572,7 +604,7 @@ const SortOptionItem: React.FC<SortOptionItemProps> = ({ label, active, onClick 
       : 'bg-[#151515] border-white/5 text-slate-500 hover:bg-white/5 hover:text-white hover:border-white/10'
     }`}
   >
-    <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${active ? 'text-brand-gold' : ''}`}>{label}</span>
+    <span className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${active ? 'text-brand-gold' : (highlightGold ? 'text-brand-gold/70' : '')}`}>{label}</span>
     {active && <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-brand-gold" />}
   </motion.button>
 );
