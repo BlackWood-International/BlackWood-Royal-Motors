@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from './Button';
-import { ArrowRight, Globe, MessageCircle } from 'lucide-react';
+import { ArrowRight, Globe, MessageCircle, ArrowUpRight } from 'lucide-react';
 
 interface HeroProps {
   onEnterCatalog: () => void;
@@ -88,14 +88,14 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog }) => {
         </div>
 
         {/* CTA Section */}
-        <div className="flex flex-col items-center w-full max-w-2xl mx-auto">
+        <div className="flex flex-col items-center w-full max-w-4xl mx-auto">
             
             {/* Main Entry Button */}
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.9 }}
-              className="w-full px-8 sm:px-0 sm:w-auto mb-8 md:mb-12"
+              className="w-full px-8 sm:px-0 sm:w-auto mb-10 md:mb-16"
             >
                <Button onClick={onEnterCatalog} className="w-full sm:w-auto h-14 md:h-16 px-8 md:px-14 text-xs md:text-sm !tracking-[0.25em] bg-white text-black hover:bg-brand-gold hover:text-black border-none shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] active:scale-95">
                   Entrer
@@ -103,53 +103,64 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog }) => {
                </Button>
             </motion.div>
 
-            {/* Recoded Discrete Links - Pill Style */}
+            {/* NEW GLASS CARDS LINKS */}
             <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 1.2 }}
-                className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full px-6 sm:px-0"
+                className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full px-6 sm:px-0 max-w-2xl"
             >
-                {/* Intranet Button */}
+                {/* Intranet Card */}
                 <a 
                     href="https://discord.gg/88peMJRz95" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="group w-full sm:w-auto"
+                    className="group relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 hover:border-brand-gold/30 transition-all duration-500 hover:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] active:scale-[0.98]"
                 >
-                    <div className="relative overflow-hidden rounded-full border border-white/10 bg-black/30 backdrop-blur-md px-6 py-3.5 transition-all duration-300 hover:border-white/30 hover:bg-black/50 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)] active:scale-95">
-                        {/* Blur Background behind button text */}
-                        <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                        
-                        <div className="relative flex items-center justify-center gap-3">
-                            <MessageCircle className="w-3.5 h-3.5 text-slate-400 group-hover:text-white transition-colors" />
-                            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-300 group-hover:text-white transition-colors">
-                                Intranet & News
-                            </span>
+                    <div className="absolute inset-0 bg-gradient-to-br from-brand-gold/0 to-brand-gold/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    
+                    <div className="relative flex items-center justify-between p-4 sm:p-5">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/5 text-slate-300 group-hover:text-brand-gold group-hover:border-brand-gold/30 transition-colors">
+                                <MessageCircle className="w-5 h-5" />
+                            </div>
+                            <div className="text-left">
+                                <div className="text-[9px] uppercase tracking-widest text-slate-500 group-hover:text-brand-gold/80 font-bold mb-1 transition-colors">
+                                    Réseau Interne
+                                </div>
+                                <div className="text-xs sm:text-sm font-bold text-slate-200 group-hover:text-white transition-colors tracking-wide">
+                                    Accès Intranet
+                                </div>
+                            </div>
                         </div>
+                        <ArrowUpRight className="w-4 h-4 text-slate-600 group-hover:text-brand-gold transition-all duration-300 transform group-hover:translate-x-1 group-hover:-translate-y-1" />
                     </div>
                 </a>
 
-                {/* Vertical Divider for Desktop */}
-                <div className="hidden sm:block w-[1px] h-8 bg-white/10 mx-2" />
-
-                {/* Corporate Button */}
+                {/* Corporate Card */}
                 <a 
                     href="https://blackwood-international.github.io/BlackWood/" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="group w-full sm:w-auto"
+                    className="group relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 hover:border-brand-gold/30 transition-all duration-500 hover:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] active:scale-[0.98]"
                 >
-                    <div className="relative overflow-hidden rounded-full border border-white/10 bg-black/30 backdrop-blur-md px-6 py-3.5 transition-all duration-300 hover:border-white/30 hover:bg-black/50 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)] active:scale-95">
-                         {/* Blur Background behind button text */}
-                         <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                        <div className="relative flex items-center justify-center gap-3">
-                            <Globe className="w-3.5 h-3.5 text-slate-400 group-hover:text-white transition-colors" />
-                            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-300 group-hover:text-white transition-colors">
-                                BlackWood Corp
-                            </span>
+                    <div className="absolute inset-0 bg-gradient-to-br from-brand-gold/0 to-brand-gold/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    
+                    <div className="relative flex items-center justify-between p-4 sm:p-5">
+                         <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/5 text-slate-300 group-hover:text-brand-gold group-hover:border-brand-gold/30 transition-colors">
+                                <Globe className="w-5 h-5" />
+                            </div>
+                            <div className="text-left">
+                                <div className="text-[9px] uppercase tracking-widest text-slate-500 group-hover:text-brand-gold/80 font-bold mb-1 transition-colors">
+                                    Groupe BlackWood
+                                </div>
+                                <div className="text-xs sm:text-sm font-bold text-slate-200 group-hover:text-white transition-colors tracking-wide">
+                                    Site Corporatif
+                                </div>
+                            </div>
                         </div>
+                        <ArrowUpRight className="w-4 h-4 text-slate-600 group-hover:text-brand-gold transition-all duration-300 transform group-hover:translate-x-1 group-hover:-translate-y-1" />
                     </div>
                 </a>
             </motion.div>
