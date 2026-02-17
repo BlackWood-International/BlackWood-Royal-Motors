@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { fetchCatalog } from './services/dataService';
 import { Vehicle, SortOption } from './types';
@@ -8,6 +9,7 @@ import { FilterPanel } from './components/FilterPanel';
 import { Footer } from './components/Footer';
 import { CompareBar } from './components/CompareBar';
 import { ComparatorModal } from './components/ComparatorModal';
+import { VIPPage } from './components/VIPPage'; // Import de la nouvelle page
 import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2, AlertCircle, Heart, ChevronLeft } from 'lucide-react';
 
@@ -18,7 +20,9 @@ function App() {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
 
   // VIEW STATE
-  const [view, setView] = useState<'home' | 'catalog'>('home');
+  const [view, setView] = useState<'home' | 'catalog' | 'vip'>('home');
+  // Navigation History State
+  const [previousView, setPreviousView] = useState<'home' | 'catalog'>('home');
   
   // Filter States
   const [activeCategories, setActiveCategories] = useState<string[]>(['All']);
@@ -197,6 +201,26 @@ ${carList}
     setView('home');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+  
+  // NEW: Navigate to VIP Page with Context Awareness
+  const handleEnterVIP = () => {
+      // Record where we came from (Home or Catalog)
+      if (view !== 'vip') {
+          setPreviousView(view);
+      }
+      
+      // If modal is open, close it first
+      if (selectedVehicle) setSelectedVehicle(null);
+      
+      setView('vip');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  
+  // NEW: Return from VIP Page based on history
+  const handleExitVIP = () => {
+      setView(previousView); 
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // --- RESET FILTER ---
   const resetFilters = () => {
@@ -357,9 +381,11 @@ ${carList}
 
       <div className="relative z-10 flex flex-col min-h-screen">
         
-        {/* --- VUE: ACCUEIL OU CATALOGUE --- */}
+        {/* --- VIEW MANAGEMENT --- */}
         <AnimatePresence mode="wait">
-          {view === 'home' ? (
+          
+          {/* VUE: ACCUEIL */}
+          {view === 'home' && (
             <motion.div 
                 key="home-view"
                 initial={{ opacity: 0 }}
@@ -368,9 +394,15 @@ ${carList}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full"
             >
-                <Hero onEnterCatalog={handleEnterCatalog} />
+                <Hero 
+                    onEnterCatalog={handleEnterCatalog} 
+                    onEnterVIP={handleEnterVIP} // Pass handler
+                />
             </motion.div>
-          ) : (
+          )}
+
+          {/* VUE: CATALOGUE */}
+          {view === 'catalog' && (
             <motion.div 
                 key="catalog-view"
                 initial={{ opacity: 0, y: 50 }}
@@ -379,7 +411,7 @@ ${carList}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full flex flex-col"
             >
-                {/* FLOATING HEADER - FIXED WITH SCROLLBAR COMPENSATION */}
+                {/* FLOATING HEADER */}
                 <header 
                     className="fixed top-0 left-0 w-full z-[100] pointer-events-none flex justify-between items-center px-4 py-3 md:px-8 md:py-6 bg-gradient-to-b from-black/95 via-black/80 to-transparent transition-all duration-300"
                     style={{ paddingRight: scrollbarWidth ? `${scrollbarWidth + (window.innerWidth >= 768 ? 32 : 16)}px` : undefined }}
@@ -563,23 +595,39 @@ ${carList}
                 </div>
             </motion.div>
           )}
+
+          {/* VUE: VIP PAGE */}
+          {view === 'vip' && (
+              <motion.div
+                  key="vip-view"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.05 }}
+                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  className="w-full relative z-[200]" // Higher Z to cover everything
+              >
+                  <VIPPage onBack={handleExitVIP} />
+              </motion.div>
+          )}
+
         </AnimatePresence>
 
-        {/* --- MODAL VEHICULE --- */}
+        {/* --- MODAL VEHICULE (Only showing when not in VIP view or underneath) --- */}
         <AnimatePresence>
-            {selectedVehicle && (
+            {selectedVehicle && view !== 'vip' && (
                 <VehicleModal 
                     vehicle={selectedVehicle} 
                     onClose={() => setSelectedVehicle(null)}
                     isFavorite={favorites.includes(selectedVehicle.id)}
                     onToggleFavorite={() => toggleFavorite(selectedVehicle.id)}
+                    onOpenVIP={handleEnterVIP} // Pass the handler
                 />
             )}
         </AnimatePresence>
 
         {/* --- MODAL COMPARATEUR --- */}
         <AnimatePresence>
-            {isComparatorOpen && (
+            {isComparatorOpen && view !== 'vip' && (
                 <ComparatorModal 
                     vehicles={vehicles.filter(v => compareList.includes(v.id))}
                     onClose={() => setIsComparatorOpen(false)}
