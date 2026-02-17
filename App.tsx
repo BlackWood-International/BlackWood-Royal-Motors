@@ -186,8 +186,10 @@ ${carList}
     if (view === 'catalog' && !isFirstRender.current) {
          const anchor = document.getElementById('catalog-anchor');
          if (anchor) {
-             if (window.scrollY > 500) {
-                 const offset = -220; 
+             const scrollY = window.scrollY;
+             // Only scroll if we are way down the page
+             if (scrollY > 500) {
+                 const offset = -200; // Compensate for fixed header + filter panel
                  const bodyRect = document.body.getBoundingClientRect().top;
                  const elementRect = anchor.getBoundingClientRect().top;
                  const elementPosition = elementRect - bodyRect;
@@ -202,7 +204,7 @@ ${carList}
   // --- RENDER HELPERS ---
   if (loading) {
     return (
-      <div className="h-screen w-full bg-brand-black flex flex-col items-center justify-center text-brand-gold relative overflow-hidden">
+      <div className="h-[100dvh] w-full bg-brand-black flex flex-col items-center justify-center text-brand-gold relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-brand-slate via-brand-black to-brand-black opacity-40"></div>
         <Loader2 className="w-12 h-12 animate-spin mb-6 relative z-10" />
         <span className="text-xs uppercase tracking-[0.3em] font-mono relative z-10 animate-pulse">Connexion Sécurisée en cours...</span>
@@ -212,7 +214,7 @@ ${carList}
 
   if (error) {
     return (
-      <div className="h-screen w-full bg-brand-black flex flex-col items-center justify-center text-brand-crimsonBright">
+      <div className="h-[100dvh] w-full bg-brand-black flex flex-col items-center justify-center text-brand-crimsonBright">
         <AlertCircle className="w-16 h-16 mb-4" />
         <h1 className="text-3xl font-serif mb-2">Connexion Interrompue</h1>
         <p className="text-slate-500 font-mono text-sm">{error}</p>
@@ -256,11 +258,11 @@ ${carList}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full flex flex-col"
             >
-                {/* FLOATING HEADER - Z-INDEX 100 (Highest) */}
+                {/* FLOATING HEADER - Z-INDEX 100 (Highest) - Improved Mobile Visibility */}
                 <header className="fixed top-0 left-0 w-full z-[100] pointer-events-none flex justify-between items-center px-4 py-3 md:px-8 md:py-6 bg-gradient-to-b from-black/95 via-black/80 to-transparent transition-all duration-300">
                     <button 
                         onClick={handleReturnHome}
-                        className="pointer-events-auto flex items-center gap-2 pl-2 pr-4 py-2 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 text-[10px] uppercase tracking-[0.2em] font-bold text-slate-300 hover:text-white hover:border-brand-gold/50 hover:bg-black/80 transition-all group shadow-lg"
+                        className="pointer-events-auto flex items-center gap-2 pl-2 pr-4 py-2 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 text-[10px] uppercase tracking-[0.2em] font-bold text-slate-300 hover:text-white hover:border-brand-gold/50 hover:bg-black/80 transition-all group shadow-lg active:scale-95"
                     >
                         <div className="p-1.5 rounded-full bg-white/5 group-hover:bg-brand-gold group-hover:text-black transition-colors">
                             <ChevronLeft className="w-3.5 h-3.5" />
@@ -302,7 +304,7 @@ ${carList}
                     />
 
                     {/* Contenu principal - PADDING AJUSTÉ POUR MOBILE */}
-                    <main className="max-w-[1800px] mx-auto px-4 md:px-6 py-12 pt-48 md:pt-48">
+                    <main className="max-w-[1800px] mx-auto px-4 md:px-6 py-12 pt-32 md:pt-48 pb-24">
                         {/* ANCRE DE CATALOGUE */}
                         <div id="catalog-anchor" className="mb-8 md:mb-12 flex flex-col md:flex-row md:items-end justify-between border-b border-white/5 pb-4 mx-0 md:mx-4 scroll-mt-64">
                             <div>
@@ -329,7 +331,7 @@ ${carList}
                             </div>
                         </div>
 
-                        {/* GRID DE VÉHICULES - AFFICHAGE DIRECT SANS PAGINATION */}
+                        {/* GRID DE VÉHICULES - OPTIMIZED GAP FOR MOBILE */}
                         <motion.div 
                             layout
                             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 md:gap-8"
@@ -366,7 +368,7 @@ ${carList}
                                 </p>
                                 <button 
                                     onClick={resetFilters}
-                                    className="px-8 py-3 rounded-full bg-white text-brand-black text-xs font-bold hover:bg-brand-gold hover:shadow-lg transition-all uppercase tracking-widest"
+                                    className="px-8 py-3 rounded-full bg-white text-brand-black text-xs font-bold hover:bg-brand-gold hover:shadow-lg transition-all uppercase tracking-widest active:scale-95"
                                 >
                                     {showFavoritesOnly ? "Retour au catalogue" : "Réinitialiser les filtres"}
                                 </button>
