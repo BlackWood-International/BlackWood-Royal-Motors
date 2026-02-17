@@ -91,23 +91,24 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({
       onMouseLeave={() => setIsHovered(false)}
     >
       <motion.div 
-        /* UPDATED TRANSITION: Reduced lift (-4px) for premium feel. High stiffness for instant "Zero Latency" feel */
         whileHover={{ y: -4, transition: { type: "spring", stiffness: 500, damping: 30, mass: 1 } }}
         className={`
             relative h-full flex flex-col rounded-[2rem] overflow-hidden z-0
-            transition-all duration-100 ease-out
+            transition-all duration-300 ease-out
             ${isComparing ? 'ring-2 ring-brand-gold shadow-[0_0_20px_rgba(197,160,89,0.3)]' : ''}
-            ${hasBadge || isVip
-                ? 'bg-[#0f0f0f]' // Base background
-                : 'bg-[#0a0a0a] border border-white/5 hover:border-brand-gold/40 hover:shadow-2xl'
+            ${isVip 
+               ? 'bg-[#080808] border border-brand-gold/40 shadow-[0_0_30px_-15px_rgba(197,160,89,0.15)] group-hover:border-brand-gold/60 group-hover:shadow-[0_0_50px_-10px_rgba(197,160,89,0.25)]' 
+               : hasBadge
+                 ? 'bg-[#0f0f0f] border border-transparent' 
+                 : 'bg-[#0a0a0a] border border-white/5 hover:border-brand-gold/40 hover:shadow-2xl'
             }
         `}
       >
-        {/* === GLOBAL BADGE EFFECTS (Z-INDEX LAYERING) === */}
-        {(hasBadge || isVip) && (
+        {/* === STANDARD BADGE EFFECTS (Sheen/Pulse) - NOT FOR VIP === */}
+        {(hasBadge && !isVip) && (
             <>
-                <div className={`absolute -inset-[2px] rounded-[2.1rem] blur-xl opacity-0 animate-pulse group-hover:opacity-60 transition-opacity duration-300 pointer-events-none z-0 ${isVip ? 'bg-brand-gold/30' : 'bg-brand-gold/20'}`} />
-                <div className={`absolute inset-0 rounded-[2rem] border shadow-[inset_0_0_20px_rgba(197,160,89,0.05)] pointer-events-none z-20 ${isVip ? 'border-brand-gold/60' : 'border-brand-gold/40'}`} />
+                <div className="absolute -inset-[2px] rounded-[2.1rem] blur-xl opacity-0 animate-pulse group-hover:opacity-60 transition-opacity duration-300 pointer-events-none z-0 bg-brand-gold/20" />
+                <div className="absolute inset-0 rounded-[2rem] border border-brand-gold/40 shadow-[inset_0_0_20px_rgba(197,160,89,0.05)] pointer-events-none z-20" />
                 <div className="absolute inset-0 z-20 overflow-hidden rounded-[2rem] pointer-events-none mix-blend-overlay">
                      <div className="absolute -inset-[200%] w-[400%] h-[400%] bg-gradient-to-r from-transparent via-white/20 to-transparent -rotate-45 translate-x-[-100%] animate-[sheen_4s_infinite_ease-in-out]" />
                 </div>
@@ -119,6 +120,17 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({
                     }
                 `}</style>
             </>
+        )}
+
+        {/* === VIP EFFECTS (Static, Elegant, Premium) === */}
+        {isVip && (
+             <>
+                {/* Subtle Radial Gold Glow (Top Right) */}
+                <div className="absolute -top-20 -right-20 w-64 h-64 bg-brand-gold/10 blur-[80px] pointer-events-none z-0 mix-blend-screen opacity-60" />
+                
+                {/* Inner Border Glow (Static) */}
+                <div className="absolute inset-0 rounded-[2rem] shadow-[inset_0_0_40px_rgba(197,160,89,0.05)] pointer-events-none z-20" />
+             </>
         )}
         
         {/* Zone Image */}
@@ -161,20 +173,14 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({
           {/* Overlay Gradient */}
           <div className={`absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent pointer-events-none z-10 ${isHovered ? 'opacity-40' : 'opacity-60'}`} />
 
-          {/* Badges (Top Left) - Z-INDEX HIGH to stay above sheen */}
+          {/* Category Badge (Top Left) - VIP removed from here */}
           <div className="absolute top-4 left-4 z-40 flex flex-col gap-2 pointer-events-none items-start">
             <span className="bg-black/60 backdrop-blur-md border border-white/10 text-[10px] font-bold font-mono uppercase tracking-widest text-white px-3 py-1.5 rounded-full">
               {vehicle.category}
             </span>
-            {isVip && (
-                <span className="flex items-center gap-1.5 bg-gradient-to-r from-brand-gold via-[#F0E6D2] to-brand-gold text-black text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-[0_0_15px_rgba(197,160,89,0.5)] animate-pulse">
-                  <Crown className="w-3 h-3 fill-black" />
-                  VIP Only
-                </span>
-            )}
           </div>
 
-          {/* Actions (Top Right) - Z-INDEX HIGH */}
+          {/* Actions (Top Right) */}
           <div className="absolute top-4 right-4 z-40 flex items-center gap-2">
              {/* COMPARE BUTTON */}
              {onToggleCompare && (
@@ -237,11 +243,20 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({
                 <div className={`absolute inset-0 bg-brand-gold h-full transition-transform duration-300 ease-out ${isHovered ? 'translate-x-0' : '-translate-x-full'}`} />
              </div>
              
+             {/* Badges Certification & VIP */}
              <div className={`flex flex-wrap gap-2 mb-4 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-60'}`}>
                 <span className="flex items-center text-[10px] text-slate-300 bg-white/5 px-2.5 py-1 rounded-full border border-white/5">
                    <ShieldCheck className="w-3 h-3 mr-1.5 text-brand-gold" />
                    Certifié
                 </span>
+                
+                {/* VIP Badge Placed Here */}
+                {isVip && (
+                    <span className="flex items-center text-[10px] font-bold uppercase tracking-widest text-[#050505] bg-gradient-to-r from-[#C5A059] to-[#E5C585] px-2.5 py-1 rounded-full shadow-[0_2px_8px_rgba(197,160,89,0.25)]">
+                       <Crown className="w-3 h-3 mr-1.5 fill-[#050505]" />
+                       VIP
+                    </span>
+                )}
              </div>
           </div>
 
