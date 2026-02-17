@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { SortOption } from '../types';
 import { 
   Search, X, SlidersHorizontal, ArrowUpDown, Building2, 
-  Tag, DollarSign, Heart, ChevronDown, Check, Layers, Copy 
+  Tag, DollarSign, Heart, ChevronDown, Check, Layers, Copy, Trash2 
 } from 'lucide-react';
 
 // --- CONSTANTES ---
@@ -32,6 +32,7 @@ interface FilterPanelProps {
   onToggleFavorites: () => void;
   favoritesCount: number;
   onShare?: () => void; // New prop for sharing
+  onClearFavorites: () => void; // New prop for clearing
 }
 
 type TabID = 'brands' | 'categories' | 'budget' | 'sort' | 'favorites';
@@ -44,12 +45,16 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   priceRange, onPriceRangeChange,
   onReset,
   showFavoritesOnly, onToggleFavorites, favoritesCount,
-  onShare
+  onShare, onClearFavorites
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<TabID>('brands');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
+  
+  // New state for 2-step clear confirmation
+  const [isClearConfirming, setIsClearConfirming] = useState(false);
+
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Fermeture au clic extérieur
@@ -93,6 +98,17 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         onShare();
         setShowCopied(true);
         setTimeout(() => setShowCopied(false), 3000);
+    }
+  };
+
+  const handleClearClick = () => {
+    if (isClearConfirming) {
+        onClearFavorites();
+        setIsClearConfirming(false);
+    } else {
+        setIsClearConfirming(true);
+        // Reset confirmation state after 3 seconds if not clicked
+        setTimeout(() => setIsClearConfirming(false), 3000);
     }
   };
 
@@ -381,71 +397,91 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
                     {/* ONGLET FAVORIS */}
                     {activeTab === 'favorites' && (
-                      <div className="flex flex-col items-center justify-center h-full py-8 space-y-6 text-center">
+                      <div className="flex flex-col items-center justify-center h-full py-8 text-center">
+                         
+                         {/* TOGGLE BUTTON */}
                          <motion.div 
                             onClick={onToggleFavorites}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            className={`p-6 rounded-full border-[3px] transition-colors duration-500 cursor-pointer ${showFavoritesOnly ? 'bg-brand-gold/10 border-brand-gold text-brand-gold shadow-[0_0_50px_-10px_rgba(197,160,89,0.4)]' : 'bg-white/5 border-white/5 text-slate-600 hover:border-white/20 hover:text-white'}`}
+                            className={`mb-6 p-6 rounded-full border-[3px] transition-colors duration-500 cursor-pointer ${showFavoritesOnly ? 'bg-brand-gold/10 border-brand-gold text-brand-gold shadow-[0_0_50px_-10px_rgba(197,160,89,0.4)]' : 'bg-white/5 border-white/5 text-slate-600 hover:border-white/20 hover:text-white'}`}
                           >
                             <Heart className={`w-12 h-12 ${showFavoritesOnly ? 'fill-brand-gold' : ''}`} />
                          </motion.div>
                          
-                         <div className="space-y-3 max-w-sm">
+                         <div className="space-y-3 max-w-sm mb-6">
                             <h3 className="text-xl font-bold text-white font-serif">
                               {showFavoritesOnly ? 'Mode Favoris Actif' : 'Vos Favoris'}
                             </h3>
-                            <p className="text-xs text-slate-400 leading-relaxed">
+                            <p className="text-xs text-slate-400 leading-relaxed px-4">
                               {showFavoritesOnly 
                                 ? `Affichage exclusif de vos ${favoritesCount} véhicules sélectionnés.` 
-                                : `Activez ce mode pour filtrer le catalogue et ne voir que vos coups de cœur.`}
+                                : `Vous avez ${favoritesCount} véhicule(s) dans votre sélection.`}
                             </p>
                          </div>
                          
-                         <div className="flex flex-col gap-3 w-full max-w-xs">
-                             <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={onToggleFavorites}
-                                className={`px-8 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${
-                                  showFavoritesOnly 
-                                  ? 'bg-transparent text-white border-white/20 hover:bg-white/10' 
-                                  : 'bg-brand-gold text-black border-brand-gold hover:bg-brand-gold/90 shadow-lg shadow-brand-gold/20'
-                                }`}
-                             >
-                                {showFavoritesOnly ? 'Retour au catalogue' : 'Activer le filtre favoris'}
-                             </motion.button>
-                             
-                             {/* SHARE BUTTON (COPY LIST) */}
-                             {showFavoritesOnly && favoritesCount > 0 && (
-                                <div className="relative">
-                                    <motion.button
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        onClick={handleShareClick}
-                                        className="w-full px-8 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border border-brand-gold/50 text-brand-gold hover:bg-brand-gold/10 flex items-center justify-center gap-2"
-                                    >
-                                        <Copy className="w-3.5 h-3.5" />
-                                        Copier la liste
-                                    </motion.button>
+                         {/* MAIN ACTION: TOGGLE FILTER */}
+                         <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={onToggleFavorites}
+                            className={`mb-8 px-8 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${
+                              showFavoritesOnly 
+                              ? 'bg-transparent text-white border-white/20 hover:bg-white/10' 
+                              : 'bg-brand-gold text-black border-brand-gold hover:bg-brand-gold/90 shadow-lg shadow-brand-gold/20'
+                            }`}
+                         >
+                            {showFavoritesOnly ? 'Retour au catalogue' : 'Activer le filtre favoris'}
+                         </motion.button>
+                         
+                         {/* SECONDARY ACTIONS: COPY / CLEAR (Visible if > 0 favorites) */}
+                         {favoritesCount > 0 && (
+                            <div className="w-full max-w-xs border-t border-white/10 pt-6">
+                                <p className="text-[9px] uppercase tracking-widest text-slate-500 mb-3 font-bold">Actions sur la sélection</p>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="relative">
+                                        <motion.button
+                                            whileHover={{ scale: 1.02, backgroundColor: "rgba(197, 160, 89, 0.15)" }}
+                                            whileTap={{ scale: 0.98 }}
+                                            onClick={handleShareClick}
+                                            className="w-full py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border border-brand-gold/30 text-brand-gold bg-brand-gold/5 flex flex-col items-center justify-center gap-1.5"
+                                        >
+                                            <Copy className="w-4 h-4" />
+                                            <span>Copier Liste</span>
+                                        </motion.button>
+                                        
+                                        <AnimatePresence>
+                                            {showCopied && (
+                                                <motion.div 
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -10 }}
+                                                    className="absolute -top-10 left-0 right-0 mx-auto w-max px-3 py-1 bg-brand-gold text-black text-[9px] font-bold rounded-md shadow-lg"
+                                                >
+                                                    Copié !
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
                                     
-                                    <AnimatePresence>
-                                        {showCopied && (
-                                            <motion.div 
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -10 }}
-                                                className="absolute -top-12 left-0 right-0 mx-auto w-max px-4 py-2 bg-brand-gold text-black text-[10px] font-bold rounded-full shadow-lg"
-                                            >
-                                                Liste copiée !
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
+                                    <motion.button
+                                        whileHover={!isClearConfirming ? { scale: 1.02, backgroundColor: "rgba(155, 28, 28, 0.15)" } : { scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={handleClearClick}
+                                        className={`w-full py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border flex flex-col items-center justify-center gap-1.5 ${
+                                            isClearConfirming 
+                                            ? 'bg-brand-crimson text-white border-brand-crimson shadow-lg shadow-brand-crimson/30' 
+                                            : 'border-brand-crimsonBright/30 text-brand-crimsonBright bg-brand-crimsonBright/5'
+                                        }`}
+                                    >
+                                        <Trash2 className={`w-4 h-4 ${isClearConfirming ? 'animate-bounce' : ''}`} />
+                                        <span>{isClearConfirming ? 'Confirmer ?' : 'Vider tout'}</span>
+                                    </motion.button>
                                 </div>
-                             )}
-                         </div>
+                            </div>
+                         )}
                       </div>
                     )}
 
