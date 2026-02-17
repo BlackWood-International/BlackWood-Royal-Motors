@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Vehicle } from '../types';
@@ -30,12 +31,12 @@ export const ComparatorModal: React.FC<ComparatorModalProps> = ({
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.95, y: 20 }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        // MODIFIED: Fit visually to screen space, max 96vw width for wide images
+        // MODIFIED: Increased rounded corners to 3.5rem (56px) for deep curve aesthetic
         className="
             w-full max-w-[96vw] 
             h-[85dvh] md:h-[90vh] 
             bg-[#080808] border border-white/5 
-            rounded-t-[2rem] md:rounded-[2rem] 
+            rounded-t-[2.5rem] md:rounded-[3.5rem] 
             flex flex-col shadow-2xl relative overflow-hidden
             mt-auto md:mt-0
         "
