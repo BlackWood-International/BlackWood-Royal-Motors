@@ -9,8 +9,9 @@ import { Footer } from './components/Footer';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2, AlertCircle, Heart, ChevronLeft } from 'lucide-react';
 
-const INITIAL_DISPLAY_COUNT = 24;
-const LOAD_MORE_INCREMENT = 24;
+// AUGMENTATION DU CHARGEMENT INITIAL (30 couvre mieux les grands écrans 1440p+)
+const INITIAL_DISPLAY_COUNT = 30;
+const LOAD_MORE_INCREMENT = 30;
 
 function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -208,20 +209,19 @@ ${carList}
     return result;
   }, [vehicles, activeCategories, selectedBrands, searchQuery, sortOption, priceRange, showFavoritesOnly, favorites]);
 
-  // --- INFINITE SCROLL OBSERVER (ROBUST FIX) ---
+  // --- SYSTÈME DE PAGINATION ROBUSTE (AUTO-FILL & OBSERVER) ---
+  
+  // 1. L'Observer standard pour le scroll utilisateur
   useEffect(() => {
-    // Si la liste est vide ou si on a tout affiché, on arrête.
-    const totalItems = filteredAndSortedVehicles.length;
-    if (totalItems === 0 || visibleCount >= totalItems) return;
+    if (visibleCount >= filteredAndSortedVehicles.length) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
-          // Chargement du lot suivant
-          setVisibleCount((prev) => Math.min(prev + LOAD_MORE_INCREMENT, totalItems));
+          setVisibleCount((prev) => Math.min(prev + LOAD_MORE_INCREMENT, filteredAndSortedVehicles.length));
         }
       },
-      { rootMargin: '400px' } // Déclenche le chargement bien avant d'arriver en bas
+      { rootMargin: '400px', threshold: 0.1 } 
     );
 
     const currentLoader = loaderRef.current;
@@ -232,21 +232,29 @@ ${carList}
     return () => {
       if (currentLoader) observer.unobserve(currentLoader);
     };
-  }, [filteredAndSortedVehicles, visibleCount]);
+  }, [filteredAndSortedVehicles.length, visibleCount]);
 
-  // --- SAFETY CHECK POUR ECRANS LARGES ---
-  // Si après un render, le loader est TOUJOURS visible (car l'écran est grand et 24 items ne suffisent pas),
-  // on force le chargement de la suite immédiatement.
+  // 2. LA BOUCLE DE REMPLISSAGE (AUTO-FILL LOOP)
+  // Ce code s'exécute à chaque fois que `visibleCount` change.
+  // Il vérifie si le loader est ENCORE visible. Si oui, cela signifie que l'écran n'est pas plein.
+  // Il force alors un nouveau chargement sans attendre que l'utilisateur scrolle.
   useEffect(() => {
-      const totalItems = filteredAndSortedVehicles.length;
-      if (visibleCount < totalItems && loaderRef.current) {
-          const rect = loaderRef.current.getBoundingClientRect();
-          if (rect.top < window.innerHeight) {
-              // Le loader est visible, on charge encore !
-              setVisibleCount(prev => Math.min(prev + LOAD_MORE_INCREMENT, totalItems));
-          }
-      }
-  }, [visibleCount, filteredAndSortedVehicles]);
+    if (visibleCount >= filteredAndSortedVehicles.length) return;
+
+    // Petite temporisation pour laisser le temps au navigateur de rendre (Paint) les nouveaux éléments
+    const timeoutId = setTimeout(() => {
+        if (loaderRef.current) {
+            const rect = loaderRef.current.getBoundingClientRect();
+            // Si le haut du loader est visible dans la fenêtre (ou presque), on charge encore
+            if (rect.top <= window.innerHeight + 100) {
+                console.log("Auto-fill triggered: Screen not full yet.");
+                setVisibleCount((prev) => Math.min(prev + LOAD_MORE_INCREMENT, filteredAndSortedVehicles.length));
+            }
+        }
+    }, 150); // 150ms est suffisant pour que le DOM se mette à jour
+
+    return () => clearTimeout(timeoutId);
+  }, [visibleCount, filteredAndSortedVehicles.length]);
 
 
   const visibleVehicles = filteredAndSortedVehicles.slice(0, visibleCount);
@@ -425,8 +433,8 @@ ${carList}
                             </motion.div>
                         )}
 
-                        {/* LOAD MORE TRIGGER (Taille augmentée pour faciliter l'intersection) */}
-                        <div ref={loaderRef} className="h-32 w-full flex items-center justify-center mt-10 opacity-0 pointer-events-none">
+                        {/* LOAD MORE TRIGGER - Taille augmentée et z-index négatif pour éviter les clics accidentels */}
+                        <div ref={loaderRef} className="h-48 w-full flex items-center justify-center mt-20 opacity-0 pointer-events-none -z-10">
                             <span className="text-slate-600">Chargement...</span>
                         </div>
                     </main>
