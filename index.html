@@ -2,7 +2,7 @@
 <html lang="fr" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     
     <!-- FAVICON UPDATE -->
     <link rel="icon" type="image/png" href="https://i.imgur.com/zJYl9CS.png" />
@@ -16,7 +16,7 @@
     <meta property="og:description" content="Découvrez l'excellence automobile. Accédez au catalogue exclusif de véhicules de luxe, sportifs et de collection. Une expérience réservée à l'élite." />
     <meta property="og:image" content="https://images.unsplash.com/photo-1541239370886-851049f91487?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" />
     <meta property="og:site_name" content="BlackWood Royal Motors" />
-    <meta name="theme-color" content="#C5A059" />
+    <meta name="theme-color" content="#050505" />
     
     <!-- Twitter Card for Large Image Display -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -45,6 +45,10 @@
               serif: ['Playfair Display', 'serif'],
               mono: ['JetBrains Mono', 'monospace'],
             },
+            screens: {
+              'xs': '400px',
+              '3xl': '2000px',
+            }
           },
         },
       }
@@ -92,9 +96,20 @@
         transform: translateZ(0);
         backface-visibility: hidden;
         perspective: 1000px;
+        will-change: transform;
       }
       
-      /* content-visibility-auto Removed for better overflow handling */
+      body {
+        -webkit-tap-highlight-color: transparent;
+        overscroll-behavior-y: none; /* Prevents bounce on Mac/iOS */
+      }
+      
+      /* Fix for iOS Input Zoom */
+      @media screen and (max-width: 768px) {
+        input, select, textarea {
+          font-size: 16px !important; 
+        }
+      }
     </style>
 <link rel="stylesheet" href="./index.css">
 <script type="importmap">
