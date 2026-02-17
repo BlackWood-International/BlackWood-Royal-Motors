@@ -46,6 +46,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   
   // New state for 2-step clear confirmation
   const [isClearConfirming, setIsClearConfirming] = useState(false);
+  
+  // Scroll Lock Width state
+  const [scrollbarWidth, setScrollbarWidth] = useState(0);
 
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -59,6 +62,25 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // --- SCROLL LOCK LOGIC FOR FILTER PANEL ---
+  useEffect(() => {
+    if (isExpanded) {
+        const width = window.innerWidth - document.documentElement.clientWidth;
+        setScrollbarWidth(width);
+        document.body.style.overflow = 'hidden';
+        document.body.style.paddingRight = `${width}px`;
+    } else {
+        setScrollbarWidth(0);
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+    }
+    return () => {
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+    }
+  }, [isExpanded]);
+
 
   // Indicateur de filtre actif
   const isFilterActive = 
@@ -118,7 +140,11 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   ];
 
   return (
-    <div className="fixed top-[4rem] sm:top-[4.5rem] md:top-24 left-0 right-0 z-[90] w-full flex justify-center pointer-events-none px-2 sm:px-4 transition-all duration-300">
+    <div 
+        className="fixed top-[4rem] sm:top-[4.5rem] md:top-24 left-0 right-0 z-[90] w-full flex justify-center pointer-events-none transition-all duration-300"
+        style={{ paddingRight: scrollbarWidth ? `${scrollbarWidth}px` : undefined }}
+    >
+      <div className="w-full px-2 sm:px-4 flex justify-center">
       
       <style>{`
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -474,6 +500,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
       </div>
     </div>
   );
