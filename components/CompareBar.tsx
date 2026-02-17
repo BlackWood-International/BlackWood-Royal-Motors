@@ -32,13 +32,14 @@ export const CompareBar: React.FC<CompareBarProps> = ({ count, onOpenComparator,
           >
             {/* Glass Pill Container */}
             <div className="relative group rounded-full p-[1px] bg-gradient-to-r from-transparent via-brand-gold/50 to-transparent shadow-[0_10px_40px_-10px_rgba(0,0,0,0.8)]">
-              <div className="flex items-center gap-3 md:gap-4 py-2 pl-3 pr-2 md:py-3 md:px-5 bg-[#080808]/90 backdrop-blur-2xl rounded-full border border-white/10 relative overflow-hidden">
+              {/* Reduced horizontal padding to push items closer to rounded edges */}
+              <div className="flex items-center gap-3 md:gap-4 py-2 pl-2 pr-1.5 md:py-3 md:px-3 bg-[#080808]/90 backdrop-blur-2xl rounded-full border border-white/10 relative overflow-hidden">
                   
                   {/* Shine effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-sheen-fast pointer-events-none" />
 
                   {/* Counter */}
-                  <div className="flex items-center gap-3 pl-2">
+                  <div className="flex items-center gap-3">
                      <div className="relative flex items-center justify-center w-8 h-8 rounded-full bg-brand-gold/10 border border-brand-gold/30 shrink-0">
                        <Scale className="w-4 h-4 text-brand-gold" />
                      </div>
