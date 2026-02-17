@@ -6,11 +6,10 @@ import { VehicleCard } from './components/VehicleCard';
 import { VehicleModal } from './components/VehicleModal';
 import { FilterPanel } from './components/FilterPanel';
 import { Footer } from './components/Footer';
-import { CategoryNav } from './components/CategoryNav';
 import { CompareBar } from './components/CompareBar';
 import { ComparatorModal } from './components/ComparatorModal';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Loader2, AlertCircle, Heart, ChevronLeft } from 'lucide-react';
+import { Loader2, AlertCircle, Heart, ChevronLeft, ChevronDown } from 'lucide-react';
 
 function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -33,6 +32,9 @@ function App() {
   const [compareList, setCompareList] = useState<string[]>([]); // IDs of vehicles to compare
   const [isComparatorOpen, setIsComparatorOpen] = useState(false);
   
+  // Collapsible Categories State
+  const [collapsedCategories, setCollapsedCategories] = useState<string[]>([]);
+
   const [sortOption, setSortOption] = useState<SortOption>('original');
   const isFirstRender = useRef(true);
 
@@ -138,6 +140,15 @@ function App() {
       setIsComparatorOpen(false);
   }, []);
 
+  // --- COLLAPSIBLE LOGIC ---
+  const toggleCategory = useCallback((category: string) => {
+    setCollapsedCategories(prev => 
+      prev.includes(category) 
+        ? prev.filter(c => c !== category) 
+        : [...prev, category]
+    );
+  }, []);
+
   // --- SHARE FUNCTIONALITY ---
   const handleShareSelection = useCallback(() => {
     if (favorites.length === 0) return;
@@ -177,6 +188,7 @@ ${carList}
     setSortOption('original');
     setPriceRange({ min: '', max: '' });
     setShowFavoritesOnly(false);
+    setCollapsedCategories([]);
   };
 
   // --- FILTERING & GROUPING LOGIC ---
@@ -374,8 +386,7 @@ ${carList}
                         onClearFavorites={clearFavorites}
                     />
 
-                    {/* CATEGORY NAV (Scroll Spy) */}
-                    <CategoryNav categories={visibleCategories} visible={isGroupedView && visibleCategories.length > 1} />
+                    {/* CATEGORY NAV REMOVED AS REQUESTED */}
 
                     {/* COMPARE BAR (Floating) */}
                     <CompareBar 
@@ -412,34 +423,69 @@ ${carList}
                             </div>
                         </div>
 
-                        {/* === RENDERING MODE: GROUPED BY CATEGORY (SCROLL SPY) OR FLAT GRID === */}
+                        {/* === RENDERING MODE: GROUPED BY CATEGORY (RETRACTABLE) OR FLAT GRID === */}
                         {isGroupedView && groupedVehicles ? (
-                            <div className="space-y-20">
-                                {visibleCategories.map((cat) => (
-                                    <div key={cat} id={`cat-${cat}`} className="scroll-mt-32">
-                                        <div className="flex items-center gap-4 mb-8">
-                                            <div className="h-[1px] flex-1 bg-white/10" />
-                                            <h3 className="text-xl md:text-2xl font-serif text-brand-gold uppercase tracking-widest px-4 border border-brand-gold/30 py-1 rounded-full bg-brand-gold/5">
-                                                {cat}
-                                            </h3>
-                                            <div className="h-[1px] flex-1 bg-white/10" />
+                            <div className="space-y-12">
+                                {visibleCategories.map((cat) => {
+                                    const isCollapsed = collapsedCategories.includes(cat);
+                                    const count = groupedVehicles[cat].length;
+                                    
+                                    return (
+                                        <div key={cat} id={`cat-${cat}`} className="scroll-mt-32">
+                                            {/* RETRACTABLE HEADER */}
+                                            <div 
+                                                onClick={() => toggleCategory(cat)}
+                                                className="flex items-center gap-4 mb-8 cursor-pointer group select-none"
+                                            >
+                                                <div className="h-[1px] flex-1 bg-white/10 group-hover:bg-brand-gold/30 transition-colors duration-300" />
+                                                
+                                                <div className="flex items-center gap-4 px-6 py-2 border border-brand-gold/30 rounded-full bg-brand-gold/5 group-hover:bg-brand-gold/10 transition-all duration-300 backdrop-blur-sm shadow-[0_0_15px_-5px_rgba(197,160,89,0.1)] group-hover:shadow-[0_0_20px_-5px_rgba(197,160,89,0.2)]">
+                                                    <h3 className="text-xl md:text-2xl font-serif text-brand-gold uppercase tracking-widest">
+                                                        {cat}
+                                                    </h3>
+                                                    <div className="w-[1px] h-4 bg-brand-gold/30" />
+                                                    <span className="text-xs font-mono text-brand-gold/80 font-bold">{count}</span>
+                                                    <motion.div
+                                                        animate={{ rotate: isCollapsed ? -90 : 0 }}
+                                                        transition={{ duration: 0.3 }}
+                                                    >
+                                                        <ChevronDown className="w-5 h-5 text-brand-gold" />
+                                                    </motion.div>
+                                                </div>
+                                                
+                                                <div className="h-[1px] flex-1 bg-white/10 group-hover:bg-brand-gold/30 transition-colors duration-300" />
+                                            </div>
+
+                                            {/* ANIMATED GRID CONTAINER */}
+                                            <AnimatePresence>
+                                                {!isCollapsed && (
+                                                    <motion.div
+                                                        initial={{ height: 0, opacity: 0 }}
+                                                        animate={{ height: 'auto', opacity: 1 }}
+                                                        exit={{ height: 0, opacity: 0 }}
+                                                        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                                                        className="overflow-hidden"
+                                                    >
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 md:gap-8 pb-4">
+                                                            {groupedVehicles[cat].map((vehicle, index) => (
+                                                                <VehicleCard 
+                                                                    key={vehicle.id} 
+                                                                    vehicle={vehicle} 
+                                                                    index={index} 
+                                                                    onSelect={setSelectedVehicle}
+                                                                    isFavorite={favorites.includes(vehicle.id)}
+                                                                    onToggleFavorite={() => toggleFavorite(vehicle.id)}
+                                                                    isComparing={compareList.includes(vehicle.id)}
+                                                                    onToggleCompare={() => toggleCompare(vehicle.id)}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
                                         </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 md:gap-8">
-                                            {groupedVehicles[cat].map((vehicle, index) => (
-                                                <VehicleCard 
-                                                    key={vehicle.id} 
-                                                    vehicle={vehicle} 
-                                                    index={index} 
-                                                    onSelect={setSelectedVehicle}
-                                                    isFavorite={favorites.includes(vehicle.id)}
-                                                    onToggleFavorite={() => toggleFavorite(vehicle.id)}
-                                                    isComparing={compareList.includes(vehicle.id)}
-                                                    onToggleCompare={() => toggleCompare(vehicle.id)}
-                                                />
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         ) : (
                             // FLAT GRID RENDER
