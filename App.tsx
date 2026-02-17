@@ -74,6 +74,8 @@ function App() {
   useEffect(() => {
     if (favorites.length > 0) {
         localStorage.setItem('bw_favorites', JSON.stringify(favorites));
+    } else {
+        localStorage.removeItem('bw_favorites'); // Clean up if empty
     }
   }, [favorites]);
 
@@ -81,6 +83,13 @@ function App() {
     setFavorites(prev => 
         prev.includes(vehicleId) ? prev.filter(id => id !== vehicleId) : [...prev, vehicleId]
     );
+  }, []);
+
+  const clearFavorites = useCallback(() => {
+    if (window.confirm("Êtes-vous sûr de vouloir vider toute votre sélection ?")) {
+        setFavorites([]);
+        setShowFavoritesOnly(false); // Return to main catalog if we clear list
+    }
   }, []);
 
   // --- SHARE FUNCTIONALITY (DISCORD OPTIMIZED) ---
@@ -182,6 +191,9 @@ ${carList}
 
 
   // --- AUTO SCROLL TO TOP ON FILTER CHANGE ---
+  // MODIFICATION: Removed 'filteredAndSortedVehicles' from dependency array.
+  // We now only scroll when the User explicitly changes a filter setting.
+  // This prevents scrolling when just toggling a favorite (which updates 'filteredAndSortedVehicles' but not the filters).
   useEffect(() => {
     if (view === 'catalog' && !isFirstRender.current) {
          const anchor = document.getElementById('catalog-anchor');
@@ -199,7 +211,7 @@ ${carList}
          }
     }
     if (view === 'catalog') isFirstRender.current = false;
-  }, [filteredAndSortedVehicles, view]);
+  }, [activeCategories, selectedBrands, searchQuery, sortOption, priceRange, showFavoritesOnly, view]);
 
   // --- RENDER HELPERS ---
   if (loading) {
@@ -301,6 +313,7 @@ ${carList}
                         onToggleFavorites={() => setShowFavoritesOnly(!showFavoritesOnly)}
                         favoritesCount={favorites.length}
                         onShare={handleShareSelection}
+                        onClearFavorites={clearFavorites}
                     />
 
                     {/* Contenu principal - PADDING AJUSTÉ POUR MOBILE */}
