@@ -169,7 +169,7 @@ export const VehicleModal: React.FC<VehicleModalProps> = ({ vehicle, onClose, is
                 <a href="https://discord.gg/88peMJRz95" target="_blank" rel="noopener noreferrer" className="block w-full">
                     <Button className="w-full !py-4 md:!py-5 !text-xs !tracking-[0.25em] bg-white hover:bg-brand-gold text-brand-black rounded-full shadow-lg active:scale-95">
                         <MessageCircle className="w-4 h-4 mr-2" />
-                        Contacter Vendeur
+                        Contacter Un Vendeur
                     </Button>
                 </a>
             </div>
