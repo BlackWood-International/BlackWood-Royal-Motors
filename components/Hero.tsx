@@ -1,16 +1,18 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from './Button';
-import { ArrowRight, Star, ShieldCheck, Globe } from 'lucide-react';
+import { ArrowRight, Star, ShieldCheck, Globe, Crown } from 'lucide-react';
 
 interface HeroProps {
   onEnterCatalog: () => void;
+  onEnterVIP?: () => void;
 }
 
 // Image unique demandée
 const HERO_IMAGE = "https://images.unsplash.com/photo-1716231888723-35edaa8c7714?q=80&w=1740&auto=format&fit=crop";
 
-export const Hero: React.FC<HeroProps> = ({ onEnterCatalog }) => {
+export const Hero: React.FC<HeroProps> = ({ onEnterCatalog, onEnterVIP }) => {
   return (
     <div className="relative h-[100dvh] w-full flex flex-col items-center justify-center overflow-hidden bg-black selection:bg-brand-gold selection:text-black">
       
@@ -91,17 +93,24 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog }) => {
         {/* CTA Section */}
         <div className="flex flex-col items-center w-full max-w-4xl mx-auto">
             
-            {/* Main Entry Button */}
+            {/* Buttons Group */}
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.9 }}
-              className="w-full px-8 sm:px-0 sm:w-auto mb-16 md:mb-24"
+              className="w-full px-8 sm:px-0 sm:w-auto mb-16 md:mb-24 flex flex-col sm:flex-row gap-4 items-center justify-center"
             >
                <Button onClick={onEnterCatalog} className="w-full sm:w-auto h-14 md:h-16 px-8 md:px-14 text-xs md:text-sm !tracking-[0.25em] bg-white text-black hover:bg-brand-gold hover:text-black border-none shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] active:scale-95">
                   Entrer
                   <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2" />
                </Button>
+
+               {onEnterVIP && (
+                   <Button onClick={onEnterVIP} variant="outline" className="w-full sm:w-auto h-14 md:h-16 px-8 md:px-10 text-xs md:text-sm !tracking-[0.25em] border-white/20 hover:border-brand-gold text-slate-300 hover:text-brand-gold">
+                      <Crown className="w-4 h-4 mr-2" />
+                      VIP
+                   </Button>
+               )}
             </motion.div>
 
             {/* PRESTIGE INDICATORS (Replaces old buttons) */}
