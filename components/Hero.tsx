@@ -1,14 +1,15 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from './Button';
-import { ArrowRight, Globe, MessageCircle, ArrowUpRight } from 'lucide-react';
+import { ArrowRight, Star, ShieldCheck, Globe } from 'lucide-react';
 
 interface HeroProps {
   onEnterCatalog: () => void;
 }
 
 // Image unique demandée
-const HERO_IMAGE = "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=1738&auto=format&fit=crop";
+const HERO_IMAGE = "https://images.unsplash.com/photo-1716231888723-35edaa8c7714?q=80&w=1740&auto=format&fit=crop";
 
 export const Hero: React.FC<HeroProps> = ({ onEnterCatalog }) => {
   return (
@@ -77,11 +78,12 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog }) => {
           >
             BlackWood
           </motion.h1>
+          {/* Increased padding-bottom to ensure 'y' descender is fully visible */}
           <motion.h1 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.7, ease: "easeOut" }}
-            className="text-[2rem] xs:text-[2.5rem] sm:text-5xl md:text-8xl lg:text-[9rem] leading-[1] md:leading-[0.9] font-serif text-transparent bg-clip-text bg-gradient-to-b from-brand-gold via-[#F0E6D2] to-brand-gold/40 tracking-tight mt-1 md:mt-[-10px] break-words"
+            className="text-[2rem] xs:text-[2.5rem] sm:text-5xl md:text-8xl lg:text-[9rem] leading-[1] md:leading-[0.9] pb-8 md:pb-10 font-serif text-transparent bg-clip-text bg-gradient-to-b from-brand-gold via-[#F0E6D2] to-brand-gold/40 tracking-tight mt-1 md:mt-[-10px] break-words"
           >
             Royal Motors
           </motion.h1>
@@ -95,7 +97,7 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog }) => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.9 }}
-              className="w-full px-8 sm:px-0 sm:w-auto mb-10 md:mb-16"
+              className="w-full px-8 sm:px-0 sm:w-auto mb-16 md:mb-24"
             >
                <Button onClick={onEnterCatalog} className="w-full sm:w-auto h-14 md:h-16 px-8 md:px-14 text-xs md:text-sm !tracking-[0.25em] bg-white text-black hover:bg-brand-gold hover:text-black border-none shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] active:scale-95">
                   Entrer
@@ -103,66 +105,48 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog }) => {
                </Button>
             </motion.div>
 
-            {/* NEW GLASS CARDS LINKS */}
+            {/* PRESTIGE INDICATORS (Replaces old buttons) */}
             <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 1.2 }}
-                className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full px-6 sm:px-0 max-w-2xl"
+                className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-16 w-full px-6"
             >
-                {/* Intranet Card */}
-                <a 
-                    href="https://discord.gg/88peMJRz95" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="group relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 hover:border-brand-gold/30 transition-all duration-500 hover:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] active:scale-[0.98]"
-                >
-                    <div className="absolute inset-0 bg-gradient-to-br from-brand-gold/0 to-brand-gold/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    
-                    <div className="relative flex items-center justify-between p-4 sm:p-5">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/5 text-slate-300 group-hover:text-brand-gold group-hover:border-brand-gold/30 transition-colors">
-                                <MessageCircle className="w-5 h-5" />
-                            </div>
-                            <div className="text-left">
-                                <div className="text-[9px] uppercase tracking-widest text-slate-500 group-hover:text-brand-gold/80 font-bold mb-1 transition-colors">
-                                    Réseau Interne
-                                </div>
-                                <div className="text-xs sm:text-sm font-bold text-slate-200 group-hover:text-white transition-colors tracking-wide">
-                                    Accès Intranet
-                                </div>
-                            </div>
-                        </div>
-                        <ArrowUpRight className="w-4 h-4 text-slate-600 group-hover:text-brand-gold transition-all duration-300 transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                {/* Feature 1 */}
+                <div className="flex flex-col items-center gap-2 group cursor-default">
+                    <div className="p-2.5 rounded-full bg-white/5 border border-white/5 text-brand-gold group-hover:bg-brand-gold group-hover:text-black transition-colors duration-500 shadow-lg">
+                        <Star className="w-4 h-4" />
                     </div>
-                </a>
+                    <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-slate-500 group-hover:text-brand-gold transition-colors duration-300">
+                        Collection Exclusive
+                    </span>
+                </div>
 
-                {/* Corporate Card */}
-                <a 
-                    href="https://blackwood-international.github.io/BlackWood/" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="group relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 hover:border-brand-gold/30 transition-all duration-500 hover:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] active:scale-[0.98]"
-                >
-                    <div className="absolute inset-0 bg-gradient-to-br from-brand-gold/0 to-brand-gold/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    
-                    <div className="relative flex items-center justify-between p-4 sm:p-5">
-                         <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/5 text-slate-300 group-hover:text-brand-gold group-hover:border-brand-gold/30 transition-colors">
-                                <Globe className="w-5 h-5" />
-                            </div>
-                            <div className="text-left">
-                                <div className="text-[9px] uppercase tracking-widest text-slate-500 group-hover:text-brand-gold/80 font-bold mb-1 transition-colors">
-                                    Groupe BlackWood
-                                </div>
-                                <div className="text-xs sm:text-sm font-bold text-slate-200 group-hover:text-white transition-colors tracking-wide">
-                                    Site Corporatif
-                                </div>
-                            </div>
-                        </div>
-                        <ArrowUpRight className="w-4 h-4 text-slate-600 group-hover:text-brand-gold transition-all duration-300 transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                {/* Divider (Desktop Only) */}
+                <div className="hidden md:block w-px h-8 bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+
+                {/* Feature 2 */}
+                <div className="flex flex-col items-center gap-2 group cursor-default">
+                    <div className="p-2.5 rounded-full bg-white/5 border border-white/5 text-brand-gold group-hover:bg-brand-gold group-hover:text-black transition-colors duration-500 shadow-lg">
+                        <ShieldCheck className="w-4 h-4" />
                     </div>
-                </a>
+                    <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-slate-500 group-hover:text-brand-gold transition-colors duration-300">
+                        Qualité Certifiée
+                    </span>
+                </div>
+
+                {/* Divider (Desktop Only) */}
+                <div className="hidden md:block w-px h-8 bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+
+                {/* Feature 3 */}
+                <div className="flex flex-col items-center gap-2 group cursor-default">
+                    <div className="p-2.5 rounded-full bg-white/5 border border-white/5 text-brand-gold group-hover:bg-brand-gold group-hover:text-black transition-colors duration-500 shadow-lg">
+                        <Globe className="w-4 h-4" />
+                    </div>
+                    <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-slate-500 group-hover:text-brand-gold transition-colors duration-300">
+                        Service International
+                    </span>
+                </div>
             </motion.div>
         </div>
       </div>
