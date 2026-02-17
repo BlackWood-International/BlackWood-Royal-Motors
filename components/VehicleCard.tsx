@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Vehicle } from '../types';
-import { BadgeCheck, ArrowUpRight, ShieldCheck, Car, Heart, Sparkles, Scale } from 'lucide-react';
+import { BadgeCheck, ArrowUpRight, ShieldCheck, Car, Heart, Sparkles, Scale, Crown } from 'lucide-react';
 
 interface VehicleCardProps {
   vehicle: Vehicle;
@@ -23,6 +24,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({
   const cardRef = useRef<HTMLDivElement>(null);
   
   const hasBadge = !!vehicle.badge && vehicle.badge.length > 0;
+  const isVip = vehicle.vip;
 
   const cleanUrl = (rawUrl: string): string => {
     if (!rawUrl) return '';
@@ -95,17 +97,17 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({
             relative h-full flex flex-col rounded-[2rem] overflow-hidden z-0
             transition-all duration-100 ease-out
             ${isComparing ? 'ring-2 ring-brand-gold shadow-[0_0_20px_rgba(197,160,89,0.3)]' : ''}
-            ${hasBadge 
+            ${hasBadge || isVip
                 ? 'bg-[#0f0f0f]' // Base background
                 : 'bg-[#0a0a0a] border border-white/5 hover:border-brand-gold/40 hover:shadow-2xl'
             }
         `}
       >
         {/* === GLOBAL BADGE EFFECTS (Z-INDEX LAYERING) === */}
-        {hasBadge && (
+        {(hasBadge || isVip) && (
             <>
-                <div className="absolute -inset-[2px] rounded-[2.1rem] bg-brand-gold/20 blur-xl opacity-0 animate-pulse group-hover:opacity-60 transition-opacity duration-300 pointer-events-none z-0" />
-                <div className="absolute inset-0 rounded-[2rem] border border-brand-gold/40 shadow-[inset_0_0_20px_rgba(197,160,89,0.05)] pointer-events-none z-20" />
+                <div className={`absolute -inset-[2px] rounded-[2.1rem] blur-xl opacity-0 animate-pulse group-hover:opacity-60 transition-opacity duration-300 pointer-events-none z-0 ${isVip ? 'bg-brand-gold/30' : 'bg-brand-gold/20'}`} />
+                <div className={`absolute inset-0 rounded-[2rem] border shadow-[inset_0_0_20px_rgba(197,160,89,0.05)] pointer-events-none z-20 ${isVip ? 'border-brand-gold/60' : 'border-brand-gold/40'}`} />
                 <div className="absolute inset-0 z-20 overflow-hidden rounded-[2rem] pointer-events-none mix-blend-overlay">
                      <div className="absolute -inset-[200%] w-[400%] h-[400%] bg-gradient-to-r from-transparent via-white/20 to-transparent -rotate-45 translate-x-[-100%] animate-[sheen_4s_infinite_ease-in-out]" />
                 </div>
@@ -160,10 +162,16 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({
           <div className={`absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent pointer-events-none z-10 ${isHovered ? 'opacity-40' : 'opacity-60'}`} />
 
           {/* Badges (Top Left) - Z-INDEX HIGH to stay above sheen */}
-          <div className="absolute top-4 left-4 z-40 flex flex-col gap-2 pointer-events-none">
+          <div className="absolute top-4 left-4 z-40 flex flex-col gap-2 pointer-events-none items-start">
             <span className="bg-black/60 backdrop-blur-md border border-white/10 text-[10px] font-bold font-mono uppercase tracking-widest text-white px-3 py-1.5 rounded-full">
               {vehicle.category}
             </span>
+            {isVip && (
+                <span className="flex items-center gap-1.5 bg-gradient-to-r from-brand-gold via-[#F0E6D2] to-brand-gold text-black text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-[0_0_15px_rgba(197,160,89,0.5)] animate-pulse">
+                  <Crown className="w-3 h-3 fill-black" />
+                  VIP Only
+                </span>
+            )}
           </div>
 
           {/* Actions (Top Right) - Z-INDEX HIGH */}
@@ -240,7 +248,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({
           <div className="flex items-end justify-between pt-2">
             <div className="flex flex-col">
               <span className="text-[9px] text-slate-500 uppercase tracking-widest mb-1 font-bold">Prix</span>
-              <span className={`text-lg font-mono tracking-tight ${hasBadge ? 'text-brand-gold font-bold drop-shadow-[0_0_10px_rgba(197,160,89,0.3)]' : 'text-white'}`}>
+              <span className={`text-lg font-mono tracking-tight ${hasBadge || isVip ? 'text-brand-gold font-bold drop-shadow-[0_0_10px_rgba(197,160,89,0.3)]' : 'text-white'}`}>
                 {vehicle.price}
               </span>
             </div>
@@ -249,7 +257,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({
               whileHover={{ rotate: 45, scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => onSelect(vehicle)}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-black group-hover:bg-brand-gold transition-colors shadow-lg z-30"
+              className={`w-10 h-10 flex items-center justify-center rounded-full text-black group-hover:bg-brand-gold transition-colors shadow-lg z-30 ${isVip ? 'bg-brand-gold ring-2 ring-brand-gold/50' : 'bg-white'}`}
             >
               <ArrowUpRight className="w-5 h-5" />
             </motion.button>
@@ -263,7 +271,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({
   return (
     prevProps.vehicle.id === nextProps.vehicle.id &&
     prevProps.isFavorite === nextProps.isFavorite &&
-    prevProps.isComparing === nextProps.isComparing && // Check comparator state update
+    prevProps.isComparing === nextProps.isComparing && 
     prevProps.index === nextProps.index
   );
 });
