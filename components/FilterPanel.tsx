@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SortOption } from '../types';
@@ -44,7 +43,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   vipFilter, onVipFilterChange
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabID>('brands');
+  // Default tab changed to 'categories' as per new order request
+  const [activeTab, setActiveTab] = useState<TabID>('categories');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
   
@@ -137,12 +137,20 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   };
 
   const tabs = [
-    { id: 'brands' as const, label: 'Marques', icon: <Building2 className="w-4 h-4" /> },
     { id: 'categories' as const, label: 'Catégories', icon: <Tag className="w-4 h-4" /> },
+    { id: 'brands' as const, label: 'Marques', icon: <Building2 className="w-4 h-4" /> },
     { id: 'budget' as const, label: 'Budget', icon: <DollarSign className="w-4 h-4" /> },
-    { id: 'vip' as const, label: 'VIP', icon: <Crown className="w-4 h-4" /> },
     { id: 'sort' as const, label: 'Trier', icon: <ArrowUpDown className="w-4 h-4" /> },
+    { id: 'vip' as const, label: 'VIP', icon: <Crown className="w-4 h-4" /> },
     { id: 'favorites' as const, label: 'Favoris', icon: <Heart className="w-4 h-4" />, badge: favoritesCount > 0 ? favoritesCount : undefined },
+  ];
+
+  // Budget Quick Presets
+  const budgetPresets = [
+    { label: "Entrée (< 50k)", min: "", max: "50000" },
+    { label: "Sport (50k-300k)", min: "50000", max: "300000" },
+    { label: "Luxe (300k-1M)", min: "300000", max: "1000000" },
+    { label: "Élite (> 1M)", min: "1000000", max: "" },
   ];
 
   return (
@@ -301,6 +309,29 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     transition={{ duration: 0.25, ease: "easeOut" }}
                     className="h-full pb-8"
                   >
+                    {/* CATÉGORIES */}
+                    {activeTab === 'categories' && (
+                      <div className="space-y-4 sm:space-y-6">
+                         <SectionHeader title="Catégories Officielles" subtitle="Classification BlackWood" />
+                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                             <SelectionCard 
+                                label="TOUT" 
+                                active={activeCategories.includes('All')} 
+                                onClick={() => onCategoryChange(['All'])}
+                                special
+                             />
+                            {displayCategories.map(cat => (
+                              <SelectionCard 
+                                key={cat}
+                                label={cat} 
+                                active={activeCategories.includes(cat)} 
+                                onClick={() => handleMultiSelect(activeCategories, cat, onCategoryChange)} 
+                              />
+                            ))}
+                         </div>
+                      </div>
+                    )}
+                    
                     {/* MARQUES */}
                     {activeTab === 'brands' && (
                       <div className="space-y-4 sm:space-y-6">
@@ -324,70 +355,89 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       </div>
                     )}
 
-                    {/* CATÉGORIES */}
-                    {activeTab === 'categories' && (
-                      <div className="space-y-4 sm:space-y-6">
-                         <SectionHeader title="Catégories Officielles" subtitle="Classification BlackWood" />
-                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                             <SelectionCard 
-                                label="TOUT" 
-                                active={activeCategories.includes('All')} 
-                                onClick={() => onCategoryChange(['All'])}
-                                special
-                             />
-                            {displayCategories.map(cat => (
-                              <SelectionCard 
-                                key={cat}
-                                label={cat} 
-                                active={activeCategories.includes(cat)} 
-                                onClick={() => handleMultiSelect(activeCategories, cat, onCategoryChange)} 
-                              />
-                            ))}
-                         </div>
-                      </div>
-                    )}
-
-                    {/* BUDGET */}
+                    {/* BUDGET (REWORKED) */}
                     {activeTab === 'budget' && (
-                      <div className="space-y-8 sm:space-y-10 py-4 sm:py-8 px-2 sm:px-4 flex flex-col items-center">
-                        <SectionHeader title="Investissement" subtitle="Définissez votre fourchette de prix" centered />
+                      <div className="space-y-6 sm:space-y-8 py-2 px-1 flex flex-col items-center max-w-2xl mx-auto">
                         
-                        <div className="flex flex-col md:flex-row items-center gap-6 justify-center w-full max-w-xl">
-                           <div className="w-full relative group">
-                              <label className="text-[9px] text-brand-gold/70 font-bold uppercase tracking-widest mb-2 block pl-4">Minimum</label>
-                              <div className="relative flex items-center">
-                                <span className="absolute left-6 text-slate-500 text-xl font-light">$</span>
-                                <input 
-                                  type="number" 
-                                  value={priceRange.min}
-                                  onChange={(e) => onPriceRangeChange({...priceRange, min: e.target.value})}
-                                  className="w-full bg-[#151515] border border-white/5 rounded-[2rem] py-4 sm:py-5 pl-10 pr-6 text-xl sm:text-2xl font-mono text-white focus:border-brand-gold/50 focus:bg-[#1a1a1a] focus:outline-none transition-all placeholder:text-slate-700 text-center"
-                                  placeholder="0"
-                                />
-                              </div>
-                           </div>
-                           
-                           <div className="text-slate-700 hidden md:block pt-6">
-                              <ArrowUpDown className="w-5 h-5 rotate-90 opacity-50" />
-                           </div>
+                        <div className="w-full">
+                            <SectionHeader title="Budget Rapide" subtitle="Sélections fréquentes" centered />
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full">
+                                {budgetPresets.map((preset, idx) => {
+                                    const isActive = priceRange.min === preset.min && priceRange.max === preset.max;
+                                    return (
+                                        <motion.button
+                                            key={idx}
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            onClick={() => onPriceRangeChange({ min: preset.min, max: preset.max })}
+                                            className={`
+                                                py-3 px-2 rounded-2xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider border transition-colors
+                                                ${isActive 
+                                                    ? 'bg-brand-gold text-black border-brand-gold shadow-[0_0_15px_rgba(197,160,89,0.3)]' 
+                                                    : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10 hover:text-white hover:border-white/20'
+                                                }
+                                            `}
+                                        >
+                                            {preset.label}
+                                        </motion.button>
+                                    )
+                                })}
+                            </div>
+                        </div>
 
-                           <div className="w-full relative group">
-                              <label className="text-[9px] text-brand-gold/70 font-bold uppercase tracking-widest mb-2 block pl-4">Maximum</label>
-                              <div className="relative flex items-center">
-                                <span className="absolute left-6 text-slate-500 text-xl font-light">$</span>
-                                <input 
-                                  type="number" 
-                                  value={priceRange.max}
-                                  onChange={(e) => onPriceRangeChange({...priceRange, max: e.target.value})}
-                                  className="w-full bg-[#151515] border border-white/5 rounded-[2rem] py-4 sm:py-5 pl-10 pr-6 text-xl sm:text-2xl font-mono text-white focus:border-brand-gold/50 focus:bg-[#1a1a1a] focus:outline-none transition-all placeholder:text-slate-700 text-center"
-                                  placeholder="∞"
-                                />
-                              </div>
-                           </div>
+                        <div className="w-full pt-4 border-t border-white/5">
+                            <SectionHeader title="Budget Personnalisé" subtitle="Définissez votre fourchette exacte" centered />
+                            
+                            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 justify-center w-full">
+                            <div className="w-full relative group">
+                                <label className="text-[9px] text-brand-gold/70 font-bold uppercase tracking-widest mb-2 block pl-4">Minimum</label>
+                                <div className="relative flex items-center">
+                                    <span className="absolute left-6 text-slate-500 text-lg font-light">$</span>
+                                    <input 
+                                    type="number" 
+                                    value={priceRange.min}
+                                    onChange={(e) => onPriceRangeChange({...priceRange, min: e.target.value})}
+                                    className="w-full bg-[#151515] border border-white/5 rounded-[2rem] py-3.5 sm:py-4 pl-10 pr-6 text-lg sm:text-xl font-mono text-white focus:border-brand-gold/50 focus:bg-[#1a1a1a] focus:outline-none transition-all placeholder:text-slate-700 text-center"
+                                    placeholder="0"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="text-slate-700 hidden sm:block pt-6">
+                                <ArrowUpDown className="w-5 h-5 rotate-90 opacity-50" />
+                            </div>
+
+                            <div className="w-full relative group">
+                                <label className="text-[9px] text-brand-gold/70 font-bold uppercase tracking-widest mb-2 block pl-4">Maximum</label>
+                                <div className="relative flex items-center">
+                                    <span className="absolute left-6 text-slate-500 text-lg font-light">$</span>
+                                    <input 
+                                    type="number" 
+                                    value={priceRange.max}
+                                    onChange={(e) => onPriceRangeChange({...priceRange, max: e.target.value})}
+                                    className="w-full bg-[#151515] border border-white/5 rounded-[2rem] py-3.5 sm:py-4 pl-10 pr-6 text-lg sm:text-xl font-mono text-white focus:border-brand-gold/50 focus:bg-[#1a1a1a] focus:outline-none transition-all placeholder:text-slate-700 text-center"
+                                    placeholder="∞"
+                                    />
+                                </div>
+                            </div>
+                            </div>
                         </div>
                       </div>
                     )}
                     
+                    {/* TRI (Moved before VIP) */}
+                    {activeTab === 'sort' && (
+                      <div className="space-y-6 max-w-md mx-auto">
+                        <SectionHeader title="Ordre d'affichage" subtitle="Organiser la collection" centered />
+                        <div className="space-y-3">
+                          <SortOptionItem active={activeSort === 'original'} onClick={() => onSortChange('original')} label="Pertinence (Catalogue)" />
+                          <SortOptionItem active={activeSort === 'price-asc'} onClick={() => onSortChange('price-asc')} label="Prix : Croissant" />
+                          <SortOptionItem active={activeSort === 'price-desc'} onClick={() => onSortChange('price-desc')} label="Prix : Décroissant" />
+                          <SortOptionItem active={activeSort === 'brand-asc'} onClick={() => onSortChange('brand-asc')} label="Alphabétique (Marque)" />
+                        </div>
+                      </div>
+                    )}
+
                     {/* VIP FILTERS */}
                     {activeTab === 'vip' && (
                         <div className="space-y-6 max-w-md mx-auto">
@@ -411,19 +461,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                                 />
                             </div>
                         </div>
-                    )}
-
-                    {/* TRI */}
-                    {activeTab === 'sort' && (
-                      <div className="space-y-6 max-w-md mx-auto">
-                        <SectionHeader title="Ordre d'affichage" subtitle="Organiser la collection" centered />
-                        <div className="space-y-3">
-                          <SortOptionItem active={activeSort === 'original'} onClick={() => onSortChange('original')} label="Pertinence (Catalogue)" />
-                          <SortOptionItem active={activeSort === 'price-asc'} onClick={() => onSortChange('price-asc')} label="Prix : Croissant" />
-                          <SortOptionItem active={activeSort === 'price-desc'} onClick={() => onSortChange('price-desc')} label="Prix : Décroissant" />
-                          <SortOptionItem active={activeSort === 'brand-asc'} onClick={() => onSortChange('brand-asc')} label="Alphabétique (Marque)" />
-                        </div>
-                      </div>
                     )}
 
                     {/* FAVORIS */}
@@ -597,8 +634,10 @@ interface SortOptionItemProps {
 const SortOptionItem: React.FC<SortOptionItemProps> = ({ label, active, onClick, highlightGold }) => (
   <motion.button
     whileHover={{ x: 4 }}
+    transition={{ type: "spring", stiffness: 400, damping: 17 }}
     onClick={onClick}
-    className={`w-full flex items-center justify-between p-3 sm:p-4 rounded-[1.2rem] sm:rounded-[1.5rem] border transition-all ${
+    // Optimization: Removed transition-all, switched to transition-colors to fix hover lag with framer motion x
+    className={`w-full flex items-center justify-between p-3 sm:p-4 rounded-[1.2rem] sm:rounded-[1.5rem] border transition-colors duration-200 ${
       active 
       ? 'bg-brand-gold/10 border-brand-gold shadow-[0_0_15px_-5px_rgba(197,160,89,0.2)]' 
       : 'bg-[#151515] border-white/5 text-slate-500 hover:bg-white/5 hover:text-white hover:border-white/10'
