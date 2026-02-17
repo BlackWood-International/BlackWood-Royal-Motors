@@ -1,3 +1,4 @@
+
 import Papa from 'papaparse';
 import { RawVehicleData, Vehicle } from '../types';
 
@@ -23,6 +24,9 @@ export const fetchCatalog = (): Promise<Vehicle[]> => {
                 ? "Sur Demande" 
                 : `$ ${priceVal.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")}`;
 
+            // Gestion de la case à cocher VIP (Google Sheets exporte TRUE ou FALSE)
+            const isVip = row['VIP']?.trim().toUpperCase() === 'TRUE';
+
             return {
               id: `vehicle-${index}`,
               originalIndex: index,
@@ -33,7 +37,8 @@ export const fetchCatalog = (): Promise<Vehicle[]> => {
               priceValue: isNaN(priceVal) ? 0 : priceVal,
               image: imageUrl || undefined,
               description: row['Description'] || "Un chef-d'œuvre d'ingénierie alliant performance d'exception et confort absolu. Contactez nos conseillers pour une présentation détaillée.",
-              badge: row['Badge'] ? row['Badge'].trim() : undefined // Récupération du badge
+              badge: row['Badge'] ? row['Badge'].trim() : undefined,
+              vip: isVip
             };
           });
           
