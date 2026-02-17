@@ -9,10 +9,6 @@ import { Footer } from './components/Footer';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2, AlertCircle, Heart, ChevronLeft } from 'lucide-react';
 
-// AUGMENTATION DU CHARGEMENT INITIAL (30 couvre mieux les grands écrans 1440p+)
-const INITIAL_DISPLAY_COUNT = 30;
-const LOAD_MORE_INCREMENT = 30;
-
 function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,10 +28,6 @@ function App() {
   // Favorites State
   const [favorites, setFavorites] = useState<string[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>('original');
-  
-  // Pagination State
-  const [visibleCount, setVisibleCount] = useState(INITIAL_DISPLAY_COUNT);
-  const loaderRef = useRef<HTMLDivElement>(null);
   
   const isFirstRender = useRef(true);
 
@@ -134,7 +126,7 @@ ${carList}
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // --- RESET FILTER/PAGINATION ---
+  // --- RESET FILTER ---
   const resetFilters = () => {
     setActiveCategories(['All']);
     setSelectedBrands(['All']);
@@ -142,28 +134,7 @@ ${carList}
     setSortOption('original');
     setPriceRange({ min: '', max: '' });
     setShowFavoritesOnly(false);
-    setVisibleCount(INITIAL_DISPLAY_COUNT);
   };
-
-  // Reset pagination when filters change
-  useEffect(() => {
-    setVisibleCount(INITIAL_DISPLAY_COUNT);
-    if (view === 'catalog' && !isFirstRender.current) {
-         const anchor = document.getElementById('catalog-anchor');
-         if (anchor) {
-             if (window.scrollY > 500) {
-                 const offset = -220; // Adjusted for mobile header height
-                 const bodyRect = document.body.getBoundingClientRect().top;
-                 const elementRect = anchor.getBoundingClientRect().top;
-                 const elementPosition = elementRect - bodyRect;
-                 const offsetPosition = elementPosition + offset;
-                 window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-             }
-         }
-    }
-    if (view === 'catalog') isFirstRender.current = false;
-  }, [activeCategories, selectedBrands, searchQuery, sortOption, priceRange, showFavoritesOnly]);
-
 
   // --- FILTERING LOGIC ---
   const categories = useMemo(() => {
@@ -209,55 +180,24 @@ ${carList}
     return result;
   }, [vehicles, activeCategories, selectedBrands, searchQuery, sortOption, priceRange, showFavoritesOnly, favorites]);
 
-  // --- SYSTÈME DE PAGINATION ROBUSTE (AUTO-FILL & OBSERVER) ---
-  
-  // 1. L'Observer standard pour le scroll utilisateur
+
+  // --- AUTO SCROLL TO TOP ON FILTER CHANGE ---
   useEffect(() => {
-    if (visibleCount >= filteredAndSortedVehicles.length) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setVisibleCount((prev) => Math.min(prev + LOAD_MORE_INCREMENT, filteredAndSortedVehicles.length));
-        }
-      },
-      { rootMargin: '400px', threshold: 0.1 } 
-    );
-
-    const currentLoader = loaderRef.current;
-    if (currentLoader) {
-      observer.observe(currentLoader);
+    if (view === 'catalog' && !isFirstRender.current) {
+         const anchor = document.getElementById('catalog-anchor');
+         if (anchor) {
+             if (window.scrollY > 500) {
+                 const offset = -220; 
+                 const bodyRect = document.body.getBoundingClientRect().top;
+                 const elementRect = anchor.getBoundingClientRect().top;
+                 const elementPosition = elementRect - bodyRect;
+                 const offsetPosition = elementPosition + offset;
+                 window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+             }
+         }
     }
-
-    return () => {
-      if (currentLoader) observer.unobserve(currentLoader);
-    };
-  }, [filteredAndSortedVehicles.length, visibleCount]);
-
-  // 2. LA BOUCLE DE REMPLISSAGE (AUTO-FILL LOOP)
-  // Ce code s'exécute à chaque fois que `visibleCount` change.
-  // Il vérifie si le loader est ENCORE visible. Si oui, cela signifie que l'écran n'est pas plein.
-  // Il force alors un nouveau chargement sans attendre que l'utilisateur scrolle.
-  useEffect(() => {
-    if (visibleCount >= filteredAndSortedVehicles.length) return;
-
-    // Petite temporisation pour laisser le temps au navigateur de rendre (Paint) les nouveaux éléments
-    const timeoutId = setTimeout(() => {
-        if (loaderRef.current) {
-            const rect = loaderRef.current.getBoundingClientRect();
-            // Si le haut du loader est visible dans la fenêtre (ou presque), on charge encore
-            if (rect.top <= window.innerHeight + 100) {
-                console.log("Auto-fill triggered: Screen not full yet.");
-                setVisibleCount((prev) => Math.min(prev + LOAD_MORE_INCREMENT, filteredAndSortedVehicles.length));
-            }
-        }
-    }, 150); // 150ms est suffisant pour que le DOM se mette à jour
-
-    return () => clearTimeout(timeoutId);
-  }, [visibleCount, filteredAndSortedVehicles.length]);
-
-
-  const visibleVehicles = filteredAndSortedVehicles.slice(0, visibleCount);
+    if (view === 'catalog') isFirstRender.current = false;
+  }, [filteredAndSortedVehicles, view]);
 
   // --- RENDER HELPERS ---
   if (loading) {
@@ -389,17 +329,17 @@ ${carList}
                             </div>
                         </div>
 
-                        {/* GRID DE VÉHICULES - OPTIMIZED */}
+                        {/* GRID DE VÉHICULES - AFFICHAGE DIRECT SANS PAGINATION */}
                         <motion.div 
                             layout
                             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 md:gap-8"
                         >
                             <AnimatePresence mode='popLayout'>
-                                {visibleVehicles.map((vehicle, index) => (
+                                {filteredAndSortedVehicles.map((vehicle, index) => (
                                     <VehicleCard 
                                         key={vehicle.id} 
                                         vehicle={vehicle} 
-                                        index={index % 20} 
+                                        index={index} 
                                         onSelect={setSelectedVehicle}
                                         isFavorite={favorites.includes(vehicle.id)}
                                         onToggleFavorite={() => toggleFavorite(vehicle.id)}
@@ -433,10 +373,13 @@ ${carList}
                             </motion.div>
                         )}
 
-                        {/* LOAD MORE TRIGGER - Taille augmentée et z-index négatif pour éviter les clics accidentels */}
-                        <div ref={loaderRef} className="h-48 w-full flex items-center justify-center mt-20 opacity-0 pointer-events-none -z-10">
-                            <span className="text-slate-600">Chargement...</span>
-                        </div>
+                        {/* Fin de liste decorative */}
+                        {filteredAndSortedVehicles.length > 0 && (
+                           <div className="mt-20 flex justify-center opacity-30">
+                              <div className="w-24 h-1 bg-gradient-to-r from-transparent via-brand-gold to-transparent" />
+                           </div>
+                        )}
+
                     </main>
                     
                     <Footer />
