@@ -89,10 +89,11 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({
       onMouseLeave={() => setIsHovered(false)}
     >
       <motion.div 
-        whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }}
+        /* UPDATED TRANSITION: Reduced lift (-4px) for premium feel. High stiffness for instant "Zero Latency" feel */
+        whileHover={{ y: -4, transition: { type: "spring", stiffness: 500, damping: 30, mass: 1 } }}
         className={`
             relative h-full flex flex-col rounded-[2rem] overflow-hidden z-0
-            transition-all duration-300
+            transition-all duration-100 ease-out
             ${isComparing ? 'ring-2 ring-brand-gold shadow-[0_0_20px_rgba(197,160,89,0.3)]' : ''}
             ${hasBadge 
                 ? 'bg-[#0f0f0f]' // Base background
@@ -128,8 +129,8 @@ export const VehicleCard: React.FC<VehicleCardProps> = React.memo(({
                     <img 
                         src={currentSrc}
                         alt={`${vehicle.brand} ${vehicle.model}`}
-                        className={`w-full h-full object-cover transition-transform duration-300 ease-out 
-                            ${isHovered ? 'scale-110' : 'scale-100'} 
+                        className={`w-full h-full object-cover transition-transform duration-200 ease-out 
+                            ${isHovered ? 'scale-105' : 'scale-100'} 
                             ${imageState === 'loaded' ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'}`}
                         style={{ borderTopLeftRadius: '2rem', borderTopRightRadius: '2rem' }}
                         onLoad={() => setImageState('loaded')}
