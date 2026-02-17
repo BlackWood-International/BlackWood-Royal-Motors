@@ -6,6 +6,9 @@ import { VehicleCard } from './components/VehicleCard';
 import { VehicleModal } from './components/VehicleModal';
 import { FilterPanel } from './components/FilterPanel';
 import { Footer } from './components/Footer';
+import { CategoryNav } from './components/CategoryNav';
+import { CompareBar } from './components/CompareBar';
+import { ComparatorModal } from './components/ComparatorModal';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2, AlertCircle, Heart, ChevronLeft } from 'lucide-react';
 
@@ -15,7 +18,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
 
-  // VIEW STATE: Gère l'affichage entre l'accueil (Hero) et le Catalogue
+  // VIEW STATE
   const [view, setView] = useState<'home' | 'catalog'>('home');
   
   // Filter States
@@ -25,10 +28,12 @@ function App() {
   const [priceRange, setPriceRange] = useState<{min: string, max: string}>({ min: '', max: '' });
   const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(false);
   
-  // Favorites State
+  // Favorites & Comparator State
   const [favorites, setFavorites] = useState<string[]>([]);
-  const [sortOption, setSortOption] = useState<SortOption>('original');
+  const [compareList, setCompareList] = useState<string[]>([]); // IDs of vehicles to compare
+  const [isComparatorOpen, setIsComparatorOpen] = useState(false);
   
+  const [sortOption, setSortOption] = useState<SortOption>('original');
   const isFirstRender = useRef(true);
 
   // --- DATA LOADING ---
@@ -45,21 +50,20 @@ function App() {
       });
   }, []);
 
-  // --- SHARE URL HANDLING (Legacy support) ---
+  // --- URL HANDLING (Deep Linking) ---
   useEffect(() => {
     if (vehicles.length > 0) {
         const params = new URLSearchParams(window.location.search);
-        const sharedSelection = params.get('selection');
         
+        // 1. Share Selection Logic (Legacy)
+        const sharedSelection = params.get('selection');
         if (sharedSelection) {
           const sharedIds = sharedSelection.split(',');
           const validIds = sharedIds.filter(id => vehicles.some(v => v.id === id));
-          
           if (validIds.length > 0) {
             setFavorites(validIds);
             setShowFavoritesOnly(true);
             setView('catalog');
-            window.history.replaceState({}, '', window.location.pathname);
           }
         } else {
              const savedFavs = localStorage.getItem('bw_favorites');
@@ -67,15 +71,40 @@ function App() {
                  try { setFavorites(JSON.parse(savedFavs)); } catch (e) { console.error(e); }
              }
         }
+
+        // 2. Direct Vehicle Link Logic (?car=id)
+        const carId = params.get('car');
+        if (carId) {
+            const vehicle = vehicles.find(v => v.id === carId);
+            if (vehicle) {
+                setSelectedVehicle(vehicle);
+                if (view === 'home') setView('catalog');
+            }
+        }
     }
-  }, [vehicles]);
+  }, [vehicles]); // Run once when vehicles are loaded
+
+  // Sync URL when selectedVehicle changes
+  useEffect(() => {
+    if (loading) return;
+    
+    const url = new URL(window.location.href);
+    if (selectedVehicle) {
+        url.searchParams.set('car', selectedVehicle.id);
+    } else {
+        url.searchParams.delete('car');
+    }
+    // Update URL without reloading
+    window.history.pushState({}, '', url);
+  }, [selectedVehicle, loading]);
+
 
   // --- FAVORITES PERSISTENCE ---
   useEffect(() => {
     if (favorites.length > 0) {
         localStorage.setItem('bw_favorites', JSON.stringify(favorites));
     } else {
-        localStorage.removeItem('bw_favorites'); // Clean up if empty
+        localStorage.removeItem('bw_favorites'); 
     }
   }, [favorites]);
 
@@ -86,22 +115,34 @@ function App() {
   }, []);
 
   const clearFavorites = useCallback(() => {
-    // Logic moved to UI: direct clear here
     setFavorites([]);
-    setShowFavoritesOnly(false); // Return to main catalog if we clear list
+    setShowFavoritesOnly(false); 
   }, []);
 
-  // --- SHARE FUNCTIONALITY (DISCORD OPTIMIZED) ---
+  // --- COMPARATOR LOGIC ---
+  const toggleCompare = useCallback((vehicleId: string) => {
+    setCompareList(prev => {
+        if (prev.includes(vehicleId)) {
+            return prev.filter(id => id !== vehicleId);
+        }
+        if (prev.length >= 3) {
+            alert("Le comparateur est limité à 3 véhicules.");
+            return prev;
+        }
+        return [...prev, vehicleId];
+    });
+  }, []);
+
+  const clearCompare = useCallback(() => {
+      setCompareList([]);
+      setIsComparatorOpen(false);
+  }, []);
+
+  // --- SHARE FUNCTIONALITY ---
   const handleShareSelection = useCallback(() => {
     if (favorites.length === 0) return;
-    
-    // 1. Get Vehicle Objects
     const favoriteVehicles = vehicles.filter(v => favorites.includes(v.id));
-    
-    // 2. Format List for Discord (Bold Model, Code block for Price)
     const carList = favoriteVehicles.map(v => `- **${v.brand} ${v.model}** — \`${v.price}\``).join('\n');
-
-    // 3. Construct Message with Discord Markdown
     const message = `
 # 👑 BLACKWOOD ROYAL MOTORS
 ### 📂 SÉLECTION PRIVÉE CLIENT
@@ -114,13 +155,7 @@ ${carList}
 📞 Contactez un vendeur pour finaliser le dossier.
 \`\`\`
     `.trim();
-    
-    // 4. Copy to Clipboard
-    navigator.clipboard.writeText(message).then(() => {
-       console.log("Discord list copied to clipboard");
-    }).catch(err => {
-        console.error("Copy failed", err);
-    });
+    navigator.clipboard.writeText(message);
   }, [favorites, vehicles]);
 
   // --- VIEW NAVIGATION ---
@@ -144,17 +179,21 @@ ${carList}
     setShowFavoritesOnly(false);
   };
 
-  // --- FILTERING LOGIC ---
+  // --- FILTERING & GROUPING LOGIC ---
+  
+  // ORDER PRESERVATION: Use 'Set' to keep insertion order from CSV (vehicles array)
+  // Do NOT use .sort() unless explicitly asked by user action
   const categories = useMemo(() => {
-    const cats = Array.from(new Set(vehicles.map(v => v.category))).sort();
-    return ['All', ...cats];
+    const cats = new Set(vehicles.map(v => v.category));
+    return ['All', ...Array.from(cats)];
   }, [vehicles]);
 
   const brands = useMemo(() => {
-    return Array.from(new Set(vehicles.map(v => v.brand))).sort();
+    const b = new Set(vehicles.map(v => v.brand));
+    return ['All', ...Array.from(b)];
   }, [vehicles]);
 
-  const filteredAndSortedVehicles = useMemo(() => {
+  const filteredVehicles = useMemo(() => {
     let result = [...vehicles];
 
     if (showFavoritesOnly) result = result.filter(v => favorites.includes(v.id));
@@ -175,9 +214,10 @@ ${carList}
         if (!isNaN(max)) result = result.filter(v => v.priceValue <= max);
     }
 
+    // Apply sorting
     result.sort((a, b) => {
       switch (sortOption) {
-        case 'original': return a.originalIndex - b.originalIndex;
+        case 'original': return a.originalIndex - b.originalIndex; // Preserves CSV Order
         case 'brand-asc': return a.brand.localeCompare(b.brand) || a.model.localeCompare(b.model);
         case 'price-asc': return a.priceValue - b.priceValue;
         case 'price-desc': return b.priceValue - a.priceValue;
@@ -188,24 +228,43 @@ ${carList}
     return result;
   }, [vehicles, activeCategories, selectedBrands, searchQuery, sortOption, priceRange, showFavoritesOnly, favorites]);
 
+  // Determine if we should show the "Grouped by Category" view (Scroll Spy compatible)
+  // Logic: Only group if using "Original" sort (which implies catalog order) and not searching text specifically
+  const isGroupedView = useMemo(() => {
+      return sortOption === 'original' && searchQuery === '';
+  }, [sortOption, searchQuery]);
 
-  // --- AUTO SCROLL TO TOP ON FILTER CHANGE ---
-  // MODIFICATION: Removed 'filteredAndSortedVehicles' from dependency array.
-  // We now only scroll when the User explicitly changes a filter setting.
-  // This prevents scrolling when just toggling a favorite (which updates 'filteredAndSortedVehicles' but not the filters).
+  // Group vehicles for rendering if isGroupedView is true
+  const groupedVehicles = useMemo(() => {
+      if (!isGroupedView) return null;
+      
+      const groups: Record<string, Vehicle[]> = {};
+      filteredVehicles.forEach(v => {
+          if (!groups[v.category]) groups[v.category] = [];
+          groups[v.category].push(v);
+      });
+      return groups;
+  }, [filteredVehicles, isGroupedView]);
+
+  // Available categories for Navigation (only those present in filtered results)
+  // CRITICAL: We filter the MASTER ordered 'categories' list to ensure the nav order matches the CSV order
+  const visibleCategories = useMemo(() => {
+      if (!isGroupedView || !groupedVehicles) return [];
+      const presentCategories = new Set(Object.keys(groupedVehicles));
+      // Intersect master list with present list to keep master order
+      return categories.filter(c => c !== 'All' && presentCategories.has(c));
+  }, [categories, groupedVehicles, isGroupedView]);
+
+  // --- AUTO SCROLL ---
   useEffect(() => {
     if (view === 'catalog' && !isFirstRender.current) {
          const anchor = document.getElementById('catalog-anchor');
          if (anchor) {
              const scrollY = window.scrollY;
-             // Only scroll if we are way down the page
              if (scrollY > 500) {
-                 const offset = -200; // Compensate for fixed header + filter panel
-                 const bodyRect = document.body.getBoundingClientRect().top;
-                 const elementRect = anchor.getBoundingClientRect().top;
-                 const elementPosition = elementRect - bodyRect;
-                 const offsetPosition = elementPosition + offset;
-                 window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                 const offset = -200; 
+                 const elementPosition = anchor.getBoundingClientRect().top + window.scrollY;
+                 window.scrollTo({ top: elementPosition + offset, behavior: 'smooth' });
              }
          }
     }
@@ -269,7 +328,7 @@ ${carList}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full flex flex-col"
             >
-                {/* FLOATING HEADER - Z-INDEX 100 (Highest) - Improved Mobile Visibility */}
+                {/* FLOATING HEADER */}
                 <header className="fixed top-0 left-0 w-full z-[100] pointer-events-none flex justify-between items-center px-4 py-3 md:px-8 md:py-6 bg-gradient-to-b from-black/95 via-black/80 to-transparent transition-all duration-300">
                     <button 
                         onClick={handleReturnHome}
@@ -315,7 +374,17 @@ ${carList}
                         onClearFavorites={clearFavorites}
                     />
 
-                    {/* Contenu principal - PADDING AJUSTÉ POUR MOBILE */}
+                    {/* CATEGORY NAV (Scroll Spy) */}
+                    <CategoryNav categories={visibleCategories} visible={isGroupedView && visibleCategories.length > 1} />
+
+                    {/* COMPARE BAR (Floating) */}
+                    <CompareBar 
+                        count={compareList.length} 
+                        onOpenComparator={() => setIsComparatorOpen(true)} 
+                        onClear={clearCompare}
+                    />
+
+                    {/* Contenu principal */}
                     <main className="max-w-[1800px] mx-auto px-4 md:px-6 py-12 pt-32 md:pt-48 pb-24">
                         {/* ANCRE DE CATALOGUE */}
                         <div id="catalog-anchor" className="mb-8 md:mb-12 flex flex-col md:flex-row md:items-end justify-between border-b border-white/5 pb-4 mx-0 md:mx-4 scroll-mt-64">
@@ -338,32 +407,65 @@ ${carList}
                                     {showFavoritesOnly 
                                         ? 'Vos véhicules d\'exception sauvegardés' 
                                         : (activeCategories.includes('All') ? 'Inventaire Complet' : activeCategories.join(', '))} 
-                                    {' '}• <span className="text-brand-gold">{filteredAndSortedVehicles.length}</span> actifs disponibles
+                                    {' '}• <span className="text-brand-gold">{filteredVehicles.length}</span> actifs disponibles
                                 </motion.p>
                             </div>
                         </div>
 
-                        {/* GRID DE VÉHICULES - OPTIMIZED GAP FOR MOBILE */}
-                        <motion.div 
-                            layout
-                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 md:gap-8"
-                        >
-                            <AnimatePresence mode='popLayout'>
-                                {filteredAndSortedVehicles.map((vehicle, index) => (
-                                    <VehicleCard 
-                                        key={vehicle.id} 
-                                        vehicle={vehicle} 
-                                        index={index} 
-                                        onSelect={setSelectedVehicle}
-                                        isFavorite={favorites.includes(vehicle.id)}
-                                        onToggleFavorite={() => toggleFavorite(vehicle.id)}
-                                    />
+                        {/* === RENDERING MODE: GROUPED BY CATEGORY (SCROLL SPY) OR FLAT GRID === */}
+                        {isGroupedView && groupedVehicles ? (
+                            <div className="space-y-20">
+                                {visibleCategories.map((cat) => (
+                                    <div key={cat} id={`cat-${cat}`} className="scroll-mt-32">
+                                        <div className="flex items-center gap-4 mb-8">
+                                            <div className="h-[1px] flex-1 bg-white/10" />
+                                            <h3 className="text-xl md:text-2xl font-serif text-brand-gold uppercase tracking-widest px-4 border border-brand-gold/30 py-1 rounded-full bg-brand-gold/5">
+                                                {cat}
+                                            </h3>
+                                            <div className="h-[1px] flex-1 bg-white/10" />
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 md:gap-8">
+                                            {groupedVehicles[cat].map((vehicle, index) => (
+                                                <VehicleCard 
+                                                    key={vehicle.id} 
+                                                    vehicle={vehicle} 
+                                                    index={index} 
+                                                    onSelect={setSelectedVehicle}
+                                                    isFavorite={favorites.includes(vehicle.id)}
+                                                    onToggleFavorite={() => toggleFavorite(vehicle.id)}
+                                                    isComparing={compareList.includes(vehicle.id)}
+                                                    onToggleCompare={() => toggleCompare(vehicle.id)}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
                                 ))}
-                            </AnimatePresence>
-                        </motion.div>
+                            </div>
+                        ) : (
+                            // FLAT GRID RENDER
+                            <motion.div 
+                                layout
+                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 md:gap-8"
+                            >
+                                <AnimatePresence mode='popLayout'>
+                                    {filteredVehicles.map((vehicle, index) => (
+                                        <VehicleCard 
+                                            key={vehicle.id} 
+                                            vehicle={vehicle} 
+                                            index={index} 
+                                            onSelect={setSelectedVehicle}
+                                            isFavorite={favorites.includes(vehicle.id)}
+                                            onToggleFavorite={() => toggleFavorite(vehicle.id)}
+                                            isComparing={compareList.includes(vehicle.id)}
+                                            onToggleCompare={() => toggleCompare(vehicle.id)}
+                                        />
+                                    ))}
+                                </AnimatePresence>
+                            </motion.div>
+                        )}
                         
                         {/* EMPTY STATE */}
-                        {filteredAndSortedVehicles.length === 0 && (
+                        {filteredVehicles.length === 0 && (
                             <motion.div 
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
@@ -373,11 +475,6 @@ ${carList}
                                     {showFavoritesOnly ? <Heart className="w-16 h-16 text-brand-gold/20" /> : <AlertCircle className="w-16 h-16 text-white/20" />}
                                 </div>
                                 <p className="text-brand-gold font-serif text-2xl md:text-3xl mb-3">Aucun véhicule trouvé</p>
-                                <p className="text-slate-500 text-xs md:text-sm font-mono uppercase tracking-wider mb-8 px-4">
-                                    {showFavoritesOnly 
-                                        ? "Votre sélection privée est vide." 
-                                        : "Ajustez vos filtres pour voir plus de résultats."}
-                                </p>
                                 <button 
                                     onClick={resetFilters}
                                     className="px-8 py-3 rounded-full bg-white text-brand-black text-xs font-bold hover:bg-brand-gold hover:shadow-lg transition-all uppercase tracking-widest active:scale-95"
@@ -387,8 +484,7 @@ ${carList}
                             </motion.div>
                         )}
 
-                        {/* Fin de liste decorative */}
-                        {filteredAndSortedVehicles.length > 0 && (
+                        {filteredVehicles.length > 0 && (
                            <div className="mt-20 flex justify-center opacity-30">
                               <div className="w-24 h-1 bg-gradient-to-r from-transparent via-brand-gold to-transparent" />
                            </div>
@@ -402,7 +498,7 @@ ${carList}
           )}
         </AnimatePresence>
 
-        {/* --- MODAL (Toujours accessible) --- */}
+        {/* --- MODAL VEHICULE --- */}
         <AnimatePresence>
             {selectedVehicle && (
                 <VehicleModal 
@@ -410,6 +506,19 @@ ${carList}
                     onClose={() => setSelectedVehicle(null)}
                     isFavorite={favorites.includes(selectedVehicle.id)}
                     onToggleFavorite={() => toggleFavorite(selectedVehicle.id)}
+                />
+            )}
+        </AnimatePresence>
+
+        {/* --- MODAL COMPARATEUR --- */}
+        <AnimatePresence>
+            {isComparatorOpen && (
+                <ComparatorModal 
+                    vehicles={vehicles.filter(v => compareList.includes(v.id))}
+                    onClose={() => setIsComparatorOpen(false)}
+                    onRemove={(id) => toggleCompare(id)}
+                    favorites={favorites}
+                    toggleFavorite={toggleFavorite}
                 />
             )}
         </AnimatePresence>
