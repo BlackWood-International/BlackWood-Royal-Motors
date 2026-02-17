@@ -30,7 +30,15 @@ export const ComparatorModal: React.FC<ComparatorModalProps> = ({
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.95, y: 20 }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="w-full h-full max-w-[95vw] md:max-w-7xl md:h-[90vh] bg-[#080808] border border-white/5 md:rounded-[2rem] flex flex-col shadow-2xl relative overflow-hidden"
+        // MODIFIED: Fit visually to screen space, max 96vw width for wide images
+        className="
+            w-full max-w-[96vw] 
+            h-[85dvh] md:h-[90vh] 
+            bg-[#080808] border border-white/5 
+            rounded-t-[2rem] md:rounded-[2rem] 
+            flex flex-col shadow-2xl relative overflow-hidden
+            mt-auto md:mt-0
+        "
         onClick={(e) => e.stopPropagation()} // Prevent close on modal click
       >
          
@@ -91,13 +99,15 @@ export const ComparatorModal: React.FC<ComparatorModalProps> = ({
                          );
                      }
 
+                     const isFav = favorites.includes(v.id);
+
                      // === FILLED VEHICLE SLOT ===
                      return (
                          <div key={v.id} className="relative flex flex-col h-full min-w-[90vw] md:min-w-0 bg-[#080808]/50 snap-center border-r border-white/5 md:border-r-0 last:border-r-0">
                              
-                             {/* IMAGE HEADER */}
-                             {/* Fixed: Overflow hidden applied correctly to container */}
-                             <div className="relative h-[35%] md:h-[40%] min-h-[220px] shrink-0 w-full overflow-hidden group">
+                             {/* IMAGE HEADER - FIXED 16:9 RATIO */}
+                             {/* Using aspect-video class to enforce 16:9 ratio regardless of height */}
+                             <div className="relative w-full aspect-video shrink-0 overflow-hidden group border-b border-white/5">
                                  {v.image ? (
                                      <div className="w-full h-full overflow-hidden relative">
                                         <img 
@@ -105,7 +115,7 @@ export const ComparatorModal: React.FC<ComparatorModalProps> = ({
                                             alt={v.model} 
                                             className="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-105" 
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-[#080808] via-transparent to-transparent opacity-80" />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-[#080808] via-transparent to-transparent opacity-60" />
                                      </div>
                                  ) : (
                                      <div className="w-full h-full flex items-center justify-center bg-[#0c0c0c] pattern-grid-lg">
@@ -116,7 +126,7 @@ export const ComparatorModal: React.FC<ComparatorModalProps> = ({
                                      </div>
                                  )}
                                  
-                                 {/* Floating Remove Button - Visible on touch, hover on desktop */}
+                                 {/* Floating Remove Button */}
                                  <button 
                                      onClick={(e) => {
                                          e.stopPropagation();
@@ -136,41 +146,53 @@ export const ComparatorModal: React.FC<ComparatorModalProps> = ({
                                  </div>
                              </div>
 
-                             {/* SPECS CONTENT */}
-                             <div className="flex-1 px-6 md:px-8 pb-8 pt-0 flex flex-col relative z-10 overflow-y-auto custom-scrollbar">
+                             {/* CONTENT - FILLS REMAINING SPACE */}
+                             <div className="flex-1 flex flex-col relative z-10 overflow-y-auto custom-scrollbar">
                                  
-                                 {/* Title Block - Overlapping Image */}
-                                 <div className="mb-6 -mt-10 md:-mt-12 relative z-20">
-                                     <div className="flex items-center justify-between mb-2">
-                                         <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] text-brand-gold bg-black/50 backdrop-blur px-2 py-1 rounded">{v.brand}</span>
-                                         <button 
-                                            onClick={() => toggleFavorite(v.id)}
-                                            className="p-2 rounded-full hover:bg-white/5 transition-colors"
-                                         >
-                                             <Heart className={`w-5 h-5 transition-colors ${favorites.includes(v.id) ? 'fill-brand-gold text-brand-gold' : 'text-slate-500 hover:text-white'}`} />
-                                         </button>
+                                 <div className="px-6 md:px-8 pt-6">
+                                     {/* Title Block */}
+                                     <div className="mb-6 relative z-20">
+                                         <div className="flex items-start justify-between gap-4">
+                                             <h3 className="text-2xl md:text-3xl lg:text-3xl font-serif text-white leading-tight drop-shadow-lg">
+                                                 <span className="text-brand-gold block md:inline md:mr-2 text-xl md:text-2xl">{v.brand}</span>
+                                                 {v.model}
+                                             </h3>
+                                             
+                                             {/* HEART WITH ANIMATION */}
+                                             <motion.button 
+                                                whileTap={{ scale: 0.8 }}
+                                                onClick={() => toggleFavorite(v.id)}
+                                                className="p-2 rounded-full hover:bg-white/5 transition-colors shrink-0 mt-1"
+                                             >
+                                                 <motion.div
+                                                    key={isFav ? 'fav' : 'unfav'}
+                                                    animate={isFav ? { scale: [1, 1.4, 1] } : { scale: 1 }}
+                                                    transition={{ duration: 0.3 }}
+                                                 >
+                                                     <Heart className={`w-6 h-6 transition-colors ${isFav ? 'fill-brand-gold text-brand-gold' : 'text-slate-500 hover:text-white'}`} />
+                                                 </motion.div>
+                                             </motion.button>
+                                         </div>
+                                         <div className="w-full h-[1px] bg-white/10 mt-4" />
                                      </div>
-                                     <h3 className="text-3xl md:text-4xl font-serif text-white mb-4 leading-none drop-shadow-lg">{v.model}</h3>
-                                     <div className="w-full h-[1px] bg-white/10" />
-                                 </div>
 
-                                 {/* Price Block */}
-                                 <div className="mb-6 p-4 bg-white/[0.03] rounded-xl border border-white/5 flex flex-col items-center text-center">
-                                     <span className="block text-[9px] text-slate-500 uppercase tracking-widest font-bold mb-1">Prix Catalogue</span>
-                                     <span className="text-xl md:text-2xl font-mono text-brand-gold tracking-tight">{v.price}</span>
-                                 </div>
+                                     {/* Price Block */}
+                                     <div className="mb-6 p-4 bg-white/[0.03] rounded-xl border border-white/5 flex flex-col items-center text-center">
+                                         <span className="block text-[9px] text-slate-500 uppercase tracking-widest font-bold mb-1">Prix Catalogue</span>
+                                         <span className="text-xl md:text-2xl font-mono text-brand-gold tracking-tight">{v.price}</span>
+                                     </div>
 
-                                 {/* Description */}
-                                 <div className="flex-1">
-                                     <h4 className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">
-                                         <Gauge className="w-3.5 h-3.5" />
-                                         Détails techniques
-                                     </h4>
-                                     <p className="text-xs md:text-sm text-slate-300 font-light leading-relaxed border-l-2 border-white/10 pl-4 py-1">
-                                         {v.description}
-                                     </p>
+                                     {/* Description */}
+                                     <div className="pb-8">
+                                         <h4 className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">
+                                             <Gauge className="w-3.5 h-3.5" />
+                                             Description
+                                         </h4>
+                                         <p className="text-xs md:text-sm text-slate-300 font-light leading-relaxed border-l-2 border-white/10 pl-4 py-1">
+                                             {v.description}
+                                         </p>
+                                     </div>
                                  </div>
-
                              </div>
                          </div>
                      );
@@ -178,8 +200,8 @@ export const ComparatorModal: React.FC<ComparatorModalProps> = ({
              </div>
              
              {/* Mobile Indicator Scroll hint */}
-             <div className="md:hidden absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 pointer-events-none">
-                 <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+             <div className="md:hidden absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 pointer-events-none z-30">
+                 <div className="w-1.5 h-1.5 rounded-full bg-brand-gold" />
                  <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
                  <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
              </div>
