@@ -9,10 +9,10 @@ import { FilterPanel } from './components/FilterPanel';
 import { Footer } from './components/Footer';
 import { CompareBar } from './components/CompareBar';
 import { ComparatorModal } from './components/ComparatorModal';
-import { VIPPage } from './components/VIPPage'; // Import de la nouvelle page
+import { VIPPage } from './components/VIPPage'; 
 import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2, AlertCircle, Heart, ChevronLeft, LayoutList, Grid2x2, Grid3x3 } from 'lucide-react';
-import Fuse from 'fuse.js';
+import { fuzzySearch } from './utils/search';
 
 function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -239,8 +239,6 @@ ${carList}
 
   // --- FILTERING & GROUPING LOGIC ---
   
-  // ORDER PRESERVATION: Use 'Set' to keep insertion order from CSV (vehicles array)
-  // Do NOT use .sort() unless explicitly asked by user action
   const categories = useMemo(() => {
     const cats = new Set(vehicles.map(v => v.category));
     return ['All', ...Array.from(cats)];
@@ -266,17 +264,8 @@ ${carList}
     }
 
     if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      // FUZZY SEARCH IMPLEMENTATION
-      const fuse = new Fuse(result, {
-        keys: ['model', 'brand', 'category'],
-        threshold: 0.35, // Adjust sensitivity (0.0 = exact, 1.0 = match anything)
-        distance: 100,
-        ignoreLocation: true
-      });
-      
-      const fuseResults = fuse.search(searchQuery);
-      result = fuseResults.map(res => res.item);
+      // REPLACEMENT: Use local fuzzySearch instead of Fuse.js
+      result = fuzzySearch(result, searchQuery, ['model', 'brand', 'category']);
     }
 
     if (priceRange.min !== '') {
@@ -289,13 +278,10 @@ ${carList}
     }
 
     // Apply sorting
-    // NOTE: Fuse already returns sorted results by relevance. 
-    // We only apply other sorts if sortOption is NOT 'original' OR if searchQuery is empty.
-    // If searchQuery is active and sort is 'original', we prefer relevance.
     if (searchQuery === '' || sortOption !== 'original') {
         result.sort((a, b) => {
           switch (sortOption) {
-            case 'original': return a.originalIndex - b.originalIndex; // Preserves CSV Order
+            case 'original': return a.originalIndex - b.originalIndex; 
             case 'brand-asc': return a.brand.localeCompare(b.brand) || a.model.localeCompare(b.model);
             case 'price-asc': return a.priceValue - b.priceValue;
             case 'price-desc': return b.priceValue - a.priceValue;
@@ -307,8 +293,6 @@ ${carList}
     return result;
   }, [vehicles, activeCategories, selectedBrands, searchQuery, sortOption, priceRange, showFavoritesOnly, favorites, vipFilter]);
 
-  // Determine if we should show the "Grouped by Category" view (Scroll Spy compatible)
-  // Logic: Only group if using "Original" sort (which implies catalog order) AND NO FILTERS are active
   const isGroupedView = useMemo(() => {
       const isDefaultSort = sortOption === 'original';
       const noSearch = searchQuery === '';
@@ -327,7 +311,6 @@ ${carList}
              noVipFilter;
   }, [sortOption, searchQuery, activeCategories, selectedBrands, priceRange, showFavoritesOnly, vipFilter]);
 
-  // Group vehicles for rendering if isGroupedView is true
   const groupedVehicles = useMemo(() => {
       if (!isGroupedView) return null;
       
@@ -339,12 +322,9 @@ ${carList}
       return groups;
   }, [filteredVehicles, isGroupedView]);
 
-  // Available categories for Navigation (only those present in filtered results)
-  // CRITICAL: We filter the MASTER ordered 'categories' list to ensure the nav order matches the CSV order
   const visibleCategories = useMemo(() => {
       if (!isGroupedView || !groupedVehicles) return [];
       const presentCategories = new Set(Object.keys(groupedVehicles));
-      // Intersect master list with present list to keep master order
       return categories.filter(c => c !== 'All' && presentCategories.has(c));
   }, [categories, groupedVehicles, isGroupedView]);
 
@@ -364,12 +344,9 @@ ${carList}
     if (view === 'catalog') isFirstRender.current = false;
   }, [activeCategories, selectedBrands, searchQuery, sortOption, priceRange, showFavoritesOnly, view, vipFilter]);
 
-  // HELPER: Get Grid Classes based on mobile column count
   const getGridClasses = () => {
-      const base = "gap-3 md:gap-8 pb-4"; // Reduced gap for mobile
-      // Mobile classes:
+      const base = "gap-3 md:gap-8 pb-4";
       const mobile = mobileColCount === 1 ? 'grid-cols-1' : (mobileColCount === 2 ? 'grid-cols-2' : 'grid-cols-3');
-      
       return `grid ${mobile} md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 ${base}`;
   };
 
@@ -408,10 +385,8 @@ ${carList}
 
       <div className="relative z-10 flex flex-col min-h-screen">
         
-        {/* --- VIEW MANAGEMENT --- */}
         <AnimatePresence mode="wait">
           
-          {/* VUE: ACCUEIL */}
           {view === 'home' && (
             <motion.div 
                 key="home-view"
@@ -423,12 +398,11 @@ ${carList}
             >
                 <Hero 
                     onEnterCatalog={handleEnterCatalog} 
-                    onEnterVIP={handleEnterVIP} // Pass handler
+                    onEnterVIP={handleEnterVIP} 
                 />
             </motion.div>
           )}
 
-          {/* VUE: CATALOGUE */}
           {view === 'catalog' && (
             <motion.div 
                 key="catalog-view"
@@ -438,7 +412,6 @@ ${carList}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="w-full flex flex-col"
             >
-                {/* FLOATING HEADER */}
                 <header 
                     className="fixed top-0 left-0 w-full z-[100] pointer-events-none flex justify-between items-center px-4 py-3 md:px-8 md:py-6 bg-gradient-to-b from-black/95 via-black/80 to-transparent transition-all duration-300"
                     style={{ paddingRight: scrollbarWidth ? `${scrollbarWidth + (window.innerWidth >= 768 ? 32 : 16)}px` : undefined }}
@@ -454,7 +427,6 @@ ${carList}
                             <span className="text-[10px] uppercase tracking-[0.2em] font-bold mt-[1px] hidden md:inline ml-2">Accueil</span>
                         </button>
 
-                        {/* MOBILE GRID TOGGLE (Hidden on desktop) */}
                         <div className="flex md:hidden bg-black/60 backdrop-blur-xl border border-white/10 rounded-full p-1 gap-1 pointer-events-auto">
                              <button 
                                 onClick={() => setMobileColCount(1)}
@@ -486,10 +458,7 @@ ${carList}
                     </div>
                 </header>
 
-                {/* Main Content Area */}
                 <div className="min-h-screen">
-                    
-                    {/* FILTER PANEL */}
                     <FilterPanel 
                         categories={categories}
                         activeCategories={activeCategories}
@@ -513,16 +482,13 @@ ${carList}
                         onVipFilterChange={setVipFilter}
                     />
 
-                    {/* COMPARE BAR (Floating) */}
                     <CompareBar 
                         count={compareList.length} 
                         onOpenComparator={() => setIsComparatorOpen(true)} 
                         onClear={clearCompare}
                     />
 
-                    {/* Contenu principal */}
                     <main className="max-w-[1800px] mx-auto px-2 xs:px-4 md:px-6 py-12 pt-32 md:pt-48 pb-24">
-                        {/* ANCRE DE CATALOGUE */}
                         <div id="catalog-anchor" className="mb-8 md:mb-12 flex flex-col md:flex-row md:items-end justify-between border-b border-white/5 pb-4 mx-0 md:mx-4 scroll-mt-64">
                             <div>
                                 <motion.h2 
@@ -548,18 +514,14 @@ ${carList}
                             </div>
                         </div>
 
-                        {/* === RENDERING MODE: GROUPED BY CATEGORY OR FLAT GRID === */}
                         {isGroupedView && groupedVehicles ? (
                             <div className="space-y-16">
                                 {visibleCategories.map((cat) => {
                                     const count = groupedVehicles[cat].length;
-                                    
                                     return (
                                         <div key={cat} id={`cat-${cat}`} className="scroll-mt-32">
-                                            {/* STATIC HEADER (NON-COLLAPSIBLE) */}
                                             <div className="flex items-center gap-6 mb-8 select-none">
                                                 <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                                                
                                                 <div className="flex flex-col items-center">
                                                     <h3 className="text-2xl md:text-3xl font-serif text-brand-gold uppercase tracking-[0.15em] drop-shadow-sm">
                                                         {cat}
@@ -568,11 +530,9 @@ ${carList}
                                                         {count} VÉHICULE{count > 1 ? 'S' : ''}
                                                     </span>
                                                 </div>
-                                                
                                                 <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                                             </div>
 
-                                            {/* GRID CONTAINER */}
                                             <div className={getGridClasses()}>
                                                 {groupedVehicles[cat].map((vehicle, index) => (
                                                     <VehicleCard 
@@ -593,7 +553,6 @@ ${carList}
                                 })}
                             </div>
                         ) : (
-                            // FLAT GRID RENDER
                             <motion.div 
                                 layout
                                 className={getGridClasses()}
@@ -616,7 +575,6 @@ ${carList}
                             </motion.div>
                         )}
                         
-                        {/* EMPTY STATE */}
                         {filteredVehicles.length === 0 && (
                             <motion.div 
                                 initial={{ opacity: 0, scale: 0.95 }}
@@ -643,13 +601,11 @@ ${carList}
                         )}
 
                     </main>
-                    
                     <Footer />
                 </div>
             </motion.div>
           )}
 
-          {/* VUE: VIP PAGE */}
           {view === 'vip' && (
               <motion.div
                   key="vip-view"
@@ -657,7 +613,7 @@ ${carList}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 1.05 }}
                   transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                  className="w-full relative z-[200]" // Higher Z to cover everything
+                  className="w-full relative z-[200]" 
               >
                   <VIPPage onBack={handleExitVIP} />
               </motion.div>
@@ -665,7 +621,6 @@ ${carList}
 
         </AnimatePresence>
 
-        {/* --- MODAL VEHICULE (Only showing when not in VIP view or underneath) --- */}
         <AnimatePresence>
             {selectedVehicle && view !== 'vip' && (
                 <VehicleModal 
@@ -673,12 +628,11 @@ ${carList}
                     onClose={() => setSelectedVehicle(null)}
                     isFavorite={favorites.includes(selectedVehicle.id)}
                     onToggleFavorite={() => toggleFavorite(selectedVehicle.id)}
-                    onOpenVIP={handleEnterVIP} // Pass the handler
+                    onOpenVIP={handleEnterVIP} 
                 />
             )}
         </AnimatePresence>
 
-        {/* --- MODAL COMPARATEUR --- */}
         <AnimatePresence>
             {isComparatorOpen && view !== 'vip' && (
                 <ComparatorModal 
