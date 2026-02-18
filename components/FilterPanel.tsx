@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SortOption } from '../types';
@@ -685,3 +686,4 @@ const SortOptionItem: React.FC<SortOptionItemProps> = ({ label, active, onClick,
     {active && <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-brand-gold" />}
   </motion.button>
 );
+    
