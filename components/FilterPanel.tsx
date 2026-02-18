@@ -5,6 +5,7 @@ import {
   Search, X, SlidersHorizontal, ArrowUpDown, Building2, 
   Tag, DollarSign, Heart, ChevronDown, Check, Layers, Copy, Trash2, Crown
 } from 'lucide-react';
+import Fuse from 'fuse.js';
 
 interface FilterPanelProps {
   categories: string[];
@@ -47,6 +48,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   const [activeTab, setActiveTab] = useState<TabID>('categories');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
+  
+  // Specific Search for Brands Tab
+  const [brandSearchQuery, setBrandSearchQuery] = useState('');
   
   // New state for 2-step clear confirmation
   const [isClearConfirming, setIsClearConfirming] = useState(false);
@@ -101,9 +105,19 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     return categories.filter(c => c !== 'All');
   }, [categories]);
 
+  // FUZZY SEARCH FOR BRANDS FILTER
   const displayBrands = useMemo(() => {
-      return brands.filter(b => b !== 'All');
-  }, [brands]);
+      const allBrands = brands.filter(b => b !== 'All');
+      
+      if (!brandSearchQuery) return allBrands;
+
+      const fuse = new Fuse(allBrands, {
+          threshold: 0.35,
+          distance: 100
+      });
+      
+      return fuse.search(brandSearchQuery).map(res => res.item);
+  }, [brands, brandSearchQuery]);
 
   const handleShareClick = () => {
     if (onShare) {
@@ -180,10 +194,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           transition={{ type: "spring", stiffness: 120, damping: 20 }}
           className={`
             relative flex items-center justify-between p-1.5 sm:p-2 pl-4 sm:pl-5 pr-1.5 sm:pr-2
-            bg-[#050505]/95 backdrop-blur-xl border border-white/10 
+            bg-[#050505]/70 backdrop-blur-2xl border border-white/10 
             rounded-full shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)]
             transition-all duration-500 z-50
-            ${isExpanded ? 'border-brand-gold/30' : 'hover:border-white/20 hover:bg-[#0a0a0a]/90'}
+            ${isExpanded ? 'border-brand-gold/30 bg-[#050505]/95' : 'hover:border-white/20 hover:bg-[#0a0a0a]/80'}
           `}
         >
             {/* Zone Input Recherche */}
@@ -335,7 +349,30 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     {/* MARQUES */}
                     {activeTab === 'brands' && (
                       <div className="space-y-4 sm:space-y-6">
-                        <SectionHeader title="Constructeurs" subtitle="Sélectionnez vos marques favorites" />
+                        <div className="flex items-center justify-between mb-4">
+                            <SectionHeader title="Constructeurs" subtitle="Sélectionnez vos marques favorites" noMargin />
+                            
+                            {/* BRAND SEARCH INPUT (Fuzzy) */}
+                            <div className="relative group w-[180px] sm:w-[220px]">
+                                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-gold transition-colors" />
+                                <input 
+                                    type="text"
+                                    value={brandSearchQuery}
+                                    onChange={(e) => setBrandSearchQuery(e.target.value)}
+                                    placeholder="Rechercher marque..."
+                                    className="w-full bg-white/5 border border-white/5 rounded-full py-2 pl-9 pr-3 text-[10px] sm:text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-brand-gold/50 transition-all focus:bg-white/10"
+                                />
+                                {brandSearchQuery && (
+                                    <button 
+                                        onClick={() => setBrandSearchQuery('')}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                           <SelectionCard 
                             label="TOUT" 
@@ -579,9 +616,10 @@ interface SectionHeaderProps {
   title: string;
   subtitle: string;
   centered?: boolean;
+  noMargin?: boolean;
 }
-const SectionHeader: React.FC<SectionHeaderProps> = ({ title, subtitle, centered }) => (
-  <div className={`mb-4 sm:mb-6 ${centered ? 'text-center' : 'pl-4 border-l-2 border-brand-gold/30'}`}>
+const SectionHeader: React.FC<SectionHeaderProps> = ({ title, subtitle, centered, noMargin }) => (
+  <div className={`${noMargin ? '' : 'mb-4 sm:mb-6'} ${centered ? 'text-center' : 'pl-4 border-l-2 border-brand-gold/30'}`}>
     <h3 className="text-xs font-bold text-white uppercase tracking-[0.15em]">{title}</h3>
     <p className="text-[10px] text-slate-500 mt-1 font-medium tracking-wide">{subtitle}</p>
   </div>
