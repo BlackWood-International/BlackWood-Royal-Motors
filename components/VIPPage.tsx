@@ -1,10 +1,12 @@
-import React, { useState, useRef } from 'react';
+
+
+import React, { useState } from 'react';
 import { 
-  motion, AnimatePresence, Variants, useScroll, useTransform
+  motion, AnimatePresence, Variants
 } from 'framer-motion';
 import { 
   ArrowLeft, Crown, BookOpen, Key, Hash, Gavel, 
-  Flag, Globe, RefreshCw, Lightbulb, ChevronRight, CheckCircle2, Star, Sparkles, Fingerprint, X, Info, ArrowUpRight, ShieldCheck
+  Flag, Globe, RefreshCw, Lightbulb, CheckCircle2, Star, Sparkles, Fingerprint, X, Info, ArrowUpRight, ShieldCheck, ChevronRight
 } from 'lucide-react';
 
 interface VIPPageProps {
@@ -44,18 +46,18 @@ const staggerContainer: Variants = {
 // --- DATA ---
 const benefits = [
   { 
-    id: "01", icon: <BookOpen />, title: "Catalogue Souverain", short: "Véhicules rares et de prestige.",
+    id: "01", icon: <BookOpen />, title: "Catalogue Exclusif", short: "Véhicules rares et de prestige.",
     desc: "Accès à une sélection de véhicules rares et de prestige strictement réservés aux membres VIP, garantissant une exclusivité totale sur la route.",
     features: ["Sélection 'Off-Market'", "Exclusivité totale", "Prestige garanti"]
   },
   { 
-    id: "02", icon: <Key />, title: "Conduite sans Frais", short: "Essais libres de la gamme.",
+    id: "02", icon: <Key />, title: "Essais sans Frais", short: "Essais libres de la gamme.",
     desc: "Possibilité d'essayer librement et sans frais les derniers modèles routiers de la gamme, permettant de valider chaque acquisition dans des conditions réelles.",
     features: ["Essais illimités", "Aucuns frais de dossier", "Validation en conditions réelles"]
   },
   { 
-    id: "03", icon: <Hash />, title: "Signature de Prestige", short: "Plaque personnalisée offerte.",
-    desc: "Personnalisation de la plaque d'immatriculation offerte lors de l'achat, transformant le véhicule en une pièce unique dès sa sortie de concession.",
+    id: "03", icon: <Hash />, title: "Signature de Prestige", short: "Plaque personnalisée à l'achat.",
+    desc: "Personnalisation de la plaque d'immatriculation lors de l'achat, transformant le véhicule en une pièce unique dès sa sortie de concession.",
     features: ["Frais offerts", "Pièce unique", "Service immédiat à l'achat"]
   },
   { 
@@ -69,13 +71,13 @@ const benefits = [
     features: ["Essais privés sur circuit", "Encadrement pilote pro", "Accès Paddock"]
   },
   { 
-    id: "06", icon: <Globe />, title: "Priorité d'Importation", short: "Accès anticipé aux nouveautés.",
+    id: "06", icon: <Globe />, title: "Priorité d'accès aux Importation", short: "Accès anticipé aux nouveautés.",
     desc: "Accès anticipé aux nouvelles importations de véhicules (terrestres, maritimes ou aériens), permettant de posséder les dernières innovations avant leur déploiement général en Amérique du Nord.",
     features: ["Avant déploiement NA", "Imports Terrestres/Mer/Air", "Dernières innovations"]
   },
   { 
-    id: "07", icon: <RefreshCw />, title: "Sérénité Opérationnelle", short: "Mobilité ininterrompue.",
-    desc: "Mise à disposition systématique d'un véhicule de remplacement de gamme équivalente en cas d'entretien ou d'imprévu, assurant une mobilité ininterrompue.",
+    id: "07", icon: <RefreshCw />, title: "Véhicule de remplacement", short: "Mobilité ininterrompue.",
+    desc: "Mise à disposition sans frais temporaire d'un véhicule de remplacement de gamme équivalente en cas d'entretien, de vol ou d'imprévu, assurant une mobilité ininterrompue.",
     features: ["Véhicule de remplacement", "Gamme équivalente", "Service systématique"]
   },
   { 
@@ -125,16 +127,6 @@ const VIPCard = () => {
         <div className="absolute -top-[30%] -left-[30%] w-[80%] h-[80%] bg-[radial-gradient(circle,rgba(197,160,89,0.2)_0%,transparent_60%)] blur-[60px] pointer-events-none z-0 mix-blend-screen" />
         <div className="absolute -top-[20%] -left-[20%] w-[60%] h-[60%] bg-[radial-gradient(circle,rgba(255,255,255,0.08)_0%,transparent_70%)] blur-[40px] pointer-events-none z-0 mix-blend-overlay" />
         
-        {/* --- CENTRAL EMBOSSED LOGO --- */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-            <span 
-                className="font-serif text-[3.5rem] sm:text-[5rem] md:text-[6rem] font-medium leading-none tracking-tighter text-[#181818]"
-                style={{ textShadow: `-1px -1px 2px rgba(255,255,255,0.07), 1px  1px 2px rgba(0,0,0,0.9)` }}
-            >
-                BW.
-            </span>
-        </div>
-
         {/* --- CONTENT LAYER --- */}
         <div className="absolute inset-0 p-5 md:p-8 flex flex-col justify-between z-20">
           <div className="flex justify-between items-start">
@@ -164,6 +156,24 @@ const VIPCard = () => {
       </div>
     </div>
   );
+};
+
+// --- STATIC PARTNER LOGO COMPONENT (NO INTERACTION) ---
+const PartnerLogo = ({ partner }: { partner: typeof partners[0] }) => {
+    return (
+        <div 
+            // FIX: Added md:w-auto to prevent full width on desktop (which was causing stacking)
+            className="relative flex items-center justify-center group w-full md:w-auto h-16 md:h-20"
+        >
+            <img 
+               src={partner.img} 
+               alt={partner.name} 
+               // Adjusted size: max-h-10 on mobile for better proportion
+               className="max-h-10 md:max-h-16 w-auto object-contain transition-all duration-500 ease-out 
+                  grayscale opacity-30 group-hover:opacity-80 group-hover:grayscale-0 group-hover:scale-105" 
+            />
+        </div>
+    );
 };
 
 // --- MAIN PAGE ---
@@ -212,27 +222,18 @@ export const VIPPage: React.FC<VIPPageProps> = ({ onBack }) => {
         <div className="pt-24 md:pt-48 px-4 md:px-8 max-w-[1600px] mx-auto mb-20 md:mb-32">
             <div className="flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-16">
                 
-                {/* 1. Mobile: Card First (Visual Hook) / Desktop: Card Right (Symmetry) */}
-                <motion.div 
-                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                    // CORRECTION: Increased translate-x to better match reference screenshot
-                    className="w-full lg:w-1/2 flex justify-center lg:justify-end lg:order-2 lg:translate-x-28 xl:translate-x-40"
-                >
-                    <VIPCard />
-                </motion.div>
-
-                {/* 2. Text Content */}
+                {/* 1. TEXT CONTENT - Moved First in DOM for Mobile Title First */}
                 <motion.div 
                     initial="hidden"
                     animate="visible"
                     variants={staggerContainer}
-                    className="w-full lg:w-1/2 text-center lg:text-left z-10 lg:order-1"
+                    className="w-full lg:w-1/2 text-center lg:text-left z-10 order-1"
                 >
                     <motion.div variants={cardItemVariants} className="flex items-center justify-center lg:justify-start gap-4 mb-4 md:mb-6">
+                        {/* Symmetrical lines on mobile */}
                         <div className="h-[1px] w-8 md:w-12 bg-gradient-to-r from-transparent to-brand-gold" />
                         <span className="text-brand-gold text-[10px] md:text-xs font-bold uppercase tracking-[0.4em]">Membership</span>
+                        <div className="h-[1px] w-8 bg-gradient-to-l from-transparent to-brand-gold lg:hidden" />
                     </motion.div>
 
                     <div className="overflow-visible pb-2">
@@ -254,6 +255,18 @@ export const VIPPage: React.FC<VIPPageProps> = ({ onBack }) => {
                         Rejoindre le cercle Royal Elite, c'est transcender la simple possession automobile pour accéder à un art de vivre sans compromis. L'excellence n'est plus un but, c'est votre standard.
                     </motion.p>
                 </motion.div>
+
+                {/* 2. CARD - Moved Second in DOM for Mobile Flow (Title -> Card) */}
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ duration: 0.8 }}
+                    // Added mt-8 on mobile to separate from text
+                    className="w-full lg:w-1/2 flex justify-center lg:justify-end order-2 lg:translate-x-28 xl:translate-x-40 mt-8 lg:mt-0"
+                >
+                    <VIPCard />
+                </motion.div>
+
             </div>
         </div>
 
@@ -269,9 +282,7 @@ export const VIPPage: React.FC<VIPPageProps> = ({ onBack }) => {
                 <div className="w-16 md:w-24 h-1 bg-gradient-to-r from-transparent via-brand-gold/50 to-transparent mx-auto" />
             </motion.div>
 
-            {/* CONTAINER: Grid on Desktop, Horizontal Scroll Snap on Mobile 
-                FIX: Added vertical padding (py-10) to prevent clipping of hover effects.
-            */}
+            {/* CONTAINER: Grid on Desktop, Horizontal Scroll Snap on Mobile */}
             <motion.div 
                 variants={staggerContainer}
                 initial="hidden"
@@ -307,15 +318,13 @@ export const VIPPage: React.FC<VIPPageProps> = ({ onBack }) => {
                  <div className="w-16 md:w-24 h-0.5 bg-brand-gold/30 mx-auto" />
              </div>
 
-             <div className="grid grid-cols-2 md:flex md:flex-wrap justify-center items-center gap-8 md:gap-16 lg:gap-20 px-4">
+             {/* 
+                Mobile: Grid 2 cols with gap-8 for breathing room
+                Desktop: Flex Row (restored horizontal alignment via child w-auto)
+             */}
+             <div className="grid grid-cols-2 md:flex md:flex-wrap justify-center items-center gap-8 md:gap-16 lg:gap-20 px-4 max-w-6xl mx-auto">
                  {partners.map((p) => (
-                     <div key={p.name} className="flex justify-center group cursor-default transition-all duration-500">
-                         <img 
-                            src={p.img} 
-                            alt={p.name} 
-                            className="h-8 md:h-16 w-auto object-contain grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500 ease-out" 
-                         />
-                     </div>
+                     <PartnerLogo key={p.name} partner={p} />
                  ))}
              </div>
         </motion.div>
