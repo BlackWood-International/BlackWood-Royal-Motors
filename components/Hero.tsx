@@ -118,7 +118,8 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog, onEnterVIP }) => {
                {onEnterVIP && (
                    <button 
                       onClick={onEnterVIP}
-                      className="group relative w-full sm:w-auto min-w-[200px] h-14 md:h-16 rounded-full overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-95 border border-white/10 hover:border-brand-gold/50 bg-white/5 backdrop-blur-xl hover:bg-white/10 shadow-lg"
+                      // Added transform-gpu to fix blur rendering during opacity animation
+                      className="group relative w-full sm:w-auto min-w-[200px] h-14 md:h-16 rounded-full overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-95 border border-white/10 hover:border-brand-gold/50 bg-white/5 backdrop-blur-xl hover:bg-white/10 shadow-lg transform-gpu"
                    >
                       <div className="relative z-10 flex items-center justify-center gap-3 h-full px-8 md:px-12 text-slate-200 group-hover:text-brand-gold transition-colors">
                           <Crown className="w-4 h-4" />
