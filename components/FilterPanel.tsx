@@ -6,7 +6,7 @@ import {
   Search, X, SlidersHorizontal, ArrowUpDown, Building2, 
   Tag, DollarSign, Heart, ChevronDown, Check, Layers, Copy, Trash2, Crown
 } from 'lucide-react';
-import Fuse from 'fuse.js';
+import { fuzzySearch } from '../utils/search';
 
 interface FilterPanelProps {
   categories: string[];
@@ -45,23 +45,15 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   vipFilter, onVipFilterChange
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  // Default tab changed to 'categories' as per new order request
   const [activeTab, setActiveTab] = useState<TabID>('categories');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
-  
-  // Specific Search for Brands Tab
   const [brandSearchQuery, setBrandSearchQuery] = useState('');
-  
-  // New state for 2-step clear confirmation
   const [isClearConfirming, setIsClearConfirming] = useState(false);
-  
-  // Scroll Lock Width state
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
 
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // Fermeture au clic extérieur
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
@@ -72,7 +64,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // --- SCROLL LOCK LOGIC FOR FILTER PANEL ---
   useEffect(() => {
     if (isExpanded) {
         const width = window.innerWidth - document.documentElement.clientWidth;
@@ -90,8 +81,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     }
   }, [isExpanded]);
 
-
-  // Indicateur de filtre actif
   const isFilterActive = 
     (activeCategories.length > 0 && !activeCategories.includes('All')) || 
     (selectedBrands.length > 0 && !selectedBrands.includes('All')) || 
@@ -101,23 +90,21 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     showFavoritesOnly ||
     vipFilter !== 'all';
 
-  // Filtrage simple sans tri alphabétique (respect de l'ordre CSV)
   const displayCategories = useMemo(() => {
     return categories.filter(c => c !== 'All');
   }, [categories]);
 
-  // FUZZY SEARCH FOR BRANDS FILTER
+  // REPLACEMENT: Use local fuzzySearch
   const displayBrands = useMemo(() => {
       const allBrands = brands.filter(b => b !== 'All');
-      
       if (!brandSearchQuery) return allBrands;
-
-      const fuse = new Fuse(allBrands, {
-          threshold: 0.35,
-          distance: 100
-      });
-      
-      return fuse.search(brandSearchQuery).map(res => res.item);
+      // Note: fuzzySearch returns items[], so map logic is simplified
+      // Here we treat strings as objects with a property, or adapt fuzzySearch to handle strings
+      // Since fuzzySearch expects objects, we can map to objects or adapt fuzzySearch.
+      // Easiest is to map to objects for the search util.
+      const wrapper = allBrands.map(b => ({ val: b }));
+      const results = fuzzySearch(wrapper, brandSearchQuery, ['val']);
+      return results.map(r => r.val);
   }, [brands, brandSearchQuery]);
 
   const handleShareClick = () => {
@@ -142,9 +129,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     let newVal = current.filter(i => i !== 'All');
     
     if (newVal.includes(item)) {
-      newVal = newVal.filter(i => i !== item); // Deselect
+      newVal = newVal.filter(i => i !== item); 
     } else {
-      newVal.push(item); // Select
+      newVal.push(item); 
     }
     
     if (newVal.length === 0) newVal = ['All'];
@@ -160,7 +147,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     { id: 'favorites' as const, label: 'Favoris', icon: <Heart className="w-4 h-4" />, badge: favoritesCount > 0 ? favoritesCount : undefined },
   ];
 
-  // Budget Quick Presets
   const budgetPresets = [
     { label: "Entrée (< 50k)", min: "", max: "50000" },
     { label: "Sport (50k-300k)", min: "50000", max: "300000" },
@@ -184,10 +170,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(197,160,89,0.6); }
       `}</style>
 
-      {/* Conteneur Principal */}
       <div ref={panelRef} className="w-full max-w-3xl pointer-events-auto relative">
         
-        {/* BARRE FLOTTANTE */}
         <motion.div 
           layout
           initial={{ y: -50, opacity: 0 }}
@@ -201,7 +185,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             ${isExpanded ? 'border-brand-gold/30 bg-[#050505]/95' : 'hover:border-white/20 hover:bg-[#0a0a0a]/80'}
           `}
         >
-            {/* Zone Input Recherche */}
             <motion.div 
               className="flex-1 flex items-center gap-2 sm:gap-3 mr-2 group/search"
               layout
@@ -231,10 +214,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               </AnimatePresence>
             </motion.div>
 
-            {/* Séparateur */}
             <div className="w-[1px] h-6 bg-white/10 hidden sm:block mr-2" />
 
-            {/* Bouton Toggle Filtres */}
             <motion.button 
               layout
               whileHover={{ scale: 1.02 }}
@@ -270,7 +251,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             </motion.button>
         </motion.div>
 
-        {/* PANNEAU DÉROULANT */}
         <AnimatePresence>
           {isExpanded && (
             <motion.div
@@ -280,7 +260,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               transition={{ type: "spring", stiffness: 180, damping: 25 }}
               className="absolute top-full left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-[2rem] sm:rounded-[3rem] overflow-hidden shadow-2xl z-40 flex flex-col max-h-[75vh] sm:max-h-[75vh] mx-0"
             >
-              {/* Onglets */}
               <div className="p-2 sm:p-3 border-b border-white/5 bg-[#050505]/50">
                 <div className="grid grid-cols-6 gap-1 sm:gap-2">
                   {tabs.map((tab) => {
@@ -313,7 +292,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 </div>
               </div>
 
-              {/* Contenu */}
               <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar bg-[#0a0a0a] min-h-[300px]">
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -324,7 +302,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     transition={{ duration: 0.25, ease: "easeOut" }}
                     className="h-full pb-8"
                   >
-                    {/* CATÉGORIES */}
                     {activeTab === 'categories' && (
                       <div className="space-y-4 sm:space-y-6">
                          <SectionHeader title="Catégories Officielles" subtitle="Classification BlackWood" />
@@ -347,13 +324,11 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       </div>
                     )}
                     
-                    {/* MARQUES */}
                     {activeTab === 'brands' && (
                       <div className="space-y-4 sm:space-y-6">
                         <div className="flex items-center justify-between mb-4">
                             <SectionHeader title="Constructeurs" subtitle="Sélectionnez vos marques favorites" noMargin />
                             
-                            {/* BRAND SEARCH INPUT (Fuzzy) */}
                             <div className="relative group w-[180px] sm:w-[220px]">
                                 <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-gold transition-colors" />
                                 <input 
@@ -393,7 +368,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       </div>
                     )}
 
-                    {/* BUDGET (REWORKED) */}
                     {activeTab === 'budget' && (
                       <div className="space-y-6 sm:space-y-8 py-2 px-1 flex flex-col items-center max-w-2xl mx-auto">
                         
@@ -463,7 +437,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       </div>
                     )}
                     
-                    {/* TRI (Moved before VIP) */}
                     {activeTab === 'sort' && (
                       <div className="space-y-6 max-w-md mx-auto">
                         <SectionHeader title="Ordre d'affichage" subtitle="Organiser la collection" centered />
@@ -476,7 +449,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       </div>
                     )}
 
-                    {/* VIP FILTERS */}
                     {activeTab === 'vip' && (
                         <div className="space-y-6 max-w-md mx-auto">
                             <SectionHeader title="Collection VIP" subtitle="Gérer l'affichage des véhicules exclusifs" centered />
@@ -501,7 +473,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                         </div>
                     )}
 
-                    {/* FAVORIS */}
                     {activeTab === 'favorites' && (
                       <div className="flex flex-col items-center justify-center h-full py-8 text-center">
                          <motion.div 
@@ -590,7 +561,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 </AnimatePresence>
               </div>
 
-              {/* Footer */}
               <div className="px-6 sm:px-8 py-4 sm:py-5 border-t border-white/5 bg-[#050505] flex justify-between items-center rounded-b-[2rem] sm:rounded-b-[3rem]">
                  <button 
                     onClick={onReset}
@@ -612,7 +582,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   );
 };
 
-// UI Components
 interface SectionHeaderProps {
   title: string;
   subtitle: string;
@@ -675,7 +644,6 @@ const SortOptionItem: React.FC<SortOptionItemProps> = ({ label, active, onClick,
     whileHover={{ x: 4 }}
     transition={{ type: "spring", stiffness: 400, damping: 17 }}
     onClick={onClick}
-    // Optimization: Removed transition-all, switched to transition-colors to fix hover lag with framer motion x
     className={`w-full flex items-center justify-between p-3 sm:p-4 rounded-[1.2rem] sm:rounded-[1.5rem] border transition-colors duration-200 ${
       active 
       ? 'bg-brand-gold/10 border-brand-gold shadow-[0_0_15px_-5px_rgba(197,160,89,0.2)]' 
@@ -686,4 +654,3 @@ const SortOptionItem: React.FC<SortOptionItemProps> = ({ label, active, onClick,
     {active && <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-brand-gold" />}
   </motion.button>
 );
-    
