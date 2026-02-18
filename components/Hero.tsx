@@ -89,7 +89,8 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog, onEnterVIP }) => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-                className="text-[2rem] xs:text-[2.5rem] sm:text-5xl md:text-8xl lg:text-[7.5rem] leading-[1.1] md:leading-[0.9] font-serif italic text-transparent bg-clip-text bg-gradient-to-b from-[#C5A059] via-[#E5C585] to-[#8A703E] tracking-tight pb-2"
+                // AJUSTEMENT: pb-6 au lieu de pb-2 pour éviter de couper le 'y' et les italiques
+                className="text-[2rem] xs:text-[2.5rem] sm:text-5xl md:text-8xl lg:text-[7.5rem] leading-[1.1] md:leading-[0.9] font-serif italic text-transparent bg-clip-text bg-gradient-to-b from-[#C5A059] via-[#E5C585] to-[#8A703E] tracking-tight pb-6"
               >
                 Royal Motors
               </motion.h1>
@@ -118,7 +119,12 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog, onEnterVIP }) => {
                {onEnterVIP && (
                    <button 
                       onClick={onEnterVIP}
-                      // Added transform-gpu to fix blur rendering during opacity animation
+                      // FIX BLUR: Ajout de will-change-transform et backface-visibility pour forcer le rendu GPU du flou
+                      style={{ 
+                        WebkitBackfaceVisibility: 'hidden', 
+                        backfaceVisibility: 'hidden',
+                        willChange: 'transform'
+                      }}
                       className="group relative w-full sm:w-auto min-w-[200px] h-14 md:h-16 rounded-full overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-95 border border-white/10 hover:border-brand-gold/50 bg-white/5 backdrop-blur-xl hover:bg-white/10 shadow-lg transform-gpu"
                    >
                       <div className="relative z-10 flex items-center justify-center gap-3 h-full px-8 md:px-12 text-slate-200 group-hover:text-brand-gold transition-colors">
@@ -140,7 +146,8 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog, onEnterVIP }) => {
             >
                 {/* Feature 1 */}
                 <div className="flex flex-col md:flex-row items-center gap-2 group cursor-default">
-                    <div className="p-1.5 md:p-2 rounded-full bg-white/5 border border-white/10 text-brand-gold/60 group-hover:text-brand-gold group-hover:bg-brand-gold/10 group-hover:border-brand-gold/30 transition-all duration-500 backdrop-blur-md">
+                    {/* CENTRAGE FIX: Utilisation de Flex + Dimensions fixes (w-8/w-10) au lieu de padding simple */}
+                    <div className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-brand-gold/60 group-hover:text-brand-gold group-hover:bg-brand-gold/10 group-hover:border-brand-gold/30 transition-all duration-500 backdrop-blur-md">
                         <Star className="w-3 h-3 md:w-4 md:h-4" />
                     </div>
                     <span className="text-[8px] md:text-[10px] font-bold uppercase tracking-[0.15em] md:tracking-[0.25em] text-slate-500 group-hover:text-slate-300 transition-colors text-center">
@@ -153,7 +160,7 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog, onEnterVIP }) => {
 
                 {/* Feature 2 */}
                 <div className="flex flex-col md:flex-row items-center gap-2 group cursor-default">
-                    <div className="p-1.5 md:p-2 rounded-full bg-white/5 border border-white/10 text-brand-gold/60 group-hover:text-brand-gold group-hover:bg-brand-gold/10 group-hover:border-brand-gold/30 transition-all duration-500 backdrop-blur-md">
+                    <div className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-brand-gold/60 group-hover:text-brand-gold group-hover:bg-brand-gold/10 group-hover:border-brand-gold/30 transition-all duration-500 backdrop-blur-md">
                         <ShieldCheck className="w-3 h-3 md:w-4 md:h-4" />
                     </div>
                     <span className="text-[8px] md:text-[10px] font-bold uppercase tracking-[0.15em] md:tracking-[0.25em] text-slate-500 group-hover:text-slate-300 transition-colors text-center">
@@ -166,7 +173,7 @@ export const Hero: React.FC<HeroProps> = ({ onEnterCatalog, onEnterVIP }) => {
 
                 {/* Feature 3 */}
                 <div className="flex flex-col md:flex-row items-center gap-2 group cursor-default">
-                    <div className="p-1.5 md:p-2 rounded-full bg-white/5 border border-white/10 text-brand-gold/60 group-hover:text-brand-gold group-hover:bg-brand-gold/10 group-hover:border-brand-gold/30 transition-all duration-500 backdrop-blur-md">
+                    <div className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-brand-gold/60 group-hover:text-brand-gold group-hover:bg-brand-gold/10 group-hover:border-brand-gold/30 transition-all duration-500 backdrop-blur-md">
                         <Globe className="w-3 h-3 md:w-4 md:h-4" />
                     </div>
                     <span className="text-[8px] md:text-[10px] font-bold uppercase tracking-[0.15em] md:tracking-[0.25em] text-slate-500 group-hover:text-slate-300 transition-colors text-center">
