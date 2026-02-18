@@ -366,7 +366,7 @@ ${carList}
 
   // HELPER: Get Grid Classes based on mobile column count
   const getGridClasses = () => {
-      const base = "gap-4 md:gap-8 pb-4";
+      const base = "gap-3 md:gap-8 pb-4"; // Reduced gap for mobile
       // Mobile classes:
       const mobile = mobileColCount === 1 ? 'grid-cols-1' : (mobileColCount === 2 ? 'grid-cols-2' : 'grid-cols-3');
       
@@ -521,7 +521,7 @@ ${carList}
                     />
 
                     {/* Contenu principal */}
-                    <main className="max-w-[1800px] mx-auto px-4 md:px-6 py-12 pt-32 md:pt-48 pb-24">
+                    <main className="max-w-[1800px] mx-auto px-2 xs:px-4 md:px-6 py-12 pt-32 md:pt-48 pb-24">
                         {/* ANCRE DE CATALOGUE */}
                         <div id="catalog-anchor" className="mb-8 md:mb-12 flex flex-col md:flex-row md:items-end justify-between border-b border-white/5 pb-4 mx-0 md:mx-4 scroll-mt-64">
                             <div>
@@ -584,6 +584,7 @@ ${carList}
                                                         onToggleFavorite={() => toggleFavorite(vehicle.id)}
                                                         isComparing={compareList.includes(vehicle.id)}
                                                         onToggleCompare={() => toggleCompare(vehicle.id)}
+                                                        mobileLayout={mobileColCount}
                                                     />
                                                 ))}
                                             </div>
@@ -608,6 +609,7 @@ ${carList}
                                             onToggleFavorite={() => toggleFavorite(vehicle.id)}
                                             isComparing={compareList.includes(vehicle.id)}
                                             onToggleCompare={() => toggleCompare(vehicle.id)}
+                                            mobileLayout={mobileColCount}
                                         />
                                     ))}
                                 </AnimatePresence>
@@ -695,4 +697,3 @@ ${carList}
 }
 
 export default App;
-    
