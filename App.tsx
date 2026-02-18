@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { fetchCatalog } from './services/dataService';
 import { Vehicle, SortOption } from './types';
@@ -11,7 +10,8 @@ import { CompareBar } from './components/CompareBar';
 import { ComparatorModal } from './components/ComparatorModal';
 import { VIPPage } from './components/VIPPage'; // Import de la nouvelle page
 import { AnimatePresence, motion } from 'framer-motion';
-import { Loader2, AlertCircle, Heart, ChevronLeft } from 'lucide-react';
+import { Loader2, AlertCircle, Heart, ChevronLeft, LayoutList, Grid2x2, Grid3x3 } from 'lucide-react';
+import Fuse from 'fuse.js';
 
 function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -30,6 +30,9 @@ function App() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [priceRange, setPriceRange] = useState<{min: string, max: string}>({ min: '', max: '' });
   const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(false);
+  
+  // Mobile Grid State
+  const [mobileColCount, setMobileColCount] = useState<1 | 2 | 3>(1);
   
   // VIP Filter State ('all' | 'only-vip' | 'no-vip')
   const [vipFilter, setVipFilter] = useState<'all' | 'only-vip' | 'no-vip'>('all');
@@ -263,7 +266,16 @@ ${carList}
 
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
-      result = result.filter(v => v.model.toLowerCase().includes(q) || v.brand.toLowerCase().includes(q));
+      // FUZZY SEARCH IMPLEMENTATION
+      const fuse = new Fuse(result, {
+        keys: ['model', 'brand', 'category'],
+        threshold: 0.35, // Adjust sensitivity (0.0 = exact, 1.0 = match anything)
+        distance: 100,
+        ignoreLocation: true
+      });
+      
+      const fuseResults = fuse.search(searchQuery);
+      result = fuseResults.map(res => res.item);
     }
 
     if (priceRange.min !== '') {
@@ -276,16 +288,21 @@ ${carList}
     }
 
     // Apply sorting
-    result.sort((a, b) => {
-      switch (sortOption) {
-        case 'original': return a.originalIndex - b.originalIndex; // Preserves CSV Order
-        case 'brand-asc': return a.brand.localeCompare(b.brand) || a.model.localeCompare(b.model);
-        case 'price-asc': return a.priceValue - b.priceValue;
-        case 'price-desc': return b.priceValue - a.priceValue;
-        case 'name-asc': return a.model.localeCompare(b.model);
-        default: return 0;
-      }
-    });
+    // NOTE: Fuse already returns sorted results by relevance. 
+    // We only apply other sorts if sortOption is NOT 'original' OR if searchQuery is empty.
+    // If searchQuery is active and sort is 'original', we prefer relevance.
+    if (searchQuery === '' || sortOption !== 'original') {
+        result.sort((a, b) => {
+          switch (sortOption) {
+            case 'original': return a.originalIndex - b.originalIndex; // Preserves CSV Order
+            case 'brand-asc': return a.brand.localeCompare(b.brand) || a.model.localeCompare(b.model);
+            case 'price-asc': return a.priceValue - b.priceValue;
+            case 'price-desc': return b.priceValue - a.priceValue;
+            case 'name-asc': return a.model.localeCompare(b.model);
+            default: return 0;
+          }
+        });
+    }
     return result;
   }, [vehicles, activeCategories, selectedBrands, searchQuery, sortOption, priceRange, showFavoritesOnly, favorites, vipFilter]);
 
@@ -345,6 +362,15 @@ ${carList}
     }
     if (view === 'catalog') isFirstRender.current = false;
   }, [activeCategories, selectedBrands, searchQuery, sortOption, priceRange, showFavoritesOnly, view, vipFilter]);
+
+  // HELPER: Get Grid Classes based on mobile column count
+  const getGridClasses = () => {
+      const base = "gap-4 md:gap-8 pb-4";
+      // Mobile classes:
+      const mobile = mobileColCount === 1 ? 'grid-cols-1' : (mobileColCount === 2 ? 'grid-cols-2' : 'grid-cols-3');
+      
+      return `grid ${mobile} md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 ${base}`;
+  };
 
   // --- RENDER HELPERS ---
   if (loading) {
@@ -416,15 +442,39 @@ ${carList}
                     className="fixed top-0 left-0 w-full z-[100] pointer-events-none flex justify-between items-center px-4 py-3 md:px-8 md:py-6 bg-gradient-to-b from-black/95 via-black/80 to-transparent transition-all duration-300"
                     style={{ paddingRight: scrollbarWidth ? `${scrollbarWidth + (window.innerWidth >= 768 ? 32 : 16)}px` : undefined }}
                 >
-                    <button 
-                        onClick={handleReturnHome}
-                        className="pointer-events-auto flex items-center gap-2 pl-2 pr-4 py-2 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 text-[10px] uppercase tracking-[0.2em] font-bold text-slate-300 hover:text-white hover:border-brand-gold/50 hover:bg-black/80 transition-all group shadow-lg active:scale-95"
-                    >
-                        <div className="p-1.5 rounded-full bg-white/5 group-hover:bg-brand-gold group-hover:text-black transition-colors">
-                            <ChevronLeft className="w-3.5 h-3.5" />
+                    <div className="flex items-center gap-2 md:gap-4 pointer-events-auto">
+                        <button 
+                            onClick={handleReturnHome}
+                            className="flex items-center justify-center w-10 h-10 p-0 md:w-auto md:h-auto md:py-2 md:pl-2 md:pr-4 rounded-full bg-black/60 backdrop-blur-xl border border-white/10 text-slate-300 hover:text-white hover:border-brand-gold/50 hover:bg-black/80 transition-all group shadow-lg active:scale-95"
+                        >
+                            <div className="p-1.5 rounded-full bg-white/5 group-hover:bg-brand-gold group-hover:text-black transition-colors flex items-center justify-center">
+                                <ChevronLeft className="w-3.5 h-3.5" />
+                            </div>
+                            <span className="text-[10px] uppercase tracking-[0.2em] font-bold mt-[1px] hidden md:inline ml-2">Accueil</span>
+                        </button>
+
+                        {/* MOBILE GRID TOGGLE (Hidden on desktop) */}
+                        <div className="flex md:hidden bg-black/60 backdrop-blur-xl border border-white/10 rounded-full p-1 gap-1 pointer-events-auto">
+                             <button 
+                                onClick={() => setMobileColCount(1)}
+                                className={`w-8 h-8 flex items-center justify-center rounded-full transition-all ${mobileColCount === 1 ? 'bg-brand-gold text-black' : 'text-slate-400 hover:text-white'}`}
+                             >
+                                <LayoutList className="w-4 h-4" />
+                             </button>
+                             <button 
+                                onClick={() => setMobileColCount(2)}
+                                className={`w-8 h-8 flex items-center justify-center rounded-full transition-all ${mobileColCount === 2 ? 'bg-brand-gold text-black' : 'text-slate-400 hover:text-white'}`}
+                             >
+                                <Grid2x2 className="w-4 h-4" />
+                             </button>
+                             <button 
+                                onClick={() => setMobileColCount(3)}
+                                className={`w-8 h-8 flex items-center justify-center rounded-full transition-all ${mobileColCount === 3 ? 'bg-brand-gold text-black' : 'text-slate-400 hover:text-white'}`}
+                             >
+                                <Grid3x3 className="w-4 h-4" />
+                             </button>
                         </div>
-                        <span className="mt-[1px] hidden sm:inline">Accueil</span>
-                    </button>
+                    </div>
 
                     <div className="pointer-events-auto hover:opacity-100 transition-opacity">
                          <img 
@@ -522,7 +572,7 @@ ${carList}
                                             </div>
 
                                             {/* GRID CONTAINER */}
-                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 md:gap-8 pb-4">
+                                            <div className={getGridClasses()}>
                                                 {groupedVehicles[cat].map((vehicle, index) => (
                                                     <VehicleCard 
                                                         key={vehicle.id} 
@@ -544,7 +594,7 @@ ${carList}
                             // FLAT GRID RENDER
                             <motion.div 
                                 layout
-                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 md:gap-8"
+                                className={getGridClasses()}
                             >
                                 <AnimatePresence mode='popLayout'>
                                     {filteredVehicles.map((vehicle, index) => (
