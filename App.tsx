@@ -11,7 +11,7 @@ import { CompareBar } from './components/CompareBar';
 import { ComparatorModal } from './components/ComparatorModal';
 import { VIPPage } from './components/VIPPage'; 
 import { AnimatePresence, motion } from 'framer-motion';
-import { Loader2, AlertCircle, Heart, ChevronLeft, LayoutList, Grid2x2, Grid3x3 } from 'lucide-react';
+import { Loader2, AlertCircle, Heart, ChevronLeft, LayoutList, Grid2x2, Grid3x3, ChevronDown } from 'lucide-react';
 import { fuzzySearch } from './utils/search';
 
 function App() {
@@ -31,6 +31,9 @@ function App() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [priceRange, setPriceRange] = useState<{min: string, max: string}>({ min: '', max: '' });
   const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(false);
+  
+  // Pagination State - Initialisé à 50
+  const [visibleCount, setVisibleCount] = useState<number>(50);
   
   // Mobile Grid State
   const [mobileColCount, setMobileColCount] = useState<1 | 2 | 3>(1);
@@ -235,6 +238,7 @@ ${carList}
     setPriceRange({ min: '', max: '' });
     setShowFavoritesOnly(false);
     setVipFilter('all');
+    setVisibleCount(50); // Reset to 50
   };
 
   // --- FILTERING & GROUPING LOGIC ---
@@ -248,6 +252,11 @@ ${carList}
     const b = new Set(vehicles.map(v => v.brand));
     return ['All', ...Array.from(b)];
   }, [vehicles]);
+
+  // Reset pagination when any filter changes
+  useEffect(() => {
+    setVisibleCount(50); // Reset to 50
+  }, [activeCategories, selectedBrands, searchQuery, sortOption, priceRange, showFavoritesOnly, vipFilter]);
 
   const filteredVehicles = useMemo(() => {
     let result = [...vehicles];
@@ -293,6 +302,11 @@ ${carList}
     return result;
   }, [vehicles, activeCategories, selectedBrands, searchQuery, sortOption, priceRange, showFavoritesOnly, favorites, vipFilter]);
 
+  // Apply Pagination Slice
+  const displayedVehicles = useMemo(() => {
+      return filteredVehicles.slice(0, visibleCount);
+  }, [filteredVehicles, visibleCount]);
+
   const isGroupedView = useMemo(() => {
       const isDefaultSort = sortOption === 'original';
       const noSearch = searchQuery === '';
@@ -315,12 +329,13 @@ ${carList}
       if (!isGroupedView) return null;
       
       const groups: Record<string, Vehicle[]> = {};
-      filteredVehicles.forEach(v => {
+      // Use displayedVehicles instead of filteredVehicles to respect pagination
+      displayedVehicles.forEach(v => {
           if (!groups[v.category]) groups[v.category] = [];
           groups[v.category].push(v);
       });
       return groups;
-  }, [filteredVehicles, isGroupedView]);
+  }, [displayedVehicles, isGroupedView]);
 
   const visibleCategories = useMemo(() => {
       if (!isGroupedView || !groupedVehicles) return [];
@@ -558,7 +573,7 @@ ${carList}
                                 className={getGridClasses()}
                             >
                                 <AnimatePresence mode='popLayout'>
-                                    {filteredVehicles.map((vehicle, index) => (
+                                    {displayedVehicles.map((vehicle, index) => (
                                         <VehicleCard 
                                             key={vehicle.id} 
                                             vehicle={vehicle} 
@@ -594,9 +609,27 @@ ${carList}
                             </motion.div>
                         )}
 
-                        {filteredVehicles.length > 0 && (
-                           <div className="mt-20 flex justify-center opacity-30">
-                              <div className="w-24 h-1 bg-gradient-to-r from-transparent via-brand-gold to-transparent" />
+                        {/* LOAD MORE BUTTON */}
+                        {visibleCount < filteredVehicles.length && (
+                             <div className="mt-16 flex flex-col items-center justify-center gap-4">
+                                <button
+                                    onClick={() => setVisibleCount(filteredVehicles.length)}
+                                    className="group relative px-8 py-4 bg-[#0a0a0a] hover:bg-brand-gold text-slate-300 hover:text-black rounded-full border border-white/10 hover:border-brand-gold transition-all duration-300 flex items-center gap-4 shadow-lg active:scale-95"
+                                >
+                                    <span className="text-[10px] uppercase tracking-[0.2em] font-bold">Afficher le reste</span>
+                                    <span className="text-[9px] font-mono opacity-60 bg-white/10 group-hover:bg-black/10 px-2 py-0.5 rounded">
+                                        {Math.min(visibleCount, filteredVehicles.length)} / {filteredVehicles.length}
+                                    </span>
+                                    <ChevronDown className="w-4 h-4 animate-bounce group-hover:animate-none" />
+                                </button>
+                                <div className="text-[9px] uppercase tracking-widest text-slate-600">Chargement du catalogue complet</div>
+                             </div>
+                        )}
+
+                        {visibleCount >= filteredVehicles.length && filteredVehicles.length > 0 && (
+                           <div className="mt-20 flex flex-col items-center justify-center opacity-30">
+                              <div className="w-24 h-1 bg-gradient-to-r from-transparent via-brand-gold to-transparent mb-2" />
+                              <span className="text-[8px] uppercase tracking-[0.3em] font-mono">Fin du catalogue</span>
                            </div>
                         )}
 
