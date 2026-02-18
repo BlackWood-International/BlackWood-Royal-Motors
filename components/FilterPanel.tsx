@@ -50,7 +50,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   const [showCopied, setShowCopied] = useState(false);
   const [brandSearchQuery, setBrandSearchQuery] = useState('');
   const [isClearConfirming, setIsClearConfirming] = useState(false);
-  const [scrollbarWidth, setScrollbarWidth] = useState(0);
 
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -63,23 +62,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  useEffect(() => {
-    if (isExpanded) {
-        const width = window.innerWidth - document.documentElement.clientWidth;
-        setScrollbarWidth(width);
-        document.body.style.overflow = 'hidden';
-        document.body.style.paddingRight = `${width}px`;
-    } else {
-        setScrollbarWidth(0);
-        document.body.style.overflow = '';
-        document.body.style.paddingRight = '';
-    }
-    return () => {
-        document.body.style.overflow = '';
-        document.body.style.paddingRight = '';
-    }
-  }, [isExpanded]);
 
   const isFilterActive = 
     (activeCategories.length > 0 && !activeCategories.includes('All')) || 
@@ -157,7 +139,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   return (
     <div 
         className="fixed top-[4rem] sm:top-[4.5rem] md:top-24 left-0 right-0 z-[90] w-full flex justify-center pointer-events-none transition-all duration-300"
-        style={{ paddingRight: scrollbarWidth ? `${scrollbarWidth}px` : undefined }}
     >
       <div className="w-full px-2 sm:px-4 flex justify-center">
       
