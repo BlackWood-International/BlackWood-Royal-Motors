@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Star, ShieldCheck, Globe, Crown, ChevronRight } from 'lucide-react';
