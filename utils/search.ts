@@ -37,47 +37,89 @@ function levenshtein(a: string, b: string): number {
 }
 
 /**
- * Recherche floue générique.
- * @param items Liste des objets à chercher
- * @param query Terme de recherche
- * @param keys Clés de l'objet sur lesquelles effectuer la recherche
- * @param threshold Seuil de tolérance (0.0 à 1.0, 1.0 = match parfait). Par défaut 0.4 (assez tolérant).
+ * Recherche floue et exacte combinée (Tokenized).
+ * Sépare la recherche par mots (tokens) pour gérer l'ordre "Marque Modèle" vs "Modèle Marque".
+ * Priorise d'abord les correspondances strictes (tous les mots inclus).
+ * Ne bascule sur la tolérance d'erreur (Levenshtein) que si aucun match exact n'est trouvé.
  */
-export function fuzzySearch<T>(items: T[], query: string, keys: (keyof T)[], threshold: number = 0.4): T[] {
+export function fuzzySearch<T>(items: T[], query: string, keys: (keyof T)[], threshold: number = 0.5): T[] {
   if (!query || query.trim() === '') return items;
   
   const lowerQuery = query.toLowerCase().trim();
+  const queryTerms = lowerQuery.split(/\s+/).filter(t => t.length > 0);
 
-  // On map chaque item avec un score
-  const results = items.map(item => {
-    let bestScore = 0;
+  const strictMatches: { item: T, score: number }[] = [];
+  const fuzzyMatches: { item: T, score: number }[] = [];
 
-    for (const key of keys) {
-      const value = String(item[key] || '').toLowerCase();
-      
-      // 1. Inclusion directe (Priorité maximale)
-      if (value.includes(lowerQuery)) {
-        // Score basé sur la longueur : plus le match est précis par rapport à la longueur totale, meilleur est le score.
-        // ex: query="pan" dans "panto" (score haut) vs "pan" dans "panzerkampfwagen" (score plus bas)
-        const score = 0.8 + (0.2 * (lowerQuery.length / value.length));
-        if (score > bestScore) bestScore = score;
-        continue;
-      }
+  for (const item of items) {
+    // Combiner les champs pour la recherche globale
+    const combinedValue = keys.map(k => String(item[k] || '')).join(' ').toLowerCase();
 
-      // 2. Distance de Levenshtein (Tolérance aux fautes)
-      const dist = levenshtein(value, lowerQuery);
-      const maxLength = Math.max(value.length, lowerQuery.length);
-      const similarity = 1 - (dist / maxLength); // 1 = identique, 0 = totalement différent
-
-      if (similarity > bestScore) bestScore = similarity;
+    // 1. MATCH STRICT : Vérifier si TOUS les mots tapés sont présents dans l'élément
+    let allTermsMatch = true;
+    for (const term of queryTerms) {
+        if (!combinedValue.includes(term)) {
+            allTermsMatch = false;
+            break;
+        }
     }
 
-    return { item, score: bestScore };
-  });
+    if (allTermsMatch) {
+        // Bonus pour récompenser les correspondances très précises
+        let strictScore = 100;
+        if (combinedValue.includes(lowerQuery)) strictScore += 50;
+        // Moins l'élément contient de texte superflu, meilleur est le score (Deity > Deity Custom)
+        strictScore -= combinedValue.length * 0.1; 
+        
+        strictMatches.push({ item, score: strictScore });
+        continue; // Pas besoin de calculer le flou pour ce véhicule
+    }
 
-  // Filtrage par seuil et tri par pertinence
-  return results
-    .filter(result => result.score >= threshold)
+    // 2. MATCH FLOU : Moyenne de similarité pour chaque mot de la requête
+    let totalFuzzyScore = 0;
+
+    for (const term of queryTerms) {
+        let bestTermSim = 0;
+        
+        for (const key of keys) {
+            const value = String(item[key] || '').toLowerCase();
+            
+            // Compare avec la valeur complète du champ
+            let dist = levenshtein(value, term);
+            let maxLen = Math.max(value.length, term.length);
+            let sim = 1 - (dist / maxLen);
+            if (sim > bestTermSim) bestTermSim = sim;
+            
+            // Compare mot à mot dans la valeur (ex: "Deity" dans "Enus Deity")
+            const valueWords = value.split(/\s+/);
+            for (const vw of valueWords) {
+                let wDist = levenshtein(vw, term);
+                let wMaxLen = Math.max(vw.length, term.length);
+                let wSim = 1 - (wDist / wMaxLen);
+                if (wSim > bestTermSim) bestTermSim = wSim;
+            }
+        }
+        totalFuzzyScore += bestTermSim;
+    }
+
+    const avgFuzzyScore = totalFuzzyScore / queryTerms.length;
+
+    // Ajout si la moyenne de similarité dépasse le seuil
+    if (avgFuzzyScore >= threshold) {
+        fuzzyMatches.push({ item, score: avgFuzzyScore });
+    }
+  }
+
+  // RÈGLE D'OR : S'il y a des correspondances exactes, on ignore totalement les correspondances floues.
+  // Cela empêche "Enus Deity" d'afficher toutes les "Enus" juste parce que le mot Enus est commun.
+  if (strictMatches.length > 0) {
+     return strictMatches
+        .sort((a, b) => b.score - a.score)
+        .map(m => m.item);
+  }
+
+  // Sinon (faute de frappe), on affiche les résultats flous
+  return fuzzyMatches
     .sort((a, b) => b.score - a.score)
-    .map(result => result.item);
+    .map(m => m.item);
 }
